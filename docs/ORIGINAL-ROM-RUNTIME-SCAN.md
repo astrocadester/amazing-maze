@@ -19,7 +19,7 @@ Run `node tools/scan-runtime.mjs` to extract both ROMs, validate CRC32 and SHA-1
 |---|---|---|
 | Reset | `$0000` | `NOP; NOP; LXI SP,$2400; JMP $0017` |
 | `$0008` entry | `$0008` | `PUSH PSW; PUSH B; PUSH D; PUSH H; JMP $030B` — interrupt/service prologue, **not TERSE colon entry** |
-| Initial script root | `$037B` | `LXI H,$0D64; SHLD $2002` |
+| Initial script root | `$037C` | `LXI H,$0D64; SHLD $2002` |
 | Script cursor | RAM `$2000` | Game-program PC, loaded and advanced while fetching command bytes |
 | Interpreter | `$0392–$03C9` | Loop loads/initializes script PC, reads a command, handles zero separately, checks command range, selects a native vector, then `PCHL` |
 | Zero-command path | `$03CA` | Separate event/scheduler path; **not** vector-table slot zero |
