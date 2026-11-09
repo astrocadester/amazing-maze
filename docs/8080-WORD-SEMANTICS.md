@@ -4,7 +4,7 @@ Version: v20261108-0003
 
 ## Provenance and boundaries
 
-Decoded directly from the original two 2,048-byte 8080 ROM devices, `maze.h` at `$0000` and `maze.g` at `$0800`. The command table is at `$0BEE` and the dispatcher at `$0392`. Names below are **working semantic descriptions**, not historical TERSE/DNA source spellings. "Inline bytes" means bytes *following* the single-byte command. H = clear machine-state effect and width, M = native effect clear but gameplay meaning not fully established, L = incomplete implementation/packet interpretation. Handler presence does not mean full semantic recovery.
+Decoded directly from the original two 2,048-byte 8080 ROM devices, `maze.h` at `$0000` and `maze.g` at `$0800`. The command table is at `$0BEE` and the dispatcher at `$0392`. Names below are **working semantic descriptions**, not historical DNA source spellings. "Inline bytes" means bytes *following* the single-byte command. H = clear machine-state effect and width, M = native effect clear but gameplay meaning not fully established, L = incomplete implementation/packet interpretation. Handler presence does not mean full semantic recovery.
 
 | Token | Native address | Working name | Inline bytes | Confirmed effects | Confidence |
 | --- | --- | --- | --- | --- | --- |
