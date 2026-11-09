@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="790" viewBox="0 0 1100 790" role="img" aria-labelledby="title desc">
+<title id="title">Amazing Maze 8080 address-space memory map</title>
+<desc id="desc">Original arcade program ROM from 0000 to 0FFF, reserved ROM window 1000 to 1FFF, work RAM 2000 to 23FF, video RAM 2400 to 3FFF, and unverified mirror/alias space 4000 to FFFF. The map distinguishes verified game ROM, typical Midway 8080 hardware decoding, and areas requiring more research.</desc>
+<rect width="1100" height="790" fill="#f8fafc"/>
+<text x="56" y="65" font-family="sans-serif" font-size="34" font-weight="700" fill="#17212f">Amazing Maze — Intel 8080 memory map</text>
+<text x="56" y="99" font-family="sans-serif" font-size="18" fill="#475569">1976 arcade • 64 KB logical address space • original program 4 KB</text>
+<text x="62" y="148" font-family="monospace" font-size="18" fill="#334155">CPU address</text>
+<text x="280" y="148" font-family="sans-serif" font-size="18" fill="#334155">Region and ownership</text>
+<g font-family="monospace" font-size="19" fill="#0f172a" text-anchor="end">
+<text x="252" y="197">$0000</text><text x="252" y="269">$0800</text><text x="252" y="341">$1000</text><text x="252" y="413">$2000</text><text x="252" y="485">$2400</text><text x="252" y="581">$4000</text><text x="252" y="671">$FFFF</text></g>
+<g stroke="#94a3b8" stroke-width="1"><line x1="269" y1="180" x2="269" y2="670"/></g>
+<rect x="280" y="174" width="754" height="70" rx="5" fill="#dbeafe" stroke="#2563eb"/>
+<text x="302" y="204" font-family="sans-serif" font-size="21" font-weight="700" fill="#1e3a8a">ROM: maze.h — 2 KB</text>
+<text x="302" y="228" font-family="monospace" font-size="16" fill="#1e40af">$0000–$07FF • reset, code, data</text>
+<rect x="280" y="246" width="754" height="70" rx="5" fill="#dbeafe" stroke="#2563eb"/>
+<text x="302" y="276" font-family="sans-serif" font-size="21" font-weight="700" fill="#1e3a8a">ROM: maze.g — 2 KB</text>
+<text x="302" y="300" font-family="monospace" font-size="16" fill="#1e40af">$0800–$0FFF • code, vectors, scripts</text>
+<rect x="280" y="318" width="754" height="70" rx="5" fill="#e2e8f0" stroke="#94a3b8" stroke-dasharray="7 5"/>
+<text x="302" y="347" font-family="sans-serif" font-size="21" font-weight="700" fill="#334155">Unpopulated ROM window — 4 KB</text>
+<text x="302" y="372" font-family="monospace" font-size="16" fill="#475569">$1000–$1FFF • no original Amazing Maze ROM device</text>
+<rect x="280" y="390" width="754" height="70" rx="5" fill="#dcfce7" stroke="#16a34a"/>
+<text x="302" y="419" font-family="sans-serif" font-size="21" font-weight="700" fill="#166534">Work RAM — 1 KB</text>
+<text x="302" y="444" font-family="monospace" font-size="16" fill="#166534">$2000–$23FF • $2000 script cursor, $2002 root, stack top $2400</text>
+<rect x="280" y="462" width="754" height="96" rx="5" fill="#ffedd5" stroke="#ea580c"/>
+<text x="302" y="495" font-family="sans-serif" font-size="21" font-weight="700" fill="#9a3412">Bitmap video RAM — 7 KB</text>
+<text x="302" y="520" font-family="monospace" font-size="16" fill="#9a3412">$2400–$3FFF • monochrome framebuffer</text>
+<text x="302" y="542" font-family="sans-serif" font-size="15" fill="#9a3412">Video addressing and individual owners require a native ROM audit</text>
+<rect x="280" y="560" width="754" height="110" rx="5" fill="#f1f5f9" stroke="#94a3b8" stroke-dasharray="7 5"/>
+<text x="302" y="595" font-family="sans-serif" font-size="21" font-weight="700" fill="#334155">Higher address aliases / mirror decoding</text>
+<text x="302" y="622" font-family="monospace" font-size="16" fill="#475569">$4000–$FFFF</text>
+<text x="302" y="646" font-family="sans-serif" font-size="15" fill="#475569">Exact mirrored ranges and access behavior to be verified against driver + schematics</text>
+<text x="56" y="717" font-family="sans-serif" font-size="16" fill="#334155">Solid borders: original ROM devices or established RAM/video ranges. Dashed: unpopulated or pending verification.</text>
+<text x="56" y="746" font-family="sans-serif" font-size="15" fill="#64748b">Source: original Amazing Maze ROM structural scan; Midway 8080 platform memory model. v20261108-0001</text>
+</svg>
