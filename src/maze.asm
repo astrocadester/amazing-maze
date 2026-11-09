@@ -26,10 +26,10 @@ INTERRUPT_ENTRY:
         PUSH DE                  ; $0012: D5
         PUSH HL                  ; $0013: E5
         JP $02E2                 ; $0014: C3 E2 02
-        DB $DB ; $0017-$0017 source data/unclassified
-        LD BC,$D217              ; $0018: 01 17 D2
-        LD (HL),A                ; $001B: 77
-        INC BC                   ; $001C: 03
+RESET_START:
+        IN A,($01)               ; $0017: DB 01  input port 1
+        RLA                      ; $0019: 17
+        JP NC,$0377              ; $001A: D2 77 03  initialize when carry clear
         LD B,$01                 ; $001D: 06 01
         LD DE,$0000              ; $001F: 11 00 00
 NATIVE_0022:
