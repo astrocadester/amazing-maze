@@ -13,8 +13,9 @@ The mandatory `ENGINEERING-RULES.md` and `AGENTS.md` were copied verbatim from `
 - [x] Identify two original 2 KB devices `maze.h`, `maze.g`, SHA-1 and CRC32 recorded in `ORIGINAL-ROM-RUNTIME-SCAN.md`.
 - [x] Static signatures for reset, interrupt entry, interpreter, vector table and all 17 targets documented.
 - [ ] Confirm actual ZIP member decoding using the scanner on the development machine; keep this test distinct from source round-trip.
+- [x] Reuse the repository's existing `images/amazing-maze-21054-marquee.jpg` in the README.
 - [ ] Audit original MAME driver, manuals, electrical schematics, input ports, raster/video map, interrupt vectors, and device-specific ROM assignments.
-- [ ] Identify and add a repository-controlled photograph of the original **bezel title** (not an invented marquee), with image provenance and appropriate license.
+- [ ] Determine original cabinet image provenance and distinguish bezel, flyer, and marquee terminology without changing repository artwork.
 
 ## Gate 1 — Hard 8080 source RE
 
@@ -37,7 +38,8 @@ The mandatory `ENGINEERING-RULES.md` and `AGENTS.md` were copied verbatim from `
 ## Gate 3 — VM and command dictionary
 
 - [x] Static identification of a 17-command native vector dispatcher.
-- [ ] Trace dispatcher `$0392–$03C9`, command zero `$03CA`, initial script `$0D64`, and RAM cursor `$2000`.
+- [x] Decode the dispatcher `$0392–$03C9`, zero-command branch `$03CA`, script root initialization and RAM cursor `$2000` at the instruction level; record exact original bytes in `NATIVE-RE-PASS.md`.
+- [ ] Complete dynamic traces and analyze `$03D4` plus all script-root transitions.
 - [ ] Audit all 17 handlers for parameter width, registers, stack, flags, side effects, and dispatcher continuation contract.
 - [ ] Decode real scripts with token names, source offsets, and actual handler behaviors.
 - [ ] Test malformed token handling, branches, literals, loops, copies, zero command, and interrupt preemption without conjecture.
