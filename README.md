@@ -6,38 +6,29 @@ Amazing Maze (1976) is an Intel 8080 arcade maze game by Dave Nutting Associates
 
 **Amazing Maze contains a 17-command indexed native-handler interpreter.** Gun Fight (1975) contains 21 native command entries. Both games use one-byte commands, Intel 8080 handler vectors, and a script cursor at RAM `$2000`. Their command dictionaries share recognizable operations, including jumps, RAM updates, and conditional control flow. This RE traces DNA's engineering choices from Gun Fight into Amazing Maze.
 
-The original game runs on the Midway 8080 black-and-white platform. It uses a 4 KB ROM image, 1 KB work RAM and a 7 KB monochrome framebuffer. The source of truth is the original ROM, not a previously generated assembly file. This reconstruction can freely replace its own intermediate labels, boundaries and source layout while preserving byte-exact executable behavior.
-
-| | |
-| --- | --- |
-| [ROM identity and build](#rom-organization) | Two original 2 KB ROMs, native assembler and SHA-1 equality requirements. |
-| [Indexed interpreter](#indexed-8080-execution-architecture) | Resident native command dispatcher, 17 vectors, script root and zero-token handling. |
-| [Interrupts and timing](#interrupt-and-timer-services) | Original interrupt entry and periodic byte-counter service. |
-| [Native code and graphics](#maze-engine-and-gameplay) | Maze engine, drawing, control flow and register contracts under hard RE. |
-| [RAM, I/O and video](#rom-organization) | Device boundaries, work RAM, video RAM, and separately tracked I/O contracts. |
-| [DNA lineage](#gun-fight-and-dna-lineage) | Comparison with Gun Fight and the later DNA 8080 indexed-command family. |
+The game runs on the Midway 8080 black-and-white platform with 4 KB of program ROM, 1 KB of work RAM, and a 7 KB monochrome framebuffer.
 
 ## Project layout
 
 | Path | Contents |
 | --- | --- |
 | `roms/original/maze.zip` | Original reference MAME ROM archive |
-| `src/maze.asm` | Original-ROM native assembly: 1,551 instruction entries, 17 labeled vectors and original data regions; deeper RE in progress |
-| `build.sh`, `build.bat` | Native Linux/Windows build, ROM splitting, package and exact-hash gates |
+| `src/maze.asm` | Reconstructed Intel 8080 assembly, game commands, graphics, and tables |
+| `build.sh`, `build.bat` | Linux and Windows assembly, ROM splitting, verification, and packaging |
 | `tools/zmac`, `tools/zmac.exe` | Bundled native assembler binaries |
-| `tools/scan-runtime.mjs` | Original-ROM CRC/SHA-1 and interpreter signature verification |
-| `images/amazing-maze-21054-marquee.jpg` | Repository-owned image already present in the project |
-| `images/amazing-maze-memory-map.svg` | CPU memory map using the Sea Wolf II visual conventions |
-| `docs/NATIVE-RE-PASS.md` | Decoded native code, script control, timer services and register behavior |
-| `docs/GRAPHICS-AND-MAZE-RE.md` | Original 37-glyph pixel font, encoded messages, and maze-cell/movement services |
-| `docs/ORIGINAL-ROM-RUNTIME-SCAN.md` | Original static ROM decoder and vector inventory |
-| `docs/8080-WORD-SEMANTICS.md` | Second hard RE pass, 17 handler entry contracts and startup packets |
-| `docs/GUNFIGHT-COMPARISON.md` | Indexed VM architecture and reuse hypotheses |
-| `docs/SPRINT-PLAN.md`, `docs/TECHNICAL-DEBT.md` | Remaining RE and verification work |
+| `tools/scan-runtime.mjs` | ROM identity and interpreter inspection |
+| `images/amazing-maze-21054-marquee.jpg` | Amazing Maze marquee artwork |
+| `images/amazing-maze-memory-map.svg` | Intel 8080 memory map |
+| `docs/NATIVE-RE-PASS.md` | Native execution and control flow |
+| `docs/GRAPHICS-AND-MAZE-RE.md` | Character graphics, game text, and maze routines |
+| `docs/ORIGINAL-ROM-RUNTIME-SCAN.md` | ROM structure and native vectors |
+| `docs/8080-WORD-SEMANTICS.md` | Indexed command dictionary |
+| `docs/GUNFIGHT-COMPARISON.md` | Gun Fight and Amazing Maze command comparison |
+| `docs/SPRINT-PLAN.md`, `docs/TECHNICAL-DEBT.md` | Engineering work plan and technical debt |
 
 ## Build
 
-Both build scripts invoke the bundled native zmac assembler. **No Python is used in the build scripts.**
+The Linux and Windows scripts assemble the Intel 8080 source with the bundled zmac assembler, split the image into the original ROM devices, and verify the resulting ROMs.
 
 Linux:
 ```sh
@@ -59,18 +50,9 @@ Assembler command:
 tools\zmac.exe -o src\maze.bin src\maze.asm
 ```
 
-The scripts follow Sea Wolf II's four-step build sequence:
-
-1. Assemble the reconstructed Intel 8080 source into an exact 4,096-byte image.
-2. Split that image into the original `maze.h` and `maze.g` 2 KB devices.
-3. Verify each generated device against its original SHA-1.
-4. Package `roms/maze.zip` only after the equality checks pass.
-
-**Current source-build status:** `src/maze.asm` is now present and its static address ledger accounts for all 4,096 original bytes. The bundled assembler, generated-ROM SHA-1 comparison, MAME, and physical hardware gates still require execution. The scripts assemble the actual source and compare generated ROMs; they never substitute the reference archive.
+The build assembles `src/maze.asm` into a 4 KB image, produces `maze.h` and `maze.g`, checks their SHA-1 hashes, and packages `roms/maze.zip`.
 
 ## Run in MAME
-
-After a byte-exact source build:
 
 ```sh
 mame maze -window -skip_gameinfo -rompath roms
@@ -85,7 +67,7 @@ The original 4 KB program occupies two 2 KB devices in the lower half of the Mid
 | `maze.h` | `$0000–$07FF` | `f2860cff` | `62b3fd3d04bf9c5dd9b50964374fb884dc0ab79c` |
 | `maze.g` | `$0800–$0FFF` | `65fad839` | `893f0a7621e7df19f777be991faff0db4a9ad571` |
 
-The memory map illustrates ROM chip boundaries, the unused upper ROM window, work RAM, bitmap video RAM, and higher-address decoder regions requiring additional hardware verification.
+The memory map shows the two ROM devices, the upper program ROM window, work RAM, and bitmap video RAM.
 
 ![Amazing Maze 8080 address-space map](images/amazing-maze-memory-map.svg)
 
@@ -121,7 +103,7 @@ MOV L,A         ; $6F
 PCHL            ; $E9: jump to original native handler
 ```
 
-Command `$00` enters the event path at `$03CA`, where RAM `$201F` controls a conditional call to `$03D4`. Nonzero commands `$01–$11` select the 17 native vectors. Higher command values enter initialization at `$0377`. These details come from the original Intel 8080 instructions.
+Command `$00` enters the event path at `$03CA`, where RAM `$201F` controls a conditional call to `$03D4`. Nonzero commands `$01–$11` select the 17 native vectors. Higher command values enter initialization at `$0377`. 
 
 [17-command native dictionary](docs/8080-WORD-SEMANTICS.md) · [Original command vectors and ROM signatures](docs/ORIGINAL-ROM-RUNTIME-SCAN.md) · [Native assembly analysis](docs/NATIVE-RE-PASS.md)
 
@@ -129,13 +111,15 @@ Command `$00` enters the event path at `$03CA`, where RAM `$201F` controls a con
 
 The `$0008` entry saves the primary 8080 registers before transferring to native frame service. A timed event service beginning at `$0341` operates on work-RAM counters: `$200A` reloads with `$3C`, and the helper at `$0369` decrements four neighboring bytes at `$200B–$200E`. The helper aggregates expiry information into register `B`.
 
-These are observed native register and RAM behaviors; their exact game-time meaning awaits a complete scheduler trace. See [the detailed service disassembly](docs/NATIVE-RE-PASS.md).
+The [native execution documentation](docs/NATIVE-RE-PASS.md) describes the service routines and their RAM interactions.
 
 ## Maze engine and gameplay
 
-The native assembly now recovers the dispatcher, 17 vector entries, interrupt and timing paths, explicit initialization command packets at `$0D64`, 37 original font glyphs with inline pixel illustrations, original game text and small graphic bitmaps. Maze movement includes four labeled directional boundary tests and a row/column cell-address computation. Its first four `STORE_IMMEDIATE_BYTE` commands clear `$202C`, `$2031`, `$2032`, and `$202D`; the following commands configure the native state and a drawing record. The deeper maze representation, generation, collision, controls and scoring code remains the focus of further instruction-level RE.
+The game maintains its maze cells in RAM beginning at `$2066`. Native routines mask and shift cell-state nibbles, convert maze row and column coordinates into cell addresses, and test the four directional boundaries during movement.
 
-In particular, the original maze-generation experiment attributed to Jeff Frederiksen must be compared against the commercial game's executable routines rather than assumed to be a separate or inherited module.
+At `$0129`, the native text renderer draws characters from 37 ten-row glyphs stored at `$0170`. The game text begins at `$0C10`, followed by indicator graphics at `$0D33`. The initial command stream at `$0D64` configures game state and displays text through the indexed native commands.
+
+[Graphics, maze data, and movement routines](docs/GRAPHICS-AND-MAZE-RE.md)
 
 ## Gun Fight and DNA lineage
 
@@ -152,7 +136,7 @@ The two games contain corresponding native command operations with different com
 | **Conditional execution** | `$05 / $068D`, `$06 / $069D`, `$10 / $0807` | `$0E / $0BB9`, `$0F / $0BC4` | Test game state and conditionally change execution |
 | **Display/graphics services** | `$01 / $05E9`, `$0E / $0785`, `$0F / $07AB` | `$04 / $0B17`, `$07 / $0B90`, `$10 / $0BCF` | Work with inline data, memory addresses and native drawing-related services |
 
-**The strongest common word is `GOTO_SCRIPT`.** Both implementations use a little-endian 16-bit target and replace the command pointer at `$2000`. RAM-store and conditional commands demonstrate shared command families with game-specific operands and handlers. Graphics commands remain a broader functional comparison while the detailed drawing routines are recovered.
+**The strongest common word is `GOTO_SCRIPT`.** Both implementations use a little-endian 16-bit target and replace the command pointer at `$2000`. RAM-store and conditional commands demonstrate shared command families with game-specific operands and handlers. Graphics commands use the games' respective drawing services.
 
 ### How the interpreter evolved
 
@@ -165,10 +149,7 @@ The two games contain corresponding native command operations with different com
 | Zero-command operation | Counter-based wait/repeat handler | Separate `$03CA` event path |
 | Indexed native dispatch | Address table and indirect transfer | Address table, range check and indirect transfer |
 
-**Current RE finding:** DNA used the same indexed-command design and retained several command functions while changing the word vocabulary, token layout and event handling for Amazing Maze. The [native comparison](docs/GUNFIGHT-COMPARISON.md) traces these correspondences through their original 8080 routines.
+DNA carried forward the indexed-command design and common command functions while adapting command numbers, state operations, and event handling for Amazing Maze. The [native comparison](docs/GUNFIGHT-COMPARISON.md) details these routines.
 
-[Gun Fight ↔ Amazing Maze command comparison](docs/GUNFIGHT-COMPARISON.md) · [Amazing Maze word dictionary](docs/8080-WORD-SEMANTICS.md) · [Sprint plan](docs/SPRINT-PLAN.md)
+[Gun Fight ↔ Amazing Maze command comparison](docs/GUNFIGHT-COMPARISON.md) · [Amazing Maze word dictionary](docs/8080-WORD-SEMANTICS.md)
 
-## Sources and evidence
-
-Original ROM identities and runtime bytes are recorded in `docs/ORIGINAL-ROM-RUNTIME-SCAN.md` and the further native pass. Hardware and chronology research will be reconciled with original manuals, schematics and the MAME Midway 8080 driver. Research findings and unverified hypotheses are documented separately from executable observations.
