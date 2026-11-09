@@ -29,6 +29,7 @@ The original game runs on the Midway 8080 black-and-white platform. It uses a 4 
 | `images/amazing-maze-21054-marquee.jpg` | Repository-owned image already present in the project |
 | `images/amazing-maze-memory-map.svg` | CPU memory map using the Sea Wolf II visual conventions |
 | `docs/NATIVE-RE-PASS.md` | Decoded native code, script control, timer services and register behavior |
+| `docs/GRAPHICS-AND-MAZE-RE.md` | Original 37-glyph pixel font, encoded messages, and maze-cell/movement services |
 | `docs/ORIGINAL-ROM-RUNTIME-SCAN.md` | Original static ROM decoder and vector inventory |
 | `docs/8080-WORD-SEMANTICS.md` | Second hard RE pass, 17 handler entry contracts and startup packets |
 | `docs/GUNFIGHT-COMPARISON.md` | Indexed VM architecture and reuse hypotheses |
@@ -132,7 +133,7 @@ These are observed native register and RAM behaviors; their exact game-time mean
 
 ## Maze engine and gameplay
 
-The native assembly now recovers the dispatcher, 17 vector entries, interrupt and timing paths, and explicit initialization command packets at `$0D64`. Its first four `STORE_IMMEDIATE_BYTE` commands clear `$202C`, `$2031`, `$2032`, and `$202D`; the following commands configure the native state and a drawing record. The deeper maze representation, generation, collision, controls and scoring code remains the focus of further instruction-level RE.
+The native assembly now recovers the dispatcher, 17 vector entries, interrupt and timing paths, explicit initialization command packets at `$0D64`, 37 original font glyphs with inline pixel illustrations, original game text and small graphic bitmaps. Maze movement includes four labeled directional boundary tests and a row/column cell-address computation. Its first four `STORE_IMMEDIATE_BYTE` commands clear `$202C`, `$2031`, `$2032`, and `$202D`; the following commands configure the native state and a drawing record. The deeper maze representation, generation, collision, controls and scoring code remains the focus of further instruction-level RE.
 
 In particular, the original maze-generation experiment attributed to Jeff Frederiksen must be compared against the commercial game's executable routines rather than assumed to be a separate or inherited module.
 
