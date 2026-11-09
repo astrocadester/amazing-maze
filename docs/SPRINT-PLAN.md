@@ -23,9 +23,11 @@ The mandatory `ENGINEERING-RULES.md` and `AGENTS.md` were copied verbatim from `
 - [x] Recover and commit a 4 KB-addressed native `src/maze.asm` from both original ROMs (initial 1,551 instruction entries, 17 vectors and byte-preserving data).
 - [x] Establish initial code boundaries using reset/interrupt/control-flow roots and the 17 vector entries; preserve remaining byte regions for classified original data.
 - [ ] Complete executable reachability and separate the remaining script/data/graphics/text/padding regions by verified use.
-- [ ] Replace generic labels with semantic labels supported by cross-references and behavior.
+- [x] Rename the verified native text renderer, maze cell-address resolver, directional boundary checks, input/IRQ services and maze nibble processing; use named routine references for critical calls.
+- [ ] Continue mapping remaining native call and branch labels to recovered service contracts.
 - [ ] Define function boundaries, documented inputs/outputs, register/flag effects, stack and RAM effects, I/O effects, and callers.
-- [ ] Decode important graphics and game constants inline.
+- [x] Decode the 37 ten-row original glyphs into labeled source records and inline pixel illustrations, classify the original game messages and small graphics, and document maze cell masking, shifting and directional checks.
+- [ ] Decode additional artwork, game-state tables and remaining source data alongside their calling routines.
 - [ ] Keep source annotations aligned with the actual instruction bytes. Retain exact original data.
 - [ ] Maintain a routine index and RAM ownership ledger.
 
