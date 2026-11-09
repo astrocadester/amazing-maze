@@ -6,9 +6,9 @@ Version: v20261108-0001
 | --- | --- | --- |
 | Original ROM identity | Documented by static scanner; execute locally to confirm | Original members pass CRC32/SHA-1 assertions |
 | 17-command vector interpreter | Static signatures established | Full handler ABI and execution trace |
-| Full 8080 disassembly | Open | No reachable code hidden in undifferentiated raw bytes; semantics verified |
-| Semantic labels and function boundaries | Open | Cross-referenced entry/exit contracts and named callers |
-| 8080 assembler and round-trip | Open | Bundled assembler produces exact 4 KB image and both matching SHA-1s |
+| Full 8080 disassembly | 4 KB source committed: 1,551 native instruction entries, 17 vectors, data/raw regions retained | Continue reachable-code and semantic analysis, classify every data region; verify native build |
+| Semantic labels and function boundaries | Dispatcher, timer, reset, interrupt and 17 commands labeled in source; partial contracts | Name remaining helpers and close all input/output/stack and caller contracts |
+| 8080 assembler and round-trip | Native source and build scripts now present; execution pending | Run bundled assembler and compare original 4 KB image and both generated SHA-1s |
 | MAME execution of generated ROM | Open | Rebuilt set boots and behaves in MAME with recorded test |
 | Hardware execution | Open | Separate physical-board test record |
 | Zero-command / IRQ scheduler | Open | Native trace from `$0008`, `$030B`, `$03CA` |
