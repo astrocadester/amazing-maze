@@ -4,7 +4,7 @@
 
 Amazing Maze (1976) is an Intel 8080 arcade maze game by Dave Nutting Associates (DNA) / Midway. It challenges players to navigate generated mazes and is one of the company's earliest 8080 arcade programs. This project reconstructs the **original 4 KB executable** as readable native 8080 assembly, with every produced ROM chip verified against the original bytes.
 
-The original Amazing Maze has a **17-command indexed native-handler interpreter**, rather than the later Z80 TERSE runtime. Gun Fight (1975) has a related 21-command implementation; the precise software relationship is an active evidence-based research question. Similar hardware or instructions alone do not establish direct inheritance.
+**Amazing Maze contains a 17-command indexed native-handler interpreter.** Gun Fight (1975) contains 21 native command entries. Both games use one-byte commands, Intel 8080 handler vectors, and a script cursor at RAM `$2000`. Their command dictionaries share recognizable operations, including jumps, RAM updates, and conditional control flow. This RE traces DNA's engineering choices from Gun Fight into Amazing Maze.
 
 The original game runs on the Midway 8080 black-and-white platform. It uses a 4 KB ROM image, 1 KB work RAM and a 7 KB monochrome framebuffer. The source of truth is the original ROM, not a previously generated assembly file. This reconstruction can freely replace its own intermediate labels, boundaries and source layout while preserving byte-exact executable behavior.
 
@@ -90,7 +90,7 @@ The memory map illustrates ROM chip boundaries, the unused upper ROM window, wor
 
 ## Indexed 8080 execution architecture
 
-Amazing Maze uses one-byte game commands that index little-endian native handler addresses. This interpreter predates TERSE and has a different register/stack ABI.
+Amazing Maze uses one-byte game commands to select little-endian Intel 8080 native handler addresses. Gun Fight uses the same overall command-dispatch architecture. Amazing Maze adds explicit nonzero command bounds checking and a dedicated zero-command event path.
 
 | Component | Address | Function |
 | --- | --- | --- |
@@ -120,7 +120,7 @@ MOV L,A         ; $6F
 PCHL            ; $E9: jump to original native handler
 ```
 
-Command `$00` bypasses that path and branches to `$03CA`, where the value at `$201F` controls a conditional call to `$03D4`. Out-of-range nonzero commands enter initialization at `$0377`. These behaviors are derived from original 8080 opcode sequences, not inferred from TERSE or later games.
+Command `$00` enters the event path at `$03CA`, where RAM `$201F` controls a conditional call to `$03D4`. Nonzero commands `$01–$11` select the 17 native vectors. Higher command values enter initialization at `$0377`. These details come from the original Intel 8080 instructions.
 
 [17-command native dictionary](docs/8080-WORD-SEMANTICS.md) · [Original command vectors and ROM signatures](docs/ORIGINAL-ROM-RUNTIME-SCAN.md) · [Native assembly analysis](docs/NATIVE-RE-PASS.md)
 
@@ -138,11 +138,35 @@ In particular, the original maze-generation experiment attributed to Jeff Freder
 
 ## Gun Fight and DNA lineage
 
-Gun Fight (1975) has 21 defensible native interpreter entries (`$00–$14`), a script pointer at `$2000`, and vector table at `$09AE`. Amazing Maze (1976) has 17 nonzero commands (`$01–$11`), also uses pointer `$2000`, and has table `$0BEE`.
+Gun Fight (1975) introduced the earlier recovered DNA Intel 8080 indexed-command architecture. Its interpreter runs at `$03A7`, uses a 21-entry native command table at `$09AE`, and reads scripts through RAM `$2000`. Amazing Maze (1976) uses a 17-entry native table at `$0BEE`, dispatcher `$0392–$03C9`, and the **same script cursor address `$2000`**.
 
-The indexed architecture and some code patterns are related, but exact binary reuse and ABI compatibility are not established. The different zero-command behavior is a concrete reason to keep direct inheritance, parallel development, and earlier common software foundation open as separate hypotheses.
+### Shared command functions
 
-[Gun Fight ↔ Amazing Maze comparison](docs/GUNFIGHT-COMPARISON.md) · [Sprint plan](docs/SPRINT-PLAN.md) · [Technical debt](docs/TECHNICAL-DEBT.md)
+The two games contain corresponding native command operations with different command numbers:
+
+| Command function | Gun Fight command / handler | Amazing Maze command / handler | Common operation |
+| --- | --- | --- | --- |
+| **GOTO_SCRIPT** | `$09 / $0682` | `$0B / $0B7B` | Read a 16-bit command-stream address and store it at `$2000` |
+| **Set RAM byte** | `$02 / $063D`, `$03 / $0649` | `$08 / $0B5F`, `$0C / $0B84` | Read an immediate byte and update game state in RAM |
+| **Conditional execution** | `$05 / $068D`, `$06 / $069D`, `$10 / $0807` | `$0E / $0BB9`, `$0F / $0BC4` | Test game state and conditionally change execution |
+| **Display/graphics services** | `$01 / $05E9`, `$0E / $0785`, `$0F / $07AB` | `$04 / $0B17`, `$07 / $0B90`, `$10 / $0BCF` | Work with inline data, memory addresses and native drawing-related services |
+
+**The strongest common word is `GOTO_SCRIPT`.** Both implementations use a little-endian 16-bit target and replace the command pointer at `$2000`. RAM-store and conditional commands demonstrate shared command families with game-specific operands and handlers. Graphics commands remain a broader functional comparison while the detailed drawing routines are recovered.
+
+### How the interpreter evolved
+
+| Feature | Gun Fight | Amazing Maze |
+| --- | --- | --- |
+| Native command slots | 21 (`$00–$14`) | 17 (`$01–$11`) plus zero event |
+| Script cursor | RAM `$2000` | RAM `$2000` |
+| Command vector base | `$09AE` | `$0BEE` |
+| Script starting point | `$0821` | `$0D64` |
+| Zero-command operation | Counter-based wait/repeat handler | Separate `$03CA` event path |
+| Indexed native dispatch | Address table and indirect transfer | Address table, range check and indirect transfer |
+
+**Current RE finding:** DNA used the same indexed-command design and retained several command functions while changing the word vocabulary, token layout and event handling for Amazing Maze. The [native comparison](docs/GUNFIGHT-COMPARISON.md) traces these correspondences through their original 8080 routines.
+
+[Gun Fight ↔ Amazing Maze command comparison](docs/GUNFIGHT-COMPARISON.md) · [Amazing Maze word dictionary](docs/8080-WORD-SEMANTICS.md) · [Sprint plan](docs/SPRINT-PLAN.md)
 
 ## Sources and evidence
 
