@@ -17,7 +17,7 @@ Version: v20261108-0001
 | Gun Fight relationship | Open | Actual machine-code and ABI comparison, including shared-ancestor possibility |
 | Hardware memory map | Partial | ROM/RAM/video envelope known; mirrors, ports, owner bytes need driver+schematics audit |
 | README bezel artwork | Open | Repository-controlled authentic image with provenance |
-| Engineering rule files | Not found at root or docs in baseline | Canonical `ENGINEERING-RULES.md` and `AGENTS.md` available and reviewed |
+| Engineering rule files | Adopted from Gun Fight and reviewed | Continue following root `ENGINEERING-RULES.md` and `AGENTS.md`; obtain approval for deviations |
 
 ## Verified versus inferred
 
