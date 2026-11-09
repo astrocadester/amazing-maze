@@ -1,6 +1,6 @@
 ; Amazing Maze (1976) original Intel 8080 native ROM reconstruction
 ; Source of truth: roms/original/maze.zip (maze.h $0000-$07FF; maze.g $0800-$0FFF)
-; Version v20261108-0009 — native instruction recovery with conservatively classified data
+; Version v20261108-0010 — native instruction recovery with conservatively classified data
 ; This is the native source work product. Continue hard RE by converting remaining
 ; data bytes to genuine native instructions when executable reachability proves them.
 ; All bytes, even unclassified data, follow their exact original ROM order.
@@ -362,7 +362,9 @@ NATIVE_02FC:
         POP AF                   ; $02FF: F1
         EI                       ; $0300: FB
         RET                      ; $0301: C9
-NATIVE_0302:
+; $0302 — CHECK FRAME MODE OR INTERRUPT EXIT.
+; Compares incoming A against RAM $202F; matching mode pops the caller and branches to common interrupt exit $02FC.
+CHECK_FRAME_MODE_OR_INTERRUPT_EXIT:
         LD HL,$202F              ; $0302: 21 2F 20
         CP (HL)                  ; $0305: BE
         RET NZ                   ; $0306: C0
@@ -506,7 +508,9 @@ NATIVE_03F1:
         INC A                    ; $03FE: 3C
         LD ($201F),A             ; $03FF: 32 1F 20
         RET                      ; $0402: C9
-NATIVE_0403:
+; $0403 — CLEAR MAZE CELL LOW NIBBLES.
+; Iterates 26 x 24 bytes from RAM $2066, preserving each byte's high nibble with AND $F0.
+CLEAR_MAZE_CELL_LOW_NIBBLES:
         LD DE,$2066              ; $0403: 11 66 20
         LD B,$1A                 ; $0406: 06 1A
 NATIVE_0408:
@@ -550,7 +554,9 @@ NATIVE_0422:
         INC HL                   ; $043A: 23
         LD (HL),B                ; $043B: 70
         RET                      ; $043C: C9
-NATIVE_043D:
+; $043D — SHIFT MAZE CELLS LEFT FOUR.
+; Iterates $0370 bytes from RAM $2066 and shifts each byte four bits left, preserving its former low nibble in the high nibble.
+SHIFT_MAZE_CELLS_LEFT_FOUR:
         LD DE,$2066              ; $043D: 11 66 20
         LD BC,$0370              ; $0440: 01 70 03
 NATIVE_0443:
@@ -748,22 +754,30 @@ NATIVE_056D:
         POP HL                   ; $0586: E1
         LD A,$05                 ; $0587: 3E 05
         JP $0129                 ; $0589: C3 29 01
-NATIVE_058C:
+; $058C — NORMALIZE DISPLAY GLYPH SPACE.
+; Converts byte $30 at (HL) into $40; otherwise returns unchanged.
+NORMALIZE_DISPLAY_GLYPH_SPACE:
         LD A,(HL)                ; $058C: 7E
         CP $30                   ; $058D: FE 30
         RET NZ                   ; $058F: C0
         LD (HL),$40              ; $0590: 36 40
         RET                      ; $0592: C9
-NATIVE_0593:
+; $0593 — SKIP NEXT SCRIPT BYTE.
+; Advances the 16-bit command pointer at RAM $2000 by one and returns.
+SKIP_NEXT_SCRIPT_BYTE:
         LD HL,($2000)            ; $0593: 2A 00 20
         INC HL                   ; $0596: 23
         LD ($2000),HL            ; $0597: 22 00 20
         RET                      ; $059A: C9
-NATIVE_059B:
+; $059B — RESTORE SCRIPT ROOT FROM SAVED POINTER.
+; Copies pointer at RAM $2008 to script root RAM $2002.
+RESTORE_SCRIPT_ROOT_FROM_SAVED_POINTER:
         LD HL,($2008)            ; $059B: 2A 08 20
         LD ($2002),HL            ; $059E: 22 02 20
         RET                      ; $05A1: C9
-NATIVE_05A2:
+; $05A2 — SAMPLE PORT1 INPUT EDGE.
+; Reads I/O port $01, isolates bit $08 and compares against prior value at RAM $2028; updates credit/input state.
+SAMPLE_PORT1_INPUT_EDGE:
         LD HL,$2028              ; $05A2: 21 28 20
         IN A,($01)               ; $05A5: DB 01
         LD C,A                   ; $05A7: 4F
@@ -851,7 +865,9 @@ NATIVE_061E:
         CALL $0648               ; $062D: CD 48 06
         POP HL                   ; $0630: E1
         JP $0648                 ; $0631: C3 48 06
-NATIVE_0634:
+; $0634 — FORMAT PACKED BYTE AS TWO DIGITS.
+; Expands one packed BCD-like byte from (DE) into two ASCII digit bytes at (BC); increments both pointers.
+FORMAT_PACKED_BYTE_AS_TWO_DIGITS:
         LD A,(DE)                ; $0634: 1A
         RRA                      ; $0635: 1F
         RRA                      ; $0636: 1F
