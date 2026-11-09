@@ -57,7 +57,7 @@ node tools/scan-runtime.mjs
 
 This verifies both original ROM hashes, reset and dispatcher signatures, vector table, and each in-ROM handler target. It **does not assemble reconstructed source** and **does not demonstrate a byte-for-byte rebuild**.
 
-A native, source-based build will use the bundled `tools/zmac` on Linux and `tools/zmac.exe` on Windows, create an exact 4 KB image, split it into `maze.h` and `maze.g`, package `roms/maze.zip`, and fail unless both generated ROM SHA-1 hashes match the original. The RE source and such a verified build are pending; no generated ROM is represented as complete.
+Native build entry points are provided for Linux (`./build.sh`) and Windows (`build.bat`). Both invoke the appropriate assembler in `tools/`, check the 4096-byte image length, split into `maze.h` and `maze.g`, verify both original SHA-1 hashes, and only then package `roms/maze.zip`. **Both currently stop with an explicit BLOCKED message** because `src/maze.asm` has not yet been recovered. The scripts do not copy original ROM bytes into a simulated build. Neither uses Python.
 
 When the exact rebuild exists, the game can be checked separately in MAME:
 
