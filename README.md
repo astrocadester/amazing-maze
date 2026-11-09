@@ -30,6 +30,7 @@ The original game runs on the Midway 8080 black-and-white platform. It uses a 4 
 | `images/amazing-maze-memory-map.svg` | CPU memory map using the Sea Wolf II visual conventions |
 | `docs/NATIVE-RE-PASS.md` | Decoded native code, script control, timer services and register behavior |
 | `docs/ORIGINAL-ROM-RUNTIME-SCAN.md` | Original static ROM decoder and vector inventory |
+| `docs/8080-WORD-SEMANTICS.md` | Second hard RE pass, 17 handler entry contracts and startup packets |
 | `docs/GUNFIGHT-COMPARISON.md` | Indexed VM architecture and reuse hypotheses |
 | `docs/SPRINT-PLAN.md`, `docs/TECHNICAL-DEBT.md` | Remaining RE and verification work |
 
@@ -121,7 +122,7 @@ PCHL            ; $E9: jump to original native handler
 
 Command `$00` bypasses that path and branches to `$03CA`, where the value at `$201F` controls a conditional call to `$03D4`. Out-of-range nonzero commands enter initialization at `$0377`. These behaviors are derived from original 8080 opcode sequences, not inferred from TERSE or later games.
 
-[Original command vectors and ROM signatures](docs/ORIGINAL-ROM-RUNTIME-SCAN.md) · [Native assembly analysis](docs/NATIVE-RE-PASS.md)
+[17-command native dictionary](docs/8080-WORD-SEMANTICS.md) · [Original command vectors and ROM signatures](docs/ORIGINAL-ROM-RUNTIME-SCAN.md) · [Native assembly analysis](docs/NATIVE-RE-PASS.md)
 
 ## Interrupt and timer services
 
