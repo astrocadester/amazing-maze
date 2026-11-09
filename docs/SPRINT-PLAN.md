@@ -6,7 +6,7 @@ Version: v20261108-0001
 
 Original Intel 8080 ROM and original program architecture are authoritative. No synthetic gameplay, JavaScript/Python gameplay reimplementation, invented command semantics, raw-byte `DB` stand-in presented as a recovered disassembly, or substituted interpreter. Use the bundled assembler in `tools/` for native builds. No Python in build scripts. Stop for approval before architectural deviations.
 
-The checkpoint requires following `ENGINEERING-RULES.md` and `AGENTS.md`. These were not present at repository root or `docs/` during this baseline inspection. Obtain their canonical versions before treating this plan as a replacement for them.
+The mandatory `ENGINEERING-RULES.md` and `AGENTS.md` were copied verbatim from `lizard43/gunfight` into this repository. Read both before any implementation change. The original-software-first policy, approval gates, and separate verification gates apply throughout this sprint.
 
 ## Gate 0 — Original evidence
 
