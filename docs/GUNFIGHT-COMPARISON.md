@@ -24,7 +24,7 @@ All names are descriptive RE names. They identify actual native effects and prov
 
 ## The common GOTO word
 
-**Gun Fight** `$09` at `$0682` consumes `address16` and stores that address into `$2000`, according to its native word analysis.
+**Gun Fight** `$09` at `$0682` consumes `address16` and stores that address into `$2000`. Its recovered entry bytes begin `2A 00 20 5E 23 56 EB 22`: `LHLD $2000; MOV E,M; INX H; MOV D,M; XCHG; SHLD ...`. It fetches the operand directly from the saved script pointer.
 
 **Amazing Maze** `$0B` at `$0B7B` performs:
 
@@ -39,7 +39,7 @@ WORD_GOTO_SCRIPT:       ; Amazing Maze $0B7B
     RET
 ```
 
-The word moves the next ROM-script address into `$2000`. The same **operation and 16-bit operand record** appear in Gun Fight's `$09` word. This is the clearest candidate for direct comparison of machine-code reuse, source organization, and native return ABI.
+The word moves the next ROM-script address into `$2000`. The same **operation and 16-bit operand record** appear in Gun Fight's `$09` word. **The native entries use different machine instructions:** Gun Fight begins with `LHLD $2000`, while Amazing Maze begins with `XCHG` and receives the advanced command pointer in `DE`. This identifies a shared command **implemented through two distinct entry conventions**. It also gives us a concrete architectural change to trace through the dispatcher and handler return paths.
 
 ## Shared interpreter architecture
 
@@ -82,7 +82,7 @@ For precise lineage classification, compare each corresponding native routine un
 - **Related implementation:** shared operation with distinct code or native state conventions.
 - **Game-specific implementation:** behavior tied to each game's own objects, graphics, input, or timers.
 
-`GOTO_SCRIPT` currently supports the **matching word semantics and inline operand format** finding. The other rows identify concrete functional families. Continued original-ROM instruction comparison will assign reuse classes to the individual routines.
+`GOTO_SCRIPT` supports **matching word semantics and inline operand format, with distinct native entry implementations**. The first Gun Fight bytes are recorded in its original-word inventory; the Amazing Maze bytes come from its original ROM. The other rows identify concrete functional families. Continued original-ROM instruction comparison will assign reuse classes to the individual routines.
 
 ## Evidence and next RE work
 
