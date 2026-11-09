@@ -1,78 +1,148 @@
-# Amazing Maze (1976)
+# Amazing Maze
 
-**Amazing Maze**, released by Midway in 1976, is an Intel 8080 black-and-white arcade maze game associated with Dave Nutting Associates' early game-development period. Players race through newly generated mazes. This project studies the original arcade ROM rather than the later Bally Astrocade cartridge adaptation.
+![Amazing Maze marquee](images/amazing-maze-21054-marquee.jpg)
 
-**Reverse-engineering status:** original ROM identity and a 17-command native-handler interpreter have been identified; source reconstruction, exact assembly round-trip, complete command semantics, and maze-engine analysis remain to be completed. See [the original-ROM runtime scan](docs/ORIGINAL-ROM-RUNTIME-SCAN.md), [sprint plan](docs/SPRINT-PLAN.md), and [technical debt](docs/TECHNICAL-DEBT.md).
+Amazing Maze (1976) is an Intel 8080 arcade maze game by Dave Nutting Associates (DNA) / Midway. It challenges players to navigate generated mazes and is one of the company's earliest 8080 arcade programs. This project reconstructs the **original 4 KB executable** as readable native 8080 assembly, with every produced ROM chip verified against the original bytes.
 
-Unlike later Z80 TERSE, the arcade's observed dispatcher uses **one-byte command tokens** and 16-bit native handler vectors. The key lineage question is whether Amazing Maze and Gun Fight inherited a common 8080 command framework, shared selected routines, or evolved independently. Similar opcodes alone cannot answer that question.
+The original Amazing Maze has a **17-command indexed native-handler interpreter**, rather than the later Z80 TERSE runtime. Gun Fight (1975) has a related 21-command implementation; the precise software relationship is an active evidence-based research question. Similar hardware or instructions alone do not establish direct inheritance.
 
-The original dedicated cabinet appears to have used the title on the monitor bezel rather than a separate illuminated marquee. We will use an original bezel photograph in this README when a repository-controlled source image is available; a modern invented marquee would not represent the arcade cabinet. Historical cabinet information: [Arcade History](https://www.arcade-history.com/?id=75&n=amazing-maze&page=detail).
+The original game runs on the Midway 8080 black-and-white platform. It uses a 4 KB ROM image, 1 KB work RAM and a 7 KB monochrome framebuffer. The source of truth is the original ROM, not a previously generated assembly file. This reconstruction can freely replace its own intermediate labels, boundaries and source layout while preserving byte-exact executable behavior.
+
+| | |
+| --- | --- |
+| [ROM identity and build](#rom-organization) | Two original 2 KB ROMs, native assembler and SHA-1 equality requirements. |
+| [Indexed interpreter](#indexed-8080-execution-architecture) | Resident native command dispatcher, 17 vectors, script root and zero-token handling. |
+| [Interrupts and timing](#interrupt-and-timer-services) | Original interrupt entry and periodic byte-counter service. |
+| [Native code and graphics](#maze-engine-and-gameplay) | Maze engine, drawing, control flow and register contracts under hard RE. |
+| [RAM, I/O and video](#rom-organization) | Device boundaries, work RAM, video RAM, and separately tracked I/O contracts. |
+| [DNA lineage](#gun-fight-and-dna-lineage) | Comparison with Gun Fight and the later DNA 8080 indexed-command family. |
 
 ## Project layout
 
-| Path | Purpose |
+| Path | Contents |
 | --- | --- |
-| `roms/original/maze.zip` | Immutable two-device original MAME ROM archive |
-| `tools/scan-runtime.mjs` | Node.js structural scanner; validates original ROM members and interpreter signatures |
-| `tools/zmac`, `tools/zmac.exe` | Bundled native assembler executables for Linux and Windows |
-| `docs/ORIGINAL-ROM-RUNTIME-SCAN.md` | Verified static evidence and provisional runtime classification |
-| `docs/SPRINT-PLAN.md` | RE and source-reconstruction gates |
-| `docs/TECHNICAL-DEBT.md` | Unresolved tasks and verification status |
-| `images/amazing-maze-memory-map.svg` | Hardware address-space diagram with distinct ROM, RAM, and video areas |
+| `roms/original/maze.zip` | Original reference MAME ROM archive |
+| `src/maze.asm` | Target readable 8080 reconstruction — in progress |
+| `build.sh`, `build.bat` | Native Linux/Windows build, ROM splitting, package and exact-hash gates |
+| `tools/zmac`, `tools/zmac.exe` | Bundled native assembler binaries |
+| `tools/scan-runtime.mjs` | Original-ROM CRC/SHA-1 and interpreter signature verification |
+| `images/amazing-maze-21054-marquee.jpg` | Repository-owned image already present in the project |
+| `images/amazing-maze-memory-map.svg` | CPU memory map using the Sea Wolf II visual conventions |
+| `docs/NATIVE-RE-PASS.md` | Decoded native code, script control, timer services and register behavior |
+| `docs/ORIGINAL-ROM-RUNTIME-SCAN.md` | Original static ROM decoder and vector inventory |
+| `docs/GUNFIGHT-COMPARISON.md` | Indexed VM architecture and reuse hypotheses |
+| `docs/SPRINT-PLAN.md`, `docs/TECHNICAL-DEBT.md` | Remaining RE and verification work |
 
-## Original ROM organization
+## Build
 
-| Device | Address | Size | CRC32 | SHA-1 |
-| --- | --- | ---: | --- | --- |
-| `maze.h` | `$0000–$07FF` | 2 KB | `f2860cff` | `62b3fd3d04bf9c5dd9b50964374fb884dc0ab79c` |
-| `maze.g` | `$0800–$0FFF` | 2 KB | `65fad839` | `893f0a7621e7df19f777be991faff0db4a9ad571` |
+Both build scripts invoke the bundled native zmac assembler. **No Python is used in the build scripts.**
 
-Original image is 4 KB, addresses `$0000–$0FFF`. The broader Midway 8080 address space has an 8 KB ROM window, of which the Amazing Maze game occupies the lower half. The known RAM/video layout is shown separately below; individual variable ownership is still under investigation.
+Linux:
+```sh
+./build.sh
+```
 
-![Amazing Maze Intel 8080 memory map](images/amazing-maze-memory-map.svg)
+Assembler command:
+```sh
+./tools/zmac -o src/maze.bin src/maze.asm
+```
 
-## Native execution architecture
+Windows 10/11:
+```bat
+build.bat
+```
 
-| Component | Observed location | Meaning |
+Assembler command:
+```bat
+tools\zmac.exe -o src\maze.bin src\maze.asm
+```
+
+The scripts follow Sea Wolf II's four-step build sequence:
+
+1. Assemble the reconstructed Intel 8080 source into an exact 4,096-byte image.
+2. Split that image into the original `maze.h` and `maze.g` 2 KB devices.
+3. Verify each generated device against its original SHA-1.
+4. Package `roms/maze.zip` only after the equality checks pass.
+
+**Current source-build status:** `src/maze.asm` has not yet been fully recovered. Both scripts report `BLOCKED` until it exists. They do not substitute the reference ROM for generated output. ROM assembly, exact equality, MAME and physical hardware are distinct verification gates.
+
+## Run in MAME
+
+After a byte-exact source build:
+
+```sh
+mame maze -window -skip_gameinfo -rompath roms
+```
+
+## ROM organization
+
+The original 4 KB program occupies two 2 KB devices in the lower half of the Midway 8080 ROM window.
+
+| ROM | CPU address | CRC32 | SHA-1 |
+| --- | --- | --- | --- |
+| `maze.h` | `$0000–$07FF` | `f2860cff` | `62b3fd3d04bf9c5dd9b50964374fb884dc0ab79c` |
+| `maze.g` | `$0800–$0FFF` | `65fad839` | `893f0a7621e7df19f777be991faff0db4a9ad571` |
+
+The memory map illustrates ROM chip boundaries, the unused upper ROM window, work RAM, bitmap video RAM, and higher-address decoder regions requiring additional hardware verification.
+
+![Amazing Maze 8080 address-space map](images/amazing-maze-memory-map.svg)
+
+## Indexed 8080 execution architecture
+
+Amazing Maze uses one-byte game commands that index little-endian native handler addresses. This interpreter predates TERSE and has a different register/stack ABI.
+
+| Component | Address | Function |
 | --- | --- | --- |
-| Reset | `$0000` | Initializes `SP=$2400` and jumps to `$0017` |
-| Interrupt/service entry | `$0008` | Saves PSW, BC, DE, HL and jumps to `$030B` |
-| Initial script root | `$0D64` | Saved to RAM `$2002` |
-| Script cursor | RAM `$2000` | Read by interpreter |
-| Interpreter | `$0392–$03C9` | Validates one-byte command and loads native handler vector |
-| Zero-command path | `$03CA` | Separate control path, not native vector slot zero |
-| Vector table | `$0BEE–$0C0F` | 17 little-endian native target addresses |
+| Reset | `$0000` | Initializes `SP=$2400` and branches to `$0017` |
+| Interrupt entry | `$0008` | Saves PSW, BC, DE, HL and enters service at `$030B` |
+| Script root | `$0D64` | Initially stored at RAM `$2002` |
+| Script cursor | RAM `$2000` | Current game command pointer |
+| Interpreter | `$0392–$03C9` | Loads, bounds-checks and dispatches one-byte tokens |
+| Zero-command path | `$03CA` | Conditional event call rather than normal native slot |
+| Vector table | `$0BEE–$0C0F` | 17 little-endian handler addresses |
 
-The nine-byte vector lookup tail at `$03C1` matches a corresponding documented pattern in Boot Hill. Amazing Maze precedes that tail with `ADD A,A` (`87`); the Boot Hill example uses `RLC` (`07`). This is an **observed code-pattern relationship**, not proof of common source or identical run-time ABI.
+### Native command dispatch
 
-The 17 original command targets, exact signature assertions, and scope of current verification are in [the runtime scan](docs/ORIGINAL-ROM-RUNTIME-SCAN.md).
+The normal token path advances the pointer at RAM `$2000`, changes the one-based command number into a zero-based vector index, checks the 17-entry limit, and indirectly jumps to the native code.
 
-## Build and verification
-
-**Current gate: ROM structural scan only.** Execute:
-
-```sh
-node tools/scan-runtime.mjs
+```asm
+; Actual original instruction sequence at $03C0.
+; HL initially holds $0BEE; A contains the zero-based token.
+ADD A           ; $87: vector index * 2
+MOV C,A         ; $4F
+MVI B,0         ; $06 $00
+DAD B           ; $09: HL += BC
+MOV A,M         ; $7E: low native target byte
+INX H           ; $23
+MOV H,M         ; $66: high target byte
+MOV L,A         ; $6F
+PCHL            ; $E9: jump to original native handler
 ```
 
-This verifies both original ROM hashes, reset and dispatcher signatures, vector table, and each in-ROM handler target. It **does not assemble reconstructed source** and **does not demonstrate a byte-for-byte rebuild**.
+Command `$00` bypasses that path and branches to `$03CA`, where the value at `$201F` controls a conditional call to `$03D4`. Out-of-range nonzero commands enter initialization at `$0377`. These behaviors are derived from original 8080 opcode sequences, not inferred from TERSE or later games.
 
-Native build entry points are provided for Linux (`./build.sh`) and Windows (`build.bat`). Both invoke the appropriate assembler in `tools/`, check the 4096-byte image length, split into `maze.h` and `maze.g`, verify both original SHA-1 hashes, and only then package `roms/maze.zip`. **Both currently stop with an explicit BLOCKED message** because `src/maze.asm` has not yet been recovered. The scripts do not copy original ROM bytes into a simulated build. Neither uses Python.
+[Original command vectors and ROM signatures](docs/ORIGINAL-ROM-RUNTIME-SCAN.md) · [Native assembly analysis](docs/NATIVE-RE-PASS.md)
 
-When the exact rebuild exists, the game can be checked separately in MAME:
+## Interrupt and timer services
 
-```sh
-mame maze -rompath roms
-```
+The `$0008` entry saves the primary 8080 registers before transferring to native frame service. A timed event service beginning at `$0341` operates on work-RAM counters: `$200A` reloads with `$3C`, and the helper at `$0369` decrements four neighboring bytes at `$200B–$200E`. The helper aggregates expiry information into register `B`.
 
-MAME boot and gameplay tests are separate from byte equality. Hardware testing is another independent gate.
+These are observed native register and RAM behaviors; their exact game-time meaning awaits a complete scheduler trace. See [the detailed service disassembly](docs/NATIVE-RE-PASS.md).
+
+## Maze engine and gameplay
+
+The game-specific hard RE covers maze representation, maze generation/randomness, drawing and collision, controls, timed play, opponent behavior and scoring. The original program stream at `$0D64` contains real native-interpreted data; packet widths must be established from individual handlers before translating it into named game commands.
+
+In particular, the original maze-generation experiment attributed to Jeff Frederiksen must be compared against the commercial game's executable routines rather than assumed to be a separate or inherited module.
 
 ## Gun Fight and DNA lineage
 
-Compare the Gun Fight 21-handler indexed interpreter at `$03A7`, script pointer `$2000`, and table `$09AE` with Amazing Maze's 17-handler dispatcher `$0392–$03C9`, script pointer `$2000`, and table `$0BEE`. Verify the calling ABI, script semantics, handler bodies, IRQ interaction, and full binary overlaps before assigning a relationship class.
+Gun Fight (1975) has 21 defensible native interpreter entries (`$00–$14`), a script pointer at `$2000`, and vector table at `$09AE`. Amazing Maze (1976) has 17 nonzero commands (`$01–$11`), also uses pointer `$2000`, and has table `$0BEE`.
 
-[Gun Fight](https://github.com/lizard43/gunfight) · [Sea Wolf II style reference](https://github.com/lizard43/SeaWolf2) · [RE sprint plan](docs/SPRINT-PLAN.md) and [Gun Fight comparison](docs/GUNFIGHT-COMPARISON.md)
+The indexed architecture and some code patterns are related, but exact binary reuse and ABI compatibility are not established. The different zero-command behavior is a concrete reason to keep direct inheritance, parallel development, and earlier common software foundation open as separate hypotheses.
+
+[Gun Fight ↔ Amazing Maze comparison](docs/GUNFIGHT-COMPARISON.md) · [Sprint plan](docs/SPRINT-PLAN.md) · [Technical debt](docs/TECHNICAL-DEBT.md)
 
 ## Sources and evidence
 
-The game-specific ROM hashes and code addresses above derive from the repository's original-ROM structural scanner. Hardware context can be cross-checked against the MAME Midway 8080 driver (`src/mame/midw8080/mw8080bw.cpp`) and original documentation. Historical leads include the [original 1976 sales flyer](https://flyers.arcade-museum.com/videogames/show/35), [arcade cabinet overview](https://www.arcade-history.com/?id=75&n=amazing-maze&page=detail), and [Midway 8080 board study](https://hackaday.io/project/204138-up-to-eleven/log/243972-development-details); modern derivative code is not evidence of the original ROM's software architecture.
+Original ROM identities and runtime bytes are recorded in `docs/ORIGINAL-ROM-RUNTIME-SCAN.md` and the further native pass. Hardware and chronology research will be reconciled with original manuals, schematics and the MAME Midway 8080 driver. Research findings and unverified hypotheses are documented separately from executable observations.
