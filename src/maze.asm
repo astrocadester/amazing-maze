@@ -1,6 +1,6 @@
 ; Amazing Maze (1976) original Intel 8080 native ROM reconstruction
 ; Source of truth: roms/original/maze.zip (maze.h $0000-$07FF; maze.g $0800-$0FFF)
-; Version v20261108-0007 — native instruction recovery with conservatively classified data
+; Version v20261108-0008 — native instruction recovery with conservatively classified data
 ; This is the native source work product. Continue hard RE by converting remaining
 ; data bytes to genuine native instructions when executable reachability proves them.
 ; All bytes, even unclassified data, follow their exact original ROM order.
@@ -1859,9 +1859,21 @@ NATIVE_COMMAND_VECTORS:
         DB $00,$00,$00,$FF,$18,$30,$60,$FE,$60,$30,$18,$00,$00,$18,$0C,$06 ; $0D50-$0D5F source data/unclassified
         DB $7F,$06,$0C,$18 ; $0D60-$0D63 source data/unclassified
 
-INITIAL_GAME_SCRIPT:
-        DB $0C,$00,$2C,$20,$0C,$00,$31,$20,$0C,$00,$32,$20,$0C,$00,$2D,$20 ; $0D64-$0D73 source data/unclassified
-        DB $11,$09,$0A,$94,$0D,$07,$10,$10,$0C,$08,$24,$07,$09,$22,$0D,$0B ; $0D74-$0D83 source data/unclassified
+INITIAL_GAME_SCRIPT:      ; Original native command packets, beginning $0D64
+        DB $0C,$00              ; $0D64: STORE_IMMEDIATE_BYTE, value 0
+        DW $202C                 ; $0D66: address of cleared game byte
+        DB $0C,$00              ; $0D68: STORE_IMMEDIATE_BYTE, value 0
+        DW $2031                 ; $0D6A
+        DB $0C,$00              ; $0D6C: STORE_IMMEDIATE_BYTE, value 0
+        DW $2032                 ; $0D6E
+        DB $0C,$00              ; $0D70: STORE_IMMEDIATE_BYTE, value 0
+        DW $202D                 ; $0D72
+        DB $11                  ; $0D74: UPDATE_END_STATE
+        DB $09,$0A              ; $0D75: SET_COUNTER_AND_POINTER, counter = $0A
+        DW $0D94                 ; $0D77: saved command/data pointer
+        DB $07,$10              ; $0D79: DRAW_INLINE_RECORD, parameter byte $10
+        DW $0C10,$2408          ; $0D7B: data pointer and destination pointer
+        DB $07,$09,$22,$0D,$0B ; $0D7F-$0D83: subsequent command/data bytes
         DB $24,$08,$1E,$00,$07,$09,$10,$0C,$0B,$24,$08,$1E,$00,$0B,$7F,$0D ; $0D84-$0D93 source data/unclassified
         DB $02,$09,$0A,$D5,$0D,$07,$03,$21,$0C,$0A,$2C,$08,$0F,$00,$07,$0B ; $0D94-$0DA3 source data/unclassified
         DB $21,$0C,$0A,$2C,$08,$0F,$00,$07,$04,$2C,$0C,$0B,$32,$08,$0F,$00 ; $0DA4-$0DB3 source data/unclassified
