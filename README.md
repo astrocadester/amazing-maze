@@ -2,7 +2,7 @@
 
 ![Amazing Maze marquee](images/amazing-maze-21054-marquee.jpg)
 
-Amazing Maze (1976) is an Intel 8080 arcade maze game by Dave Nutting Associates (DNA) / Midway. It challenges players to navigate generated mazes and is one of the company's earliest 8080 arcade programs. This project reconstructs the **original 4 KB executable** as readable native 8080 assembly, with every produced ROM chip verified against the original bytes.
+Amazing Maze (1976) is an Intel 8080 arcade maze game by Dave Nutting Associates (DNA) / Midway. It challenges players to navigate generated mazes and is one of the company's earliest 8080 arcade programs. This repository reconstructs the **original 4 KB executable** as readable native Intel 8080 assembly. Its build scripts assemble the source and compare each ROM chip against the original.
 
 **Amazing Maze contains a 17-command indexed native-handler interpreter.** Gun Fight (1975) contains 21 native command entries. Both games use one-byte commands, Intel 8080 handler vectors, and a script cursor at RAM `$2000`. Their command dictionaries share recognizable operations, including jumps, RAM updates, and conditional control flow. This RE traces DNA's engineering choices from Gun Fight into Amazing Maze.
 
@@ -90,20 +90,19 @@ Amazing Maze uses one-byte game commands to select little-endian Intel 8080 nati
 The normal token path advances the pointer at RAM `$2000`, changes the one-based command number into a zero-based vector index, checks the 17-entry limit, and indirectly jumps to the native code.
 
 ```asm
-; Actual original instruction sequence at $03C0.
-; HL initially holds $0BEE; A contains the zero-based token.
-ADD A           ; $87: vector index * 2
-MOV C,A         ; $4F
-MVI B,0         ; $06 $00
-DAD B           ; $09: HL += BC
-MOV A,M         ; $7E: low native target byte
-INX H           ; $23
-MOV H,M         ; $66: high target byte
-MOV L,A         ; $6F
-PCHL            ; $E9: jump to original native handler
+; $03C0: A = zero-based command index, HL = vector table
+ADD A           ; two bytes per vector
+MOV C,A
+MVI B,0
+DAD B           ; HL points to handler address
+MOV A,M
+INX H
+MOV H,M
+MOV L,A
+PCHL            ; execute native command
 ```
 
-Command `$00` enters the event path at `$03CA`, where RAM `$201F` controls a conditional call to `$03D4`. Nonzero commands `$01–$11` select the 17 native vectors. Higher command values enter initialization at `$0377`. 
+Command `$00` enters the event path at `$03CA`, where RAM `$201F` controls a conditional call to `$03D4`. Nonzero commands `$01–$11` select the 17 native vectors. Higher command values enter initialization at `$0377`.
 
 [17-command native dictionary](docs/8080-WORD-SEMANTICS.md) · [Original command vectors and ROM signatures](docs/ORIGINAL-ROM-RUNTIME-SCAN.md) · [Native assembly analysis](docs/NATIVE-RE-PASS.md)
 
