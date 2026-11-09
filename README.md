@@ -71,7 +71,7 @@ MAME boot and gameplay tests are separate from byte equality. Hardware testing i
 
 Compare the Gun Fight 21-handler indexed interpreter at `$03A7`, script pointer `$2000`, and table `$09AE` with Amazing Maze's 17-handler dispatcher `$0392–$03C9`, script pointer `$2000`, and table `$0BEE`. Verify the calling ABI, script semantics, handler bodies, IRQ interaction, and full binary overlaps before assigning a relationship class.
 
-[Gun Fight](https://github.com/lizard43/gunfight) · [Sea Wolf II style reference](https://github.com/lizard43/SeaWolf2) · [RE sprint plan](docs/SPRINT-PLAN.md)
+[Gun Fight](https://github.com/lizard43/gunfight) · [Sea Wolf II style reference](https://github.com/lizard43/SeaWolf2) · [RE sprint plan](docs/SPRINT-PLAN.md) and [Gun Fight comparison](docs/GUNFIGHT-COMPARISON.md)
 
 ## Sources and evidence
 
