@@ -1,6 +1,6 @@
 ; Amazing Maze (1976) original Intel 8080 native ROM reconstruction
 ; Source of truth: roms/original/maze.zip (maze.h $0000-$07FF; maze.g $0800-$0FFF)
-; Version v20261108-0006 — native instruction recovery with conservatively classified data
+; Version v20261108-0007 — native instruction recovery with conservatively classified data
 ; This is the native source work product. Continue hard RE by converting remaining
 ; data bytes to genuine native instructions when executable reachability proves them.
 ; All bytes, even unclassified data, follow their exact original ROM order.
@@ -1708,6 +1708,7 @@ CMD_09_SET_COUNTER_AND_POINTER:
         LD ($2008),HL            ; $0B77: 22 08 20
         RET                      ; $0B7A: C9
 
+; Script record: target16. Replaces RAM $2000 with target address.
 CMD_0B_GOTO_SCRIPT:
         EX DE,HL                 ; $0B7B: EB
         LD E,(HL)                ; $0B7C: 5E
@@ -1717,6 +1718,8 @@ CMD_0B_GOTO_SCRIPT:
         LD ($2000),HL            ; $0B80: 22 00 20
         RET                      ; $0B83: C9
 
+; Script record: byte8, target16. RAM[target16] = byte8.
+; Advances interpreter cursor $2000 by three bytes.
 CMD_0C_STORE_IMMEDIATE_BYTE:
         EX DE,HL                 ; $0B84: EB
         LD A,(HL)                ; $0B85: 7E
@@ -1729,6 +1732,9 @@ CMD_0C_STORE_IMMEDIATE_BYTE:
         LD (DE),A                ; $0B8E: 12
         RET                      ; $0B8F: C9
 
+; Script record: byte8, pointer16, pointer16 (5 bytes).
+; A = first byte, HL = first pointer, DE = second pointer on transfer
+; to native drawing helper $0129. RAM $2000 advanced by five bytes.
 CMD_07_DRAW_INLINE_RECORD:
         EX DE,HL                 ; $0B90: EB
         LD A,(HL)                ; $0B91: 7E
@@ -1754,7 +1760,11 @@ CMD_0D_DECREMENT_GAME_STATE:
         RET Z                    ; $0BAA: C8
         LD (DE),A                ; $0BAB: 12
         RET                      ; $0BAC: C9
-NATIVE_0BAD:
+; Read conditional script record, tested RAM byte, and target.
+; Entry: DE = pointer to 4 inline bytes (test16, branch16).
+; Exit: BC = test address; DE = branch address; HL = byte after record;
+;       A = RAM[test]; Z flag indicates tested byte zero.
+READ_CONDITION_RECORD:
         EX DE,HL                 ; $0BAD: EB
         LD C,(HL)                ; $0BAE: 4E
         INC HL                   ; $0BAF: 23
@@ -1768,6 +1778,8 @@ NATIVE_0BAD:
         AND A                    ; $0BB7: A7
         RET                      ; $0BB8: C9
 
+; BRANCH_IF_ZERO: choose script target for zero, fall-through cursor otherwise.
+; Both paths update RAM $2000; XCHG selects target from DE on taken path.
 CMD_0E_BRANCH_IF_ZERO:
         CALL $0BAD               ; $0BB9: CD AD 0B
         JP NZ,$0BC0              ; $0BBC: C2 C0 0B
@@ -1776,6 +1788,8 @@ NATIVE_0BC0:
         LD ($2000),HL            ; $0BC0: 22 00 20
         RET                      ; $0BC3: C9
 
+; BRANCH_IF_NONZERO: choose script target for nonzero, fall-through otherwise.
+; Both paths update RAM $2000.
 CMD_0F_BRANCH_IF_NONZERO:
         CALL $0BAD               ; $0BC4: CD AD 0B
         JP Z,$0BCB               ; $0BC7: CA CB 0B
