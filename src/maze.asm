@@ -1,6 +1,6 @@
 ; Amazing Maze (1976) original Intel 8080 native ROM reconstruction
 ; Source of truth: roms/original/maze.zip (maze.h $0000-$07FF; maze.g $0800-$0FFF)
-; Version v20261108-0011 — recovered native instructions and original graphics
+; Version v20261108-0012 — recovered native instructions and original graphics
 ; Executable source, original font bitmaps, encoded messages and game scripts.
 ; The assembled ROM must match both original devices exactly.
         ORG $0000
@@ -149,17 +149,21 @@ NATIVE_00BA:
         JP NZ,$00B4
         DEC B
         JP NZ,$00AE
-NATIVE_00C7:
+; Repeatedly writes to hardware output port $02.
+SERVICE_HALTED_OUTPUT_LOOP:
         OUT ($02),A
         JP $00C7
-NATIVE_00CC:
+; Computes checksums over original ROM pages, stores result/display codes in RAM $2036 onward.
+CHECK_ROM_PAGE_SUMS:
         LD SP,$2400
         LD HL,$0000
         LD DE,$0000
         LD C,$04
-NATIVE_00D7:
+; Starts the next native ROM-page checksum loop.
+BEGIN_ROM_CHECKSUM_PAGE:
         XOR A
-NATIVE_00D8:
+; Sums ROM bytes until the page boundary; feeds native ROM checksum comparisons.
+ACCUMULATE_ROM_CHECKSUM:
         OUT ($02),A
         ADD A,(HL)
         INC HL
@@ -177,7 +181,8 @@ NATIVE_00D8:
         LD HL,$0125
         ADD HL,DE
         LD A,(HL)
-NATIVE_00F3:
+; Stores the current checksum test result in RAM $2036 + page index.
+STORE_ROM_CHECK_RESULT:
         LD HL,$2036
         ADD HL,DE
         LD (HL),A
@@ -219,7 +224,8 @@ NATIVE_012A:
         SUB $30
         JP P,$0142
         LD B,A
-NATIVE_0132:
+; Advances the framebuffer destination for text-position control codes.
+ADVANCE_ENCODED_TEXT_POSITION:
         INC DE
         LD A,E
         AND $1F
@@ -237,17 +243,20 @@ NATIVE_0142:
         CP $0B
         JP M,$014C
         SUB $06
-NATIVE_014C:
+; Converts glyph index into ten-byte ROM font offset.
+SELECT_FONT_GLYPH:
         LD HL,$0166
         LD BC,$000A
-NATIVE_0152:
+; Steps ten bytes per font index.
+ADVANCE_FONT_TO_GLYPH:
         ADD HL,BC
         DEC A
         JP NZ,$0152
         EX DE,HL
         LD BC,$0020
         LD A,$0A
-NATIVE_015D:
+; Copies a byte from selected glyph into framebuffer and advances destination by 32 bytes.
+WRITE_NEXT_GLYPH_ROW:
         PUSH AF
         LD A,(DE)
         INC DE
@@ -872,9 +881,11 @@ NATIVE_03F1:
 CLEAR_MAZE_CELL_LOW_NIBBLES:
         LD DE,$2066
         LD B,$1A
-NATIVE_0408:
+; Sets inner counter C=$18 for the next one of $1A rows.
+CLEAR_NEXT_MAZE_ROW_NIBBLES:
         LD C,$18
-NATIVE_040A:
+; Preserves each cell's high nibble with AND $F0 across the maze cell region.
+CLEAR_MAZE_CELL_NIBBLE:
         LD A,(DE)
         AND $F0
         LD (DE),A
@@ -917,7 +928,8 @@ NATIVE_0422:
 SHIFT_MAZE_CELLS_LEFT_FOUR:
         LD DE,$2066
         LD BC,$0370
-NATIVE_0443:
+; Shift maze cell byte left by four bits and advance to the next maze cell.
+SHIFT_NEXT_MAZE_CELL_NIBBLE:
         LD A,(DE)
         ADD A,A
         ADD A,A
@@ -1907,7 +1919,8 @@ NATIVE_0A1D:
         SUB C
         LD C,A
         RET
-NATIVE_0A32:
+; Reads $2042-$2046 cell coordinates and direction bits; chooses one of four three-step wall-test paths.
+UPDATE_MAZE_MOVEMENT:
         LD HL,$2046
         LD A,(HL)
         AND $07
@@ -1933,7 +1946,8 @@ NATIVE_0A32:
         RRA
         JP C,$0A9B
         RET
-NATIVE_0A59:
+; Tests neighboring maze cells by varying column C and row B; common movement path.
+TRY_PATH_LEFT_UP_RIGHT:
         CALL $0ABE
         JP C,$0AB1
         INC C
@@ -1944,7 +1958,8 @@ NATIVE_0A59:
         JP C,$0AB1
         DEC C
         RET
-NATIVE_0A6F:
+; Tests another sequence of adjacent maze-cell boundaries.
+TRY_PATH_DOWN_LEFT_UP:
         CALL $0AF0
         JP C,$0AB1
         DEC B
@@ -1955,7 +1970,8 @@ NATIVE_0A6F:
         JP C,$0AB1
         INC B
         RET
-NATIVE_0A85:
+; Tests adjacent maze-cell boundaries, restoring column/row counters.
+TRY_PATH_LEFT_RIGHT_DOWN:
         CALL $0ABE
         JP C,$0AB1
         INC C
@@ -1966,7 +1982,8 @@ NATIVE_0A85:
         JP C,$0AB1
         DEC B
         RET
-NATIVE_0A9B:
+; Tests adjacent maze-cell boundaries, restoring column/row counters.
+TRY_PATH_DOWN_RIGHT_UP:
         CALL $0AF0
         JP C,$0AB1
         DEC B
@@ -1977,7 +1994,8 @@ NATIVE_0A9B:
         JP C,$0AB1
         INC B
         RET
-NATIVE_0AB1:
+; Stores column C at $2042 and row B at $2043; updates high nibble of $2044 using D.
+STORE_MAZE_POSITION_AND_WALL_STATE:
         LD HL,$2042
         LD (HL),C
         INC HL
@@ -1988,7 +2006,8 @@ NATIVE_0AB1:
         OR D
         LD (HL),A
         RET
-NATIVE_0ABE:
+; Decrements column C, checks maze cell bit $20 and high state bit; sets D=$C4 for collision/boundary state.
+CHECK_MAZE_LEFT_BOUNDARY:
         XOR A
         DEC C
         RET M
@@ -2001,7 +2020,8 @@ NATIVE_0ABE:
         RET NC
         LD D,$C4
         RET
-NATIVE_0ACE:
+; Decrements row B, checks maze cell bit $40 and high state bit; sets D=$C1 for collision/boundary state.
+CHECK_MAZE_UP_BOUNDARY:
         DEC B
         RET M
         CALL $0940
@@ -2013,7 +2033,8 @@ NATIVE_0ACE:
         RET NC
         LD D,$C1
         RET
-NATIVE_0ADD:
+; Increments column C, checks maze cell bit $20, and may set D=$C8.
+CHECK_MAZE_RIGHT_BOUNDARY:
         CALL $0940
         INC C
         LD A,(HL)
@@ -2028,7 +2049,8 @@ NATIVE_0ADD:
         RET NC
         LD D,$C8
         RET
-NATIVE_0AF0:
+; Increments row B, checks maze cell bit $40, and may set D=$C2.
+CHECK_MAZE_DOWN_BOUNDARY:
         CALL $0940
         INC B
         LD A,(HL)
@@ -2042,11 +2064,13 @@ NATIVE_0AF0:
         LD A,(HL)
         RLA
         RET NC
-NATIVE_0B05:
+; Sets D=$C2 and carry before returning.
+SET_MAZE_DOWN_BOUNDARY_EVENT:
         LD D,$C2
         SCF
         RET
-NATIVE_0B09:
+; Compares current column C against RAM $2024 when row B reaches $1A.
+CHECK_MAZE_DOWN_PLAYER_LIMIT:
         LD A,($2024)
         CP C
         JP Z,$0B05
