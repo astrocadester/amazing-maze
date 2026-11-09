@@ -1,6 +1,6 @@
 ; Amazing Maze (1976) original Intel 8080 native ROM reconstruction
 ; Source of truth: roms/original/maze.zip (maze.h $0000-$07FF; maze.g $0800-$0FFF)
-; Version v20261108-0012 — recovered native instructions and original graphics
+; Version v20261108-0013 — recovered native instructions and original graphics
 ; Executable source, original font bitmaps, encoded messages and game scripts.
 ; The assembled ROM must match both original devices exactly.
         ORG $0000
@@ -731,7 +731,8 @@ NATIVE_02E2:
         CALL $04BE
         CALL $049B
         CALL $0453
-NATIVE_02FC:
+; Restores HL, DE, BC, AF, enables interrupts, then returns.
+RESTORE_INTERRUPT_REGISTERS:
         POP HL
         POP DE
         POP BC
@@ -766,7 +767,8 @@ FRAME_SERVICE:
         JP NZ,$02FC
         LD (HL),$00
         CALL $0A32
-NATIVE_0338:
+; Loads $2044 and calls native update at $0962 before interrupt exit.
+UPDATE_FRAME_POSITION_STATE:
         LD HL,$2044
         CALL $0962
         JP $02FC
@@ -782,7 +784,8 @@ PERIODIC_TIMER_SERVICE:
         LD (HL),$3C
         LD HL,$200B
         CALL $0369
-NATIVE_0357:
+; Completes the timer-event path and stores the accumulated status.
+RECORD_TIMER_EVENT_BITS:
         LD HL,$200C
         CALL $0369
         INC HL
@@ -798,7 +801,8 @@ TIMER_DECREMENT:
         DEC (HL)
         JP NZ,$0373
         SCF
-NATIVE_0373:
+; Returns after advancing the periodic countdown and carry-driven event mask.
+FINISH_TIMER_BYTE_TEST:
         LD A,B
         RLA
         LD B,A
@@ -859,7 +863,8 @@ ZERO_COMMAND_EVENT:
         LD ($201C),A
         CALL $06E8
         CALL $06F5
-NATIVE_03E1:
+; Runs maze-step and output-port service until event state E is zero.
+RUN_ZERO_COMMAND_MAZE_EVENTS:
         CALL $070E
         OUT ($02),A
         LD A,E
@@ -867,7 +872,8 @@ NATIVE_03E1:
         JP Z,$03F1
         CALL $0780
         JP $03E1
-NATIVE_03F1:
+; Checks $201D and invokes $080D; increments $201F when the event is complete.
+TEST_MAZE_EVENT_COMPLETION:
         LD A,($201D)
         AND A
         JP Z,$03D4
@@ -901,7 +907,8 @@ CMD_06_INIT_GAME_FIELDS:
         XOR A
         LD HL,$2015
         LD B,$0D
-NATIVE_0422:
+; Writes zero to each of the thirteen RAM bytes starting at $2015.
+CLEAR_NEXT_GAME_STATE_BYTE:
         LD (HL),A
         INC HL
         DEC B
@@ -987,7 +994,8 @@ NATIVE_0488:
         JP M,$08AC
         LD (HL),A
         JP $08AC
-NATIVE_049B:
+; Reads input port $00 twice and returns when readings disagree; otherwise updates state fields.
+READ_STABLE_PORT0_INPUT:
         IN A,($00)
         LD B,A
         IN A,($00)
@@ -1004,7 +1012,8 @@ NATIVE_049B:
         RRCA
         RRCA
         LD DE,$2044
-NATIVE_04B5:
+; Stores the lower four input bits in the supplied state byte while retaining its upper four bits.
+MERGE_INPUT_LOW_NIBBLE:
         AND $0F
         LD C,A
         LD A,(DE)
@@ -1013,7 +1022,8 @@ NATIVE_04B5:
         LD (DE),A
 CMD_01_RETURN_SCRIPT:
         RET
-NATIVE_04BE:
+; Tests state byte at $2035 and processes native game-state update.
+SERVICE_GAME_STATE_COUNTER:
         LD HL,$2035
         LD A,(HL)
         AND A
@@ -1200,7 +1210,8 @@ NATIVE_05EE:
         LD DE,$3EA3
         LD A,$04
         JP $0129
-NATIVE_05F9:
+; Reads port $01 and updates start/selection state.
+READ_START_INPUTS:
         LD DE,$2034
         LD A,(DE)
         AND A
@@ -1222,7 +1233,8 @@ NATIVE_0615:
         XOR A
         LD (DE),A
         RET
-NATIVE_061E:
+; Native frame-time hardware state update.
+SAMPLE_GAME_TIMING_STATE:
         LD HL,$2044
         PUSH HL
         CALL $06AF
@@ -1749,7 +1761,8 @@ NATIVE_0921:
         POP BC
         POP HL
         RET
-NATIVE_0940:
+; Input B=row, C=column. HL = $2066 + 24*B + C; preserves BC and DE on stack; updates A and flags.
+MAZE_CELL_ADDRESS:
         PUSH DE
         LD E,$18
         LD D,$00
@@ -1757,7 +1770,8 @@ NATIVE_0940:
         LD A,B
         PUSH BC
         LD B,$09
-NATIVE_094C:
+; Nine-iteration shift/add inner loop for the 24-byte row stride.
+MAZE_ROW_OFFSET_MULTIPLY:
         DEC B
         JP Z,$0959
         ADD HL,HL
@@ -1765,7 +1779,8 @@ NATIVE_094C:
         JP NC,$094C
         ADD HL,DE
         JP $094C
-NATIVE_0959:
+; Adds column C and maze RAM base $2066; restores BC and DE.
+MAZE_CELL_ADDRESS_RETURN:
         POP BC
         LD E,C
         ADD HL,DE
