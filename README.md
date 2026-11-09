@@ -138,7 +138,7 @@ In particular, the original maze-generation experiment attributed to Jeff Freder
 
 ## Gun Fight and DNA lineage
 
-Gun Fight (1975) introduced the earlier recovered DNA Intel 8080 indexed-command architecture. Its interpreter runs at `$03A7`, uses a 21-entry native command table at `$09AE`, and reads scripts through RAM `$2000`. Amazing Maze (1976) uses a 17-entry native table at `$0BEE`, dispatcher `$0392–$03C9`, and the **same script cursor address `$2000`**.
+Gun Fight (1975) provides the earlier recovered DNA Intel 8080 indexed-command architecture. Its interpreter runs at `$03A7`, uses a 21-entry native command table at `$09AE`, and reads scripts through RAM `$2000`. Amazing Maze (1976) uses a 17-entry native table at `$0BEE`, dispatcher `$0392–$03C9`, and the **same script cursor address `$2000`**.
 
 ### Shared command functions
 
