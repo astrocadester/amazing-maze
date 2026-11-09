@@ -57,12 +57,12 @@ FRAME_SERVICE_ENTRY:             ; $030B
 
 **Observed state:** work RAM `$2030`, `$2020`, `$2033`, `$2013`, and `$2044` participate in periodic service/conditional work; the branch to `$02FC` is shared. A high-level role for each cell is not yet claimed. `$0302` returns an `HL`-addressed location for the immediate `MOV M,A` write; its own inputs/outputs remain to be decoded.
 
-## Timed event service $0340–$0375
+## Timed event service $0341–$0375
 
 These bytes expose an actual countdown mechanism, not merely a presumed timer:
 
 ```asm
-; $0340: timer-service entry, called from frame/periodic control
+; $0341: timer-service entry, called from frame/periodic control
     LXI H,$2035
     MOV A,M
     ANA A
@@ -99,7 +99,7 @@ TIMER_DECREMENT:                 ; $0369
 
 **Contract, `$0369`:** `HL` points to a byte counter; if nonzero it is decremented. When that decrement reaches zero, carry is set and incorporated into `B` by `RAL`, with resulting `B` returned. The complete bit-aggregation convention across the four calls requires checking intervening code and entry `B`. This helper changes `A, F`, and possibly `B` and memory `(HL)`; it does not increment `HL`. Its caller explicitly advances `HL` for later counters.
 
-**Contract, `$0340`:** if `[$2035]` is nonzero it returns immediately. Otherwise it decrements `[$200A]`; when that reaches zero it reloads `$3C`, processes timer counters at `$200B–$200E`, then stores the resulting event value to `$2035`. This is consistent with a periodic timer service; exact wall-clock rate requires interrupt-frequency evidence.
+**Contract, `$0341`:** if `[$2035]` is nonzero it returns immediately. Otherwise it decrements `[$200A]`; when that reaches zero it reloads `$3C`, processes timer counters at `$200B–$200E`, then stores the resulting event value to `$2035`. This is consistent with a periodic timer service; exact wall-clock rate requires interrupt-frequency evidence.
 
 ## Initial native script setup $0377–$038E
 
@@ -203,7 +203,7 @@ The first repeated `0C` followed by three bytes suggests a structured packet, bu
 1. Dispatcher root initialization clears `$200B` and `$200C` while activating `$2002` as the current `$2000` script cursor; the two cells also participate in a separate timer path. This shared ownership must be explained by runtime sequencing.
 2. Zero commands do **not** advance the cursor via the normal fetch path; they perform an `$201F`-conditioned call and return.
 3. Invalid nonzero command values (`$12` or above, after one-based correction) transfer to `$0377`, not an assumed no-op handler.
-4. The native timing subsystem at `$0340` uses a `$3C` reload and four consecutive work-RAM counters to aggregate expiry bits.
+4. The native timing subsystem at `$0341` uses a `$3C` reload and four consecutive work-RAM counters to aggregate expiry bits.
 5. Actual initial stream bytes at `$0D64` establish a concrete packet-decoding starting point for the 17-handler dictionary.
 
 ## Open RE and verification gates
