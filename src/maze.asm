@@ -16,7 +16,7 @@ INTERRUPT_ENTRY:
         PUSH BC
         PUSH DE
         PUSH HL
-        JP $030B
+        JP FRAME_SERVICE
         DB $00 
         PUSH AF
         PUSH BC
@@ -27,7 +27,7 @@ INTERRUPT_ENTRY:
 RESET_START:
         IN A,($01)
         RLA
-        JP NC,$0377
+        JP NC,INIT_SCRIPT_ROOT
         LD B,$01
         LD DE,$0000
 NATIVE_0022:
@@ -207,7 +207,7 @@ STORE_ROM_CHECK_RESULT:
         JP Z,$0000
         LD DE,$3008
         LD A,$04
-        CALL $0129
+        CALL DRAW_TEXT_GLYPH_STREAM
 NATIVE_011B:
         OUT ($02),A
         JP $011B
@@ -270,7 +270,7 @@ WRITE_NEXT_GLYPH_ROW:
         INC DE
         POP AF
         DEC A
-        JP NZ,$0129
+        JP NZ,DRAW_TEXT_GLYPH_STREAM
         RET
 ; Original 37 glyphs: ten numeric glyphs, space and 26 uppercase letters.
 ; Each glyph is ten vertical rows, eight pixels per byte.
@@ -725,11 +725,11 @@ NATIVE_02E2:
         CALL $0302
         LD (HL),A
         CALL $061E
-        CALL $0341
+        CALL PERIODIC_TIMER_SERVICE
         LD HL,$2055
         CALL $0962
         CALL $04BE
-        CALL $049B
+        CALL READ_STABLE_PORT0_INPUT
         CALL $0453
 ; Restores HL, DE, BC, AF, enables interrupts, then returns.
 RESTORE_INTERRUPT_REGISTERS:
@@ -746,32 +746,32 @@ CHECK_FRAME_MODE_OR_INTERRUPT_EXIT:
         CP (HL)
         RET NZ
         POP HL
-        JP $02FC
+        JP RESTORE_INTERRUPT_REGISTERS
 FRAME_SERVICE:
         LD A,$10
         CALL $0302
         LD (HL),A
         CALL $061E
         CALL $05A2
-        CALL $05F9
+        CALL READ_START_INPUTS
         LD A,($2030)
         DEC A
         JP NZ,$0338
         LD A,($2020)
         AND A
-        JP Z,$02FC
+        JP Z,RESTORE_INTERRUPT_REGISTERS
         LD HL,$2033
         INC (HL)
         LD A,($2013)
         CP (HL)
-        JP NZ,$02FC
+        JP NZ,RESTORE_INTERRUPT_REGISTERS
         LD (HL),$00
-        CALL $0A32
+        CALL UPDATE_MAZE_MOVEMENT
 ; Loads $2044 and calls native update at $0962 before interrupt exit.
 UPDATE_FRAME_POSITION_STATE:
         LD HL,$2044
         CALL $0962
-        JP $02FC
+        JP RESTORE_INTERRUPT_REGISTERS
 PERIODIC_TIMER_SERVICE:
         LD HL,$2035
         LD A,(HL)
@@ -783,15 +783,15 @@ PERIODIC_TIMER_SERVICE:
         JP NZ,$0357
         LD (HL),$3C
         LD HL,$200B
-        CALL $0369
+        CALL TIMER_DECREMENT
 ; Completes the timer-event path and stores the accumulated status.
 RECORD_TIMER_EVENT_BITS:
         LD HL,$200C
-        CALL $0369
+        CALL TIMER_DECREMENT
         INC HL
-        CALL $0369
+        CALL TIMER_DECREMENT
         INC HL
-        CALL $0369
+        CALL TIMER_DECREMENT
         LD ($2035),A
         RET
 TIMER_DECREMENT:
@@ -823,7 +823,7 @@ SCRIPT_INITIALIZE:
         LD HL,($2002)
         LD A,H
         OR L
-        JP Z,$03AA
+        JP Z,SCRIPT_FETCH
         XOR A
         LD ($200B),A
         LD ($200C),A
@@ -834,14 +834,14 @@ SCRIPT_FETCH:
         LD HL,($2000)
         LD A,(HL)
         AND A
-        JP Z,$03CA
+        JP Z,ZERO_COMMAND
         INC HL
         LD ($2000),HL
         EX DE,HL
         LD HL,$0BEE
         DEC A
         CP $11
-        JP NC,$0377
+        JP NC,INIT_SCRIPT_ROOT
         ADD A,A
         LD C,A
         LD B,$00
@@ -854,11 +854,11 @@ SCRIPT_FETCH:
 ZERO_COMMAND:
         LD A,($201F)
         AND A
-        CALL Z,$03D4
+        CALL Z,ZERO_COMMAND_EVENT
         RET
         DB $00,$00 
 ZERO_COMMAND_EVENT:
-        CALL $0403
+        CALL CLEAR_MAZE_CELL_LOW_NIBBLES
         XOR A
         LD ($201C),A
         CALL $06E8
@@ -876,7 +876,7 @@ RUN_ZERO_COMMAND_MAZE_EVENTS:
 TEST_MAZE_EVENT_COMPLETION:
         LD A,($201D)
         AND A
-        JP Z,$03D4
+        JP Z,ZERO_COMMAND_EVENT
         CALL $080D
         JP C,$03E1
         INC A
@@ -903,7 +903,7 @@ CLEAR_MAZE_CELL_NIBBLE:
         RET
         DB $C9 
 CMD_06_INIT_GAME_FIELDS:
-        CALL $043D
+        CALL SHIFT_MAZE_CELLS_LEFT_FOUR
         XOR A
         LD HL,$2015
         LD B,$0D
@@ -1002,7 +1002,7 @@ READ_STABLE_PORT0_INPUT:
         CP B
         RET NZ
         LD DE,$2055
-        CALL $04B5
+        CALL MERGE_INPUT_LOW_NIBBLE
         LD A,($2030)
         DEC A
         RET Z
@@ -1038,9 +1038,9 @@ SERVICE_GAME_STATE_COUNTER:
         CALL C,$0514
         POP AF
         RRA
-        CALL C,$0593
+        CALL C,SKIP_NEXT_SCRIPT_BYTE
         RRA
-        CALL C,$059B
+        CALL C,RESTORE_SCRIPT_ROOT_FROM_SAVED_POINTER
         RET
 NATIVE_04DB:
         LD HL,$2029
@@ -1052,11 +1052,11 @@ NATIVE_04DB:
         LD HL,$0C10
         LD DE,$3EA0
         LD A,$0A
-        CALL $0129
+        CALL DRAW_TEXT_GLYPH_STREAM
         LD HL,$0CAD
         LD DE,$3EA3
         LD A,$04
-        JP $0129
+        JP DRAW_TEXT_GLYPH_STREAM
 NATIVE_0500:
         LD A,$3C
         LD ($200E),A
@@ -1066,7 +1066,7 @@ NATIVE_0500:
         LD (HL),A
         LD A,$01
         LD DE,$3EAB
-        JP $0129
+        JP DRAW_TEXT_GLYPH_STREAM
 NATIVE_0514:
         LD A,$3C
         LD ($200D),A
@@ -1119,11 +1119,11 @@ NATIVE_0567:
         LD DE,$2018
 NATIVE_056D:
         LD BC,$2036
-        CALL $0634
+        CALL FORMAT_PACKED_BYTE_AS_TWO_DIGITS
         LD A,$58
         LD (BC),A
         INC BC
-        CALL $0634
+        CALL FORMAT_PACKED_BYTE_AS_TWO_DIGITS
         EX DE,HL
         LD HL,$2036
         PUSH HL
@@ -1132,7 +1132,7 @@ NATIVE_056D:
         CALL $058C
         POP HL
         LD A,$05
-        JP $0129
+        JP DRAW_TEXT_GLYPH_STREAM
 ; $058C — NORMALIZE DISPLAY GLYPH SPACE.
 ; Converts byte $30 at (HL) into $40; otherwise returns unchanged.
 NORMALIZE_DISPLAY_GLYPH_SPACE:
@@ -1209,7 +1209,7 @@ NATIVE_05EE:
         LD HL,$0CF1
         LD DE,$3EA3
         LD A,$04
-        JP $0129
+        JP DRAW_TEXT_GLYPH_STREAM
 ; Reads port $01 and updates start/selection state.
 READ_START_INPUTS:
         LD DE,$2034
@@ -1406,7 +1406,7 @@ NATIVE_06F5:
         XOR A
         LD ($2041),A
         LD B,A
-        CALL $0940
+        CALL MAZE_CELL_ADDRESS
         LD A,(HL)
         OR $09
         LD (HL),A
@@ -1417,7 +1417,7 @@ NATIVE_070E:
         CP $00
         JP Z,$0724
         DEC B
-        CALL $0940
+        CALL MAZE_CELL_ADDRESS
         INC B
         LD A,(HL)
         RRCA
@@ -1438,7 +1438,7 @@ NATIVE_0724:
         JP $0746
 NATIVE_073C:
         INC B
-        CALL $0940
+        CALL MAZE_CELL_ADDRESS
         DEC B
         LD A,(HL)
         RRCA
@@ -1452,7 +1452,7 @@ NATIVE_074A:
         CP $00
         JP Z,$075E
         DEC C
-        CALL $0940
+        CALL MAZE_CELL_ADDRESS
         INC C
         LD A,(HL)
         RRCA
@@ -1465,7 +1465,7 @@ NATIVE_075E:
         CP C
         JP Z,$0772
         INC C
-        CALL $0940
+        CALL MAZE_CELL_ADDRESS
         DEC C
         LD A,(HL)
         RRCA
@@ -1515,18 +1515,18 @@ NATIVE_07A7:
         JP $07F3
 NATIVE_07B1:
         DEC B
-        CALL $0940
+        CALL MAZE_CELL_ADDRESS
         LD D,$05
         JP $0804
 NATIVE_07BA:
-        CALL $0940
+        CALL MAZE_CELL_ADDRESS
         LD D,$04
         CALL $0804
         LD A,$19
         CP B
         JP Z,$07D1
         INC B
-        CALL $0940
+        CALL MAZE_CELL_ADDRESS
         LD D,$01
         JP $0804
 NATIVE_07D1:
@@ -1544,16 +1544,16 @@ NATIVE_07E1:
         RET
 NATIVE_07E8:
         DEC C
-        CALL $0940
+        CALL MAZE_CELL_ADDRESS
         LD D,$03
         JP $0804
         DB $00,$00 
 NATIVE_07F3:
-        CALL $0940
+        CALL MAZE_CELL_ADDRESS
         LD D,$02
         CALL $0804
         INC C
-        CALL $0940
+        CALL MAZE_CELL_ADDRESS
         LD D,$01
         JP $0804
 NATIVE_0804:
@@ -1569,7 +1569,7 @@ NATIVE_080D:
         CP C
         JP Z,$081D
 NATIVE_0814:
-        CALL $0940
+        CALL MAZE_CELL_ADDRESS
         LD A,(HL)
         RRCA
         JP NC,$080D
@@ -1841,7 +1841,7 @@ NATIVE_0999:
         RET NZ
         JP $09B5
 NATIVE_09AE:
-        CALL $0940
+        CALL MAZE_CELL_ADDRESS
         LD A,(HL)
         AND $40
         RET Z
@@ -1852,7 +1852,7 @@ NATIVE_09B7:
         CALL $09EF
         JP NZ,$09C7
         CALL $0A1D
-        CALL $0940
+        CALL MAZE_CELL_ADDRESS
         LD A,(HL)
         AND $40
         RET Z
@@ -1863,7 +1863,7 @@ NATIVE_09C9:
         CALL $0A00
         JP NZ,$09D9
         CALL $0A1D
-        CALL $0940
+        CALL MAZE_CELL_ADDRESS
         LD A,(HL)
         AND $20
         RET Z
@@ -1876,7 +1876,7 @@ NATIVE_09DB:
         CALL $0A1D
         DEC C
         RET M
-        CALL $0940
+        CALL MAZE_CELL_ADDRESS
         LD A,(HL)
         AND $20
         RET Z
@@ -2026,7 +2026,7 @@ CHECK_MAZE_LEFT_BOUNDARY:
         XOR A
         DEC C
         RET M
-        CALL $0940
+        CALL MAZE_CELL_ADDRESS
         LD A,(HL)
         AND $20
         RET Z
@@ -2039,7 +2039,7 @@ CHECK_MAZE_LEFT_BOUNDARY:
 CHECK_MAZE_UP_BOUNDARY:
         DEC B
         RET M
-        CALL $0940
+        CALL MAZE_CELL_ADDRESS
         LD A,(HL)
         AND $40
         RET Z
@@ -2050,7 +2050,7 @@ CHECK_MAZE_UP_BOUNDARY:
         RET
 ; Increments column C, checks maze cell bit $20, and may set D=$C8.
 CHECK_MAZE_RIGHT_BOUNDARY:
-        CALL $0940
+        CALL MAZE_CELL_ADDRESS
         INC C
         LD A,(HL)
         AND $20
@@ -2066,7 +2066,7 @@ CHECK_MAZE_RIGHT_BOUNDARY:
         RET
 ; Increments row B, checks maze cell bit $40, and may set D=$C2.
 CHECK_MAZE_DOWN_BOUNDARY:
-        CALL $0940
+        CALL MAZE_CELL_ADDRESS
         INC B
         LD A,(HL)
         AND $40
@@ -2210,7 +2210,7 @@ CMD_07_DRAW_INLINE_RECORD:
         INC HL
         LD ($2000),HL
         POP HL
-        JP $0129
+        JP DRAW_TEXT_GLYPH_STREAM
 CMD_0D_DECREMENT_GAME_STATE:
         LD DE,$2013
         LD A,(DE)
@@ -2239,7 +2239,7 @@ READ_CONDITION_RECORD:
 ; BRANCH_IF_ZERO: choose script target for zero, fall-through cursor otherwise.
 ; Both paths update RAM $2000; XCHG selects target from DE on taken path.
 CMD_0E_BRANCH_IF_ZERO:
-        CALL $0BAD
+        CALL READ_CONDITION_RECORD
         JP NZ,$0BC0
         EX DE,HL
 NATIVE_0BC0:
@@ -2248,7 +2248,7 @@ NATIVE_0BC0:
 ; BRANCH_IF_NONZERO: choose script target for nonzero, fall-through otherwise.
 ; Both paths update RAM $2000.
 CMD_0F_BRANCH_IF_NONZERO:
-        CALL $0BAD
+        CALL READ_CONDITION_RECORD
         JP Z,$0BCB
         EX DE,HL
 NATIVE_0BCB:
@@ -2261,7 +2261,7 @@ CMD_10_PROCESS_INLINE_RECORD:
         LD D,(HL)
         INC HL
         LD BC,$2036
-        CALL $0634
+        CALL FORMAT_PACKED_BYTE_AS_TWO_DIGITS
         LD E,(HL)
         INC HL
         LD D,(HL)
@@ -2270,7 +2270,7 @@ CMD_10_PROCESS_INLINE_RECORD:
         LD HL,$2036
         CALL $058C
         LD A,$02
-        JP $0129
+        JP DRAW_TEXT_GLYPH_STREAM
         DB $00,$00 
 NATIVE_COMMAND_VECTORS:
 ; Original 17 little-endian native dispatch vectors, tokens $01-$11
