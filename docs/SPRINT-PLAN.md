@@ -12,15 +12,17 @@ The mandatory `ENGINEERING-RULES.md` and `AGENTS.md` were copied verbatim from `
 
 - [x] Identify two original 2 KB devices `maze.h`, `maze.g`, SHA-1 and CRC32 recorded in `ORIGINAL-ROM-RUNTIME-SCAN.md`.
 - [x] Static signatures for reset, interrupt entry, interpreter, vector table and all 17 targets documented.
-- [ ] Confirm actual ZIP member decoding using the scanner on the development machine; keep this test distinct from source round-trip.
+- [x] Extract and inspect both 2048-byte original ROM members independently from the GitHub archive (4096-byte combined ROM).
+- [ ] Run repository's Node scanner and native assembler on a development machine; keep results distinct from source round-trip.
 - [x] Reuse the repository's existing `images/amazing-maze-21054-marquee.jpg` in the README.
 - [ ] Audit original MAME driver, manuals, electrical schematics, input ports, raster/video map, interrupt vectors, and device-specific ROM assignments.
 - [ ] Determine original cabinet image provenance and distinguish bezel, flyer, and marquee terminology without changing repository artwork.
 
 ## Gate 1 — Hard 8080 source RE
 
-- [ ] Recover a readable `src/maze.asm` from both original ROMs.
-- [ ] Establish executable boundaries via control-flow reachability; distinguish code, script streams, tables, display graphics, fonts, and padding.
+- [x] Recover and commit a 4 KB-addressed native `src/maze.asm` from both original ROMs (initial 1,551 instruction entries, 17 vectors and byte-preserving data).
+- [x] Establish initial code boundaries using reset/interrupt/control-flow roots and the 17 vector entries; preserve remaining byte regions for classified original data.
+- [ ] Complete executable reachability and separate the remaining script/data/graphics/text/padding regions by verified use.
 - [ ] Replace generic labels with semantic labels supported by cross-references and behavior.
 - [ ] Define function boundaries, documented inputs/outputs, register/flag effects, stack and RAM effects, I/O effects, and callers.
 - [ ] Decode important graphics and game constants inline.
