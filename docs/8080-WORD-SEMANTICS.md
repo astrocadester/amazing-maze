@@ -14,7 +14,7 @@ Decoded directly from the original two 2,048-byte 8080 ROM devices, `maze.h` at 
 | `04` | `$0B17` | WRITE_COMPUTED_DISPLAY_DATA | Unknown | Disables interrupts, consumes pointer/word fields from script, performs memory writes, updates `$2000` | M |
 | `05` | `$0B4B` | POLL_INPUT_BIT_40 | 0 | `IN $01; ANI $40`, selects a working value, stores `$202A`, complements/stores `$202C` | H (native state), M (game meaning) |
 | `06` | `$0419` | INITIALIZE_GAME_FIELDS | 0 | Calls `$043D`; clears `$2015–$2021` (13 bytes), copies selected bytes into adjacent state, updates `$2040` region | H (partial effects), M (meaning) |
-| `07` | `$0B90` | DRAW_OR_COPY_INLINE_RECORD | At least 5 | Reads a byte and two pointer16 operands, saves cursor at `$2000`, then jumps to native routine `$0129` | M |
+| `07` | `$0B90` | DRAW_OR_COPY_INLINE_RECORD | 5 | Reads a byte and two pointer16 operands, saves cursor at `$2000`, then jumps to native routine `$0129` | M |
 | `08` | `$0B5F` | SET_RAM_200C | 1 | Reads inline byte, stores at `$200C`, advances `$2000` | H |
 | `09` | `$0B69` | SET_RAM_200B_AND_2008 | 3 | Reads byte into `$200B`, then address16 into `$2008`, advances cursor | H |
 | `0A` | `$08AC` | GAME_CONTROL_NATIVE | Unknown | Native entry located; full effects not yet traced | L |
@@ -23,7 +23,7 @@ Decoded directly from the original two 2,048-byte 8080 ROM devices, `maze.h` at 
 | `0D` | `$0BA3` | CONDITIONAL_DECREMENT_2013 | 0 | `LXI D,$2013; LDAX D; DCR A; CPI 1; RZ; STAX D; RET`. Does not store when original byte is 2 | H (native effect) |
 | `0E` | `$0BB9` | BRANCH_IF_BYTE_ZERO | 4 | Shared condition helper reads address16 and target16; when pointed byte is zero, replaces `$2000` with target | H |
 | `0F` | `$0BC4` | BRANCH_IF_BYTE_NONZERO | 4 | Shared condition helper reads address16 and target16; when pointed byte is nonzero, replaces `$2000` with target | H |
-| `10` | `$0BCF` | PROCESS_INLINE_NATIVE_RECORD | At least 4 | Reads pointer16, calls `$0634` with `BC=$2036`, reads further operand and calls `$058C`, transfers to `$0129` | M |
+| `10` | `$0BCF` | PROCESS_INLINE_NATIVE_RECORD | 4 | Reads pointer16, calls `$0634` with `BC=$2036`, reads further operand and calls `$058C`, transfers to `$0129` | M |
 | `11` | `$05D9` | UPDATE_END_OR_DISPLAY_STATE | 0 | Tests/decrements `$2027`, initializes `$202E` and `$202D`, writes `$2002` and calls through display routine `$0129` | M |
 
 **Note on command 07:** The explicit `$0B90` stream contains one byte plus *two* 16-bit values (five operand bytes). The continuation through `$0129` determines how these affect graphics. Do not equate this word with a generic byte copy before analyzing that routine.
@@ -108,7 +108,7 @@ $0D74: 11             UPDATE_END_OR_DISPLAY_STATE
 $0D75: 09 0A 94 0D    SET_RAM_200B_AND_2008 byte=$0A, address=$0D94
 ```
 
-The next byte at `$0D79` is `07`. Its exact packet can be decoded only after verifying the continuation through `$0129`.
+The next byte at `$0D79` is command `07`, whose handler consumes five operand bytes: byte8, pointer16, pointer16. The native drawing helper at `$0129` determines its screen effect.
 
 ### Token $0E/$0F — conditional branches (helper $0BAD)
 
@@ -144,9 +144,11 @@ READ_BRANCH_RECORD:       ; $0BAD
     RET
 ```
 
-Packet: `[token][test_address_lo][test_address_hi][jump_target_lo][jump_target_hi]`. The pointed byte is tested for zero. **Branch taken:** `XCHG` switches the target into `HL`, which is saved to `$2000`. **Branch not taken:** the script cursor still needs to advance beyond the four operands; trace caller/dispatcher behavior and confirm whether the handler's fall-through path updates `$2000` elsewhere before claiming that non-taken branches are fully correct.
+Packet: `[token][test_address_lo][test_address_hi][jump_target_lo][jump_target_hi]`. The common helper loads the test address into `BC`, the branch target into `DE`, and leaves `HL` pointing to the next sequential command. It tests the byte at `(BC)` with `ANA A`.
 
-The original machine code provides a critical caveat: the helper advances `HL` past the four operands, but neither branch word explicitly writes that advanced `HL` back to `$2000` on the not-taken path. This means the true calling convention must be established before treating the record as an ordinary if/else packet. The observed conditional store of the taken target is certain.
+**Every path writes the next script cursor to RAM `$2000`.** When the condition is met, `XCHG` moves the branch target from `DE` into `HL` before the store. When the condition is false, the conditional `JP` skips `XCHG` and stores the already-advanced sequential pointer in `HL`. This original native code establishes both taken and fall-through behavior, so the two words have complete four-byte immediate records and functioning two-way script branches.
+
+The [recovered assembly](../src/maze.asm) labels the common helper `READ_CONDITION_RECORD` at `$0BAD` and annotates the register/flag contract inline.
 
 ## Corrected host-analysis issue
 
@@ -154,4 +156,4 @@ The earlier off-repository in-memory ZIP/DEFLATE analysis failed in a temporary 
 
 ## Work still required
 
-Native handler details above are a second **structural hard-RE pass**, not a finished emulator trace, not a reconstructed complete `src/maze.asm`, and not a byte-exact assembled ROM. Additional decoding must resolve command `03/04/07/0A/10/11` graphics/service behavior, all packet lengths and especially the two-way branch continuation, then assemble and compare both devices with bundled zmac. No replacement gameplay implementation or synthetic interpreter is authorized.
+Native handler details above are a second **structural hard-RE pass**, not a finished emulator trace, not a reconstructed complete `src/maze.asm`, and not a byte-exact assembled ROM. Additional decoding must resolve command `03/04/07/0A/10/11` graphics/service behavior, remaining packet lengths and the screen effects of the native drawing helpers, then assemble and compare both devices with bundled zmac. No replacement gameplay implementation or synthetic interpreter is authorized.
