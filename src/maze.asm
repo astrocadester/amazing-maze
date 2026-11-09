@@ -1,6 +1,6 @@
 ; Amazing Maze (1976) original Intel 8080 native ROM reconstruction
 ; Source of truth: roms/original/maze.zip (maze.h $0000-$07FF; maze.g $0800-$0FFF)
-; Version v20261108-0008 — native instruction recovery with conservatively classified data
+; Version v20261108-0009 — native instruction recovery with conservatively classified data
 ; This is the native source work product. Continue hard RE by converting remaining
 ; data bytes to genuine native instructions when executable reachability proves them.
 ; All bytes, even unclassified data, follow their exact original ROM order.
@@ -209,7 +209,11 @@ NATIVE_011B:
         OUT ($02),A              ; $011B: D3 02
         JP $011B                 ; $011D: C3 1B 01
         DB $00,$A1,$C1,$EE,$58,$48,$48,$47,$47 ; $0120-$0128 source data/unclassified
-NATIVE_0129:
+; Original native text/glyph rendering entry at $0129.
+; Entry HL -> encoded text, DE -> framebuffer destination, A = item count.
+; Glyph bytes write at +$20 bitmap stride for ten rows; stream bytes
+; below $30 advance position and other characters index the font below.
+DRAW_TEXT_GLYPH_STREAM:
         PUSH AF                  ; $0129: F5
 NATIVE_012A:
         LD A,(HL)                ; $012A: 7E
@@ -261,30 +265,84 @@ NATIVE_015D:
         DEC A                    ; $016B: 3D
         JP NZ,$0129              ; $016C: C2 29 01
         RET                      ; $016F: C9
-        DB $3C,$7E,$66,$66,$66,$66,$66,$66,$7E,$3C,$18,$1C,$18,$18,$18,$18 ; $0170-$017F source data/unclassified
-        DB $18,$18,$3C,$3C,$3C,$7E,$66,$60,$7C,$3E,$06,$06,$7E,$7E,$3C,$7E ; $0180-$018F source data/unclassified
-        DB $66,$60,$38,$78,$60,$66,$7E,$3C,$66,$66,$66,$66,$7E,$7E,$60,$60 ; $0190-$019F source data/unclassified
-        DB $60,$60,$3E,$3E,$06,$06,$3E,$7E,$60,$66,$7E,$3C,$3C,$3E,$06,$06 ; $01A0-$01AF source data/unclassified
-        DB $3E,$7E,$66,$66,$7E,$3C,$7E,$7E,$60,$70,$30,$38,$18,$1C,$0C,$0C ; $01B0-$01BF source data/unclassified
-        DB $3C,$7E,$66,$66,$3C,$7E,$66,$66,$7E,$3C,$3C,$7E,$66,$66,$7E,$7C ; $01C0-$01CF source data/unclassified
-        DB $60,$60,$7C,$3C,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$18,$3C ; $01D0-$01DF source data/unclassified
-        DB $7E,$66,$66,$66,$7E,$7E,$66,$66,$3E,$7E,$66,$66,$3E,$7E,$66,$66 ; $01E0-$01EF source data/unclassified
-        DB $7E,$3E,$3C,$7E,$66,$06,$06,$06,$06,$66,$7E,$3C,$3E,$7E,$66,$66 ; $01F0-$01FF source data/unclassified
-        DB $66,$66,$66,$66,$7E,$3E,$7E,$7E,$06,$06,$3E,$3E,$06,$06,$7E,$7E ; $0200-$020F source data/unclassified
-        DB $7E,$7E,$06,$06,$3E,$3E,$06,$06,$06,$06,$3C,$7E,$66,$06,$06,$76 ; $0210-$021F source data/unclassified
-        DB $76,$66,$7E,$3C,$66,$66,$66,$66,$7E,$7E,$66,$66,$66,$66,$3C,$3C ; $0220-$022F source data/unclassified
-        DB $18,$18,$18,$18,$18,$18,$3C,$3C,$C0,$C0,$C0,$C0,$C0,$C0,$00,$00 ; $0230-$023F source data/unclassified
-        DB $C0,$C0,$66,$66,$76,$3E,$1E,$1E,$3E,$76,$66,$66,$06,$06,$06,$06 ; $0240-$024F source data/unclassified
-        DB $06,$06,$06,$06,$7E,$7E,$C3,$C3,$E7,$E7,$FF,$FF,$DB,$C3,$C3,$C3 ; $0250-$025F source data/unclassified
-        DB $66,$66,$6E,$6E,$7E,$7E,$76,$76,$66,$66,$3C,$7E,$66,$66,$66,$66 ; $0260-$026F source data/unclassified
-        DB $66,$66,$7E,$3C,$3E,$7E,$66,$66,$7E,$3E,$06,$06,$06,$06,$00,$00 ; $0270-$027F source data/unclassified
-        DB $08,$08,$08,$49,$6B,$3E,$1C,$08,$3E,$7E,$66,$66,$7E,$3E,$76,$66 ; $0280-$028F source data/unclassified
-        DB $66,$66,$3C,$7E,$66,$06,$3E,$7C,$60,$66,$7E,$3C,$7E,$7E,$18,$18 ; $0290-$029F source data/unclassified
-        DB $18,$18,$18,$18,$18,$18,$66,$66,$66,$66,$66,$66,$66,$66,$7E,$3C ; $02A0-$02AF source data/unclassified
-        DB $66,$66,$66,$66,$66,$7E,$3C,$3C,$18,$18,$C3,$C3,$C3,$DB,$FF,$FF ; $02B0-$02BF source data/unclassified
-        DB $E7,$E7,$C3,$C3,$00,$18,$18,$00,$00,$00,$00,$18,$18,$00,$66,$66 ; $02C0-$02CF source data/unclassified
-        DB $7E,$3C,$18,$18,$18,$18,$18,$18,$7E,$7E,$60,$70,$38,$1C,$0E,$06 ; $02D0-$02DF source data/unclassified
-        DB $7E,$7E ; $02E0-$02E1 source data/unclassified
+; Original 37 glyphs: ten numeric glyphs, space and 26 uppercase letters.
+; Each glyph is ten vertical rows, eight pixels per byte.
+; Native drawing routine $0129 writes each row with a $20-byte screen stride.
+FONT_37_GLYPHS_10_ROWS:        ; $0170-$02E1
+FONT_DIGIT_0:          ; $0170 ten original bitmap rows
+        DB $3C,$7E,$66,$66,$66,$66,$66,$66,$7E,$3C
+FONT_DIGIT_1:          ; $017A ten original bitmap rows
+        DB $18,$1C,$18,$18,$18,$18,$18,$18,$3C,$3C
+FONT_DIGIT_2:          ; $0184 ten original bitmap rows
+        DB $3C,$7E,$66,$60,$7C,$3E,$06,$06,$7E,$7E
+FONT_DIGIT_3:          ; $018E ten original bitmap rows
+        DB $3C,$7E,$66,$60,$38,$78,$60,$66,$7E,$3C
+FONT_DIGIT_4:          ; $0198 ten original bitmap rows
+        DB $66,$66,$66,$66,$7E,$7E,$60,$60,$60,$60
+FONT_DIGIT_5:          ; $01A2 ten original bitmap rows
+        DB $3E,$3E,$06,$06,$3E,$7E,$60,$66,$7E,$3C
+FONT_DIGIT_6:          ; $01AC ten original bitmap rows
+        DB $3C,$3E,$06,$06,$3E,$7E,$66,$66,$7E,$3C
+FONT_DIGIT_7:          ; $01B6 ten original bitmap rows
+        DB $7E,$7E,$60,$70,$30,$38,$18,$1C,$0C,$0C
+FONT_DIGIT_8:          ; $01C0 ten original bitmap rows
+        DB $3C,$7E,$66,$66,$3C,$7E,$66,$66,$7E,$3C
+FONT_DIGIT_9:          ; $01CA ten original bitmap rows
+        DB $3C,$7E,$66,$66,$7E,$7C,$60,$60,$7C,$3C
+FONT_SPACE:          ; $01D4 ten original bitmap rows
+        DB $00,$00,$00,$00,$00,$00,$00,$00,$00,$00
+FONT_LETTER_A:          ; $01DE ten original bitmap rows
+        DB $18,$3C,$7E,$66,$66,$66,$7E,$7E,$66,$66
+FONT_LETTER_B:          ; $01E8 ten original bitmap rows
+        DB $3E,$7E,$66,$66,$3E,$7E,$66,$66,$7E,$3E
+FONT_LETTER_C:          ; $01F2 ten original bitmap rows
+        DB $3C,$7E,$66,$06,$06,$06,$06,$66,$7E,$3C
+FONT_LETTER_D:          ; $01FC ten original bitmap rows
+        DB $3E,$7E,$66,$66,$66,$66,$66,$66,$7E,$3E
+FONT_LETTER_E:          ; $0206 ten original bitmap rows
+        DB $7E,$7E,$06,$06,$3E,$3E,$06,$06,$7E,$7E
+FONT_LETTER_F:          ; $0210 ten original bitmap rows
+        DB $7E,$7E,$06,$06,$3E,$3E,$06,$06,$06,$06
+FONT_LETTER_G:          ; $021A ten original bitmap rows
+        DB $3C,$7E,$66,$06,$06,$76,$76,$66,$7E,$3C
+FONT_LETTER_H:          ; $0224 ten original bitmap rows
+        DB $66,$66,$66,$66,$7E,$7E,$66,$66,$66,$66
+FONT_LETTER_I:          ; $022E ten original bitmap rows
+        DB $3C,$3C,$18,$18,$18,$18,$18,$18,$3C,$3C
+FONT_LETTER_J:          ; $0238 ten original bitmap rows
+        DB $C0,$C0,$C0,$C0,$C0,$C0,$00,$00,$C0,$C0
+FONT_LETTER_K:          ; $0242 ten original bitmap rows
+        DB $66,$66,$76,$3E,$1E,$1E,$3E,$76,$66,$66
+FONT_LETTER_L:          ; $024C ten original bitmap rows
+        DB $06,$06,$06,$06,$06,$06,$06,$06,$7E,$7E
+FONT_LETTER_M:          ; $0256 ten original bitmap rows
+        DB $C3,$C3,$E7,$E7,$FF,$FF,$DB,$C3,$C3,$C3
+FONT_LETTER_N:          ; $0260 ten original bitmap rows
+        DB $66,$66,$6E,$6E,$7E,$7E,$76,$76,$66,$66
+FONT_LETTER_O:          ; $026A ten original bitmap rows
+        DB $3C,$7E,$66,$66,$66,$66,$66,$66,$7E,$3C
+FONT_LETTER_P:          ; $0274 ten original bitmap rows
+        DB $3E,$7E,$66,$66,$7E,$3E,$06,$06,$06,$06
+FONT_LETTER_Q:          ; $027E ten original bitmap rows
+        DB $00,$00,$08,$08,$08,$49,$6B,$3E,$1C,$08
+FONT_LETTER_R:          ; $0288 ten original bitmap rows
+        DB $3E,$7E,$66,$66,$7E,$3E,$76,$66,$66,$66
+FONT_LETTER_S:          ; $0292 ten original bitmap rows
+        DB $3C,$7E,$66,$06,$3E,$7C,$60,$66,$7E,$3C
+FONT_LETTER_T:          ; $029C ten original bitmap rows
+        DB $7E,$7E,$18,$18,$18,$18,$18,$18,$18,$18
+FONT_LETTER_U:          ; $02A6 ten original bitmap rows
+        DB $66,$66,$66,$66,$66,$66,$66,$66,$7E,$3C
+FONT_LETTER_V:          ; $02B0 ten original bitmap rows
+        DB $66,$66,$66,$66,$66,$7E,$3C,$3C,$18,$18
+FONT_LETTER_W:          ; $02BA ten original bitmap rows
+        DB $C3,$C3,$C3,$DB,$FF,$FF,$E7,$E7,$C3,$C3
+FONT_LETTER_X:          ; $02C4 ten original bitmap rows
+        DB $00,$18,$18,$00,$00,$00,$00,$18,$18,$00
+FONT_LETTER_Y:          ; $02CE ten original bitmap rows
+        DB $66,$66,$7E,$3C,$18,$18,$18,$18,$18,$18
+FONT_LETTER_Z:          ; $02D8 ten original bitmap rows
+        DB $7E,$7E,$60,$70,$38,$1C,$0E,$06,$7E,$7E
 NATIVE_02E2:
         XOR A                    ; $02E2: AF
         CALL $0302               ; $02E3: CD 02 03
