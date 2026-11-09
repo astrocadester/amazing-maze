@@ -1,7 +1,7 @@
 ; Amazing Maze (1976) original Intel 8080 native ROM reconstruction
 ; Source of truth: roms/original/maze.zip (maze.h $0000-$07FF; maze.g $0800-$0FFF)
-; Version v20261108-0005 — native instruction recovery with conservatively classified data
-; This is the executable source artifact. Continue hard RE by converting remaining
+; Version v20261108-0006 — native instruction recovery with conservatively classified data
+; This is the native source work product. Continue hard RE by converting remaining
 ; data bytes to genuine native instructions when executable reachability proves them.
 ; All bytes, even unclassified data, follow their exact original ROM order.
 ; The native assembler/byte-exact build verification remains a separate gate.
@@ -1805,23 +1805,23 @@ CMD_10_PROCESS_INLINE_RECORD:
 
 NATIVE_COMMAND_VECTORS:
 ; Original 17 little-endian native dispatch vectors, tokens $01-$11
-        DW $04BD      ; token $01 -> CMD_01_RETURN_SCRIPT
-        DW $0B12      ; token $02 -> CMD_02_SET_MODE_0E
-        DW $0835      ; token $03 -> CMD_03_GAME_DISPLAY_UPDATE
-        DW $0B17      ; token $04 -> CMD_04_WRITE_DISPLAY_DATA
-        DW $0B4B      ; token $05 -> CMD_05_READ_PLAYER_INPUT
-        DW $0419      ; token $06 -> CMD_06_INIT_GAME_FIELDS
-        DW $0B90      ; token $07 -> CMD_07_DRAW_INLINE_RECORD
-        DW $0B5F      ; token $08 -> CMD_08_SET_COUNTER_200C
-        DW $0B69      ; token $09 -> CMD_09_SET_COUNTER_AND_POINTER
-        DW $08AC      ; token $0A -> CMD_0A_GAME_CONTROL
-        DW $0B7B      ; token $0B -> CMD_0B_GOTO_SCRIPT
-        DW $0B84      ; token $0C -> CMD_0C_STORE_IMMEDIATE_BYTE
-        DW $0BA3      ; token $0D -> CMD_0D_DECREMENT_GAME_STATE
-        DW $0BB9      ; token $0E -> CMD_0E_BRANCH_IF_ZERO
-        DW $0BC4      ; token $0F -> CMD_0F_BRANCH_IF_NONZERO
-        DW $0BCF      ; token $10 -> CMD_10_PROCESS_INLINE_RECORD
-        DW $05D9      ; token $11 -> CMD_11_UPDATE_END_STATE
+        DW CMD_01_RETURN_SCRIPT      ; token $01 -> CMD_01_RETURN_SCRIPT
+        DW CMD_02_SET_MODE_0E      ; token $02 -> CMD_02_SET_MODE_0E
+        DW CMD_03_GAME_DISPLAY_UPDATE      ; token $03 -> CMD_03_GAME_DISPLAY_UPDATE
+        DW CMD_04_WRITE_DISPLAY_DATA      ; token $04 -> CMD_04_WRITE_DISPLAY_DATA
+        DW CMD_05_READ_PLAYER_INPUT      ; token $05 -> CMD_05_READ_PLAYER_INPUT
+        DW CMD_06_INIT_GAME_FIELDS      ; token $06 -> CMD_06_INIT_GAME_FIELDS
+        DW CMD_07_DRAW_INLINE_RECORD      ; token $07 -> CMD_07_DRAW_INLINE_RECORD
+        DW CMD_08_SET_COUNTER_200C      ; token $08 -> CMD_08_SET_COUNTER_200C
+        DW CMD_09_SET_COUNTER_AND_POINTER      ; token $09 -> CMD_09_SET_COUNTER_AND_POINTER
+        DW CMD_0A_GAME_CONTROL      ; token $0A -> CMD_0A_GAME_CONTROL
+        DW CMD_0B_GOTO_SCRIPT      ; token $0B -> CMD_0B_GOTO_SCRIPT
+        DW CMD_0C_STORE_IMMEDIATE_BYTE      ; token $0C -> CMD_0C_STORE_IMMEDIATE_BYTE
+        DW CMD_0D_DECREMENT_GAME_STATE      ; token $0D -> CMD_0D_DECREMENT_GAME_STATE
+        DW CMD_0E_BRANCH_IF_ZERO      ; token $0E -> CMD_0E_BRANCH_IF_ZERO
+        DW CMD_0F_BRANCH_IF_NONZERO      ; token $0F -> CMD_0F_BRANCH_IF_NONZERO
+        DW CMD_10_PROCESS_INLINE_RECORD      ; token $10 -> CMD_10_PROCESS_INLINE_RECORD
+        DW CMD_11_UPDATE_END_STATE      ; token $11 -> CMD_11_UPDATE_END_STATE
         DB $40,$40,$40,$40,$40,$40,$40,$40,$40,$40,$40,$40,$40,$40,$40,$40 ; $0C10-$0C1F source data/unclassified
         DB $40,$54,$48,$45,$40,$41,$4D,$41,$5A,$49,$4E,$47,$4D,$41,$5A,$45 ; $0C20-$0C2F source data/unclassified
         DB $40,$4D,$41,$5A,$45,$53,$40,$57,$4F,$4E,$53,$45,$4C,$45,$43,$54 ; $0C30-$0C3F source data/unclassified
