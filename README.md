@@ -22,7 +22,7 @@ The original game runs on the Midway 8080 black-and-white platform. It uses a 4 
 | Path | Contents |
 | --- | --- |
 | `roms/original/maze.zip` | Original reference MAME ROM archive |
-| `src/maze.asm` | Target readable 8080 reconstruction — in progress |
+| `src/maze.asm` | Original-ROM native assembly: 1,551 instruction entries, 17 labeled vectors and original data regions; deeper RE in progress |
 | `build.sh`, `build.bat` | Native Linux/Windows build, ROM splitting, package and exact-hash gates |
 | `tools/zmac`, `tools/zmac.exe` | Bundled native assembler binaries |
 | `tools/scan-runtime.mjs` | Original-ROM CRC/SHA-1 and interpreter signature verification |
@@ -65,7 +65,7 @@ The scripts follow Sea Wolf II's four-step build sequence:
 3. Verify each generated device against its original SHA-1.
 4. Package `roms/maze.zip` only after the equality checks pass.
 
-**Current source-build status:** `src/maze.asm` has not yet been fully recovered. Both scripts report `BLOCKED` until it exists. They do not substitute the reference ROM for generated output. ROM assembly, exact equality, MAME and physical hardware are distinct verification gates.
+**Current source-build status:** `src/maze.asm` is now present and its static address ledger accounts for all 4,096 original bytes. The bundled assembler, generated-ROM SHA-1 comparison, MAME, and physical hardware gates still require execution. The scripts assemble the actual source and compare generated ROMs; they never substitute the reference archive.
 
 ## Run in MAME
 
@@ -132,7 +132,7 @@ These are observed native register and RAM behaviors; their exact game-time mean
 
 ## Maze engine and gameplay
 
-The game-specific hard RE covers maze representation, maze generation/randomness, drawing and collision, controls, timed play, opponent behavior and scoring. The original program stream at `$0D64` contains real native-interpreted data; packet widths must be established from individual handlers before translating it into named game commands.
+The native assembly now recovers the dispatcher, 17 vector entries, interrupt and timing paths, and explicit initialization command packets at `$0D64`. Its first four `STORE_IMMEDIATE_BYTE` commands clear `$202C`, `$2031`, `$2032`, and `$202D`; the following commands configure the native state and a drawing record. The deeper maze representation, generation, collision, controls and scoring code remains the focus of further instruction-level RE.
 
 In particular, the original maze-generation experiment attributed to Jeff Frederiksen must be compared against the commercial game's executable routines rather than assumed to be a separate or inherited module.
 
