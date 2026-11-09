@@ -40,7 +40,8 @@ The mandatory `ENGINEERING-RULES.md` and `AGENTS.md` were copied verbatim from `
 - [x] Static identification of a 17-command native vector dispatcher.
 - [x] Decode the dispatcher `$0392–$03C9`, zero-command branch `$03CA`, script root initialization and RAM cursor `$2000` at the instruction level; record exact original bytes in `NATIVE-RE-PASS.md`.
 - [ ] Complete dynamic traces and analyze `$03D4` plus all script-root transitions.
-- [ ] Audit all 17 handlers for parameter width, registers, stack, flags, side effects, and dispatcher continuation contract.
+- [x] Identify all 17 vector entries and begin per-entry native semantic contracts in `docs/8080-WORD-SEMANTICS.md`.
+- [ ] Complete all 17 handler operand widths, registers, stack, flags, RAM side effects, and dispatcher continuation contract.
 - [ ] Decode real scripts with token names, source offsets, and actual handler behaviors.
 - [ ] Test malformed token handling, branches, literals, loops, copies, zero command, and interrupt preemption without conjecture.
 
