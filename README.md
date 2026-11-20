@@ -1,43 +1,24 @@
 # Amazing Maze
 
-Amazing Maze was developed by Dave Nutting Associates (DNA) and released by Midway in 1976. The arcade game runs on Intel 8080 hardware and uses a one-byte indexed command interpreter to execute game scripts through 17 native command handlers.
+Amazing Maze is a 1976 arcade maze game developed by Dave Nutting Associates (DNA) and released by Midway. Built for Intel 8080 arcade hardware, the game generates mazes, draws the playfield, processes player movement, and runs its game logic through a 17-command interpreter.
 
-![Amazing Maze arcade marquee](images/amazing-maze-21054-marquee.jpg)
+![Amazing Maze marquee](images/amazing-maze-21054-marquee.jpg)
 
-Unlike Checkmate's native language-selection routines, Amazing Maze's command engine advances through a stream of game commands. A nonzero command in the range 1–17 selects a 16-bit native handler address; command zero enters the separate scheduler path.
-
-| | |
-| --- | --- |
-| [Native execution](#architecture) | Reset, interrupt service, command interpreter and indexed native handlers. |
-| [Command scripts](#command-interpreter) | Script cursor, dispatch, 17-word handler vector table. |
-| [RAM and I/O](#ram-and-io) | Script cursor and game-state storage. |
-| [ROM organization](#rom-organization) | Two original 2 KB 8080 program devices. |
+The original program occupies 4 KB of ROM across two 2 KB devices. A native Intel 8080 interpreter reads one-byte game commands from a script stream, selects their corresponding routine addresses from a 17-entry table, and transfers execution to the game handlers.
 
 ## Project layout
 
-`src/maze.asm`  
-Original-ROM-derived Intel 8080 reconstruction with native routines, original graphics, interpreter vectors and command scripts.
-
-`tools/zmac`, `tools/zmac.exe`  
-zmac v1.3 assemblers for Linux and Windows.
-
-`build/`  
-Assembled image, listing and split 2 KB ROM devices.
-
-`roms/original/maze.zip`  
-Original MAME ROM set, preserved unchanged.
-
-`roms/maze.zip`  
-ROM set produced by a verified build.
-
-`build.sh`, `build.bat`  
-Native ROM build scripts; no Python.
-
-`docs/`  
-Runtime scan and memory-map documentation.
-
-`images/`  
-Arcade artwork and memory map.
+| Path | Contents |
+| --- | --- |
+| `src/maze.asm` | Intel 8080 assembly reconstruction, game routines, interpreter, graphics and command scripts |
+| `roms/original/maze.zip` | Original arcade ROM reference archive |
+| `build.sh`, `build.bat` | Linux and Windows assembly, ROM verification and packaging |
+| `tools/zmac`, `tools/zmac.exe` | Bundled zmac v1.3 assemblers |
+| `tools/scan-runtime.mjs` | Original ROM identity and interpreter inspection |
+| `build/` | Generated assembly image, listing and ROM devices |
+| `roms/maze.zip` | Assembled MAME ROM set |
+| `docs/` | Native routine, game command, graphics and memory research |
+| `images/` | Arcade artwork and memory-map SVG |
 
 ## Build
 
@@ -53,9 +34,9 @@ Windows:
 build.bat
 ```
 
-The scripts assemble `src/maze.asm` using zmac v1.3, split the 4 KB result into two 2 KB devices, compare each device's SHA-1 against the original ROM, and package `roms/maze.zip`. The original-ROM-derived assembly is present in `src/maze.asm`. The full source has not yet passed native zmac compilation or byte-exact device verification; both checks are required before treating the build as verified. Original bytes can also be inspected with `node tools/scan-runtime.mjs`.
+The build assembles `src/maze.asm` with zmac v1.3, produces a 4 KB program image, splits it into `maze.h` and `maze.g`, verifies each device against the original SHA-1, and packages `roms/maze.zip`.
 
-MAME:
+Run the assembled game in MAME:
 
 ```sh
 mame maze -rompath roms -window -skip_gameinfo
@@ -63,51 +44,69 @@ mame maze -rompath roms -window -skip_gameinfo
 
 ## ROM organization
 
-| ROM | CPU address | SHA-1 |
-| --- | --- | --- |
-| `maze.h` | `$0000–$07FF` | `62b3fd3d04bf9c5dd9b50964374fb884dc0ab79c` |
-| `maze.g` | `$0800–$0FFF` | `893f0a7621e7df19f777be991faff0db4a9ad571` |
+| ROM | CPU address | Size | SHA-1 |
+| --- | --- | --- | --- |
+| `maze.h` | `$0000–$07FF` | 2 KB | `62b3fd3d04bf9c5dd9b50964374fb884dc0ab79c` |
+| `maze.g` | `$0800–$0FFF` | 2 KB | `893f0a7621e7df19f777be991faff0db4a9ad571` |
 
 ![Amazing Maze Intel 8080 memory map](images/amazing-maze-memory-map.svg)
 
-The original archive is retained at `roms/original/maze.zip`. The byte-level runtime scan includes both ROMs and their address ranges. See [memory-map details](docs/memory-map.md).
-
-## RAM and I/O
-
-| Address | Use |
-| --- | --- |
-| `$2000` | Game-command stream cursor |
-| `$2002–$2003` | Startup script-root state, written with `SHLD` |
-| `$2000–$23FF` | Working RAM |
-| `$2400–$3FFF` | Display RAM |
+The lower 4 KB contains the program ROM. The board uses 1 KB of working RAM at `$2000–$23FF` and 7 KB of bitmap video RAM at `$2400–$3FFF`. [Memory-map details](docs/memory-map.md) identify the original ROM devices and key routines.
 
 ## Architecture
 
-The reset entry at `$0000` initializes the stack and transfers control to `$0017`. The service entry at `$0008` saves processor registers before entering the interrupt path. The game-command dispatcher at `$0392–$03C9` fetches from the script cursor, checks the command number, computes a vector-table offset and transfers to the selected native handler with `PCHL`.
-
-### Command interpreter
+Amazing Maze combines native Intel 8080 routines with an interpreted game-command stream. The 8080 executes the interpreter and each command handler directly; the script provides the sequence of game operations.
 
 | Component | Address | Function |
 | --- | --- | --- |
-| Startup script root | `$037C` | Initializes script state from `$0D64` |
-| Command dispatcher | `$0392` | Fetch and dispatch one-byte commands |
-| Zero-command path | `$03CA` | Scheduler/control path |
-| Handler vectors | `$0BEE–$0C0F` | 17 little-endian native routine addresses |
+| Reset | `$0000` | Initializes `SP=$2400` and branches to startup at `$0017` |
+| Interrupt entry | `$0008` | Preserves registers and enters the frame-service routine |
+| Script initialization | `$037C` | Loads the script root from `$0D64` into game state |
+| Script cursor | RAM `$2000` | Tracks the next game-command byte |
+| Command dispatch | `$0392–$03C9` | Fetches, validates and dispatches game commands |
+| Zero-command service | `$03CA` | Handles the command-zero control path |
+| Handler vectors | `$0BEE–$0C0F` | Stores 17 native command-handler addresses |
+| Opening script | `$0D64` | Game initialization and presentation command stream |
 
-The dispatcher subtracts one from a nonzero command, bounds-checks the resulting index against `$11`, doubles it, and indexes the 16-bit vector table. The indexed table lookup ends in `PCHL`; this transfers execution to native 8080 code.
+### Game-command interpreter
 
-The 17 original targets are documented in [Original ROM runtime scan](docs/ORIGINAL-ROM-RUNTIME-SCAN.md). The initial native-code audit and interpreted command analysis are documented in [8080 word semantics](docs/8080-WORD-SEMANTICS.md), [native RE pass](docs/NATIVE-RE-PASS.md), and [graphics and maze RE](docs/GRAPHICS-AND-MAZE-RE.md). Further operand and continuation tracing remains open.
+Commands `$01–$11` index 17 native handlers. The dispatcher subtracts one from the command, checks its range, doubles the resulting index to select a two-byte address, and branches to the handler using `PCHL`. Command `$00` enters the scheduler/control path at `$03CA`.
+
+The original handler table includes game-state updates, script-pointer changes, conditional execution and drawing services. The command `$0B` handler at `$0B7B`, for example, reads an inline 16-bit address and updates the script cursor at `$2000`.
+
+See [8080 word semantics](docs/8080-WORD-SEMANTICS.md), [original ROM command vectors](docs/ORIGINAL-ROM-RUNTIME-SCAN.md), and [native program analysis](docs/NATIVE-RE-PASS.md).
+
+## Maze engine and game state
+
+The game maintains maze cell data in working RAM beginning at `$2066`. Native routines calculate cell addresses, extract and modify packed cell information, and test directional boundaries used for movement through the maze.
+
+| Address | Use |
+| --- | --- |
+| `$2000–$2001` | Game-command cursor |
+| `$2002–$2003` | Initial script root/state pointer |
+| `$200A–$200E` | Timer and frame-service counters |
+| `$2066` onward | Maze cell storage |
+| `$2400–$3FFF` | Monochrome framebuffer |
+
+The [native RE documentation](docs/NATIVE-RE-PASS.md) traces the interpreter, event services and game-state routines.
 
 ## Graphics and text
 
-Screen graphics and message tables will be annotated at their verified original addresses in the complete disassembly; avoid assigning semantic names from byte-pattern appearance alone.
+The text renderer at `$0129` draws characters into video RAM using ten-row glyphs. The ROM contains **37 original glyphs** beginning at `$0170`: digits, a space and uppercase letters. Each glyph occupies ten bytes, with one byte per eight-pixel row.
 
-## Sound
+Encoded game text begins at `$0C10`; additional indicator graphics begin at `$0D33`. The assembly presents font bitmaps with inline pixel patterns and keeps encoded messages in their original ROM order.
 
-Sound and timing services are native 8080 routines and hardware I/O interactions. Their source-level and port-level annotation is part of the full RE.
+[Graphics and maze analysis](docs/GRAPHICS-AND-MAZE-RE.md)
+
+## Sound and timing
+
+Native interrupt and frame-service routines maintain game timers and coordinate hardware output. The periodic service at `$0341` updates work-RAM counters; the routine at `$0369` processes adjacent countdown bytes and reports expiry information to its caller.
 
 ## References
 
-- [Amazing Maze original-ROM interpreter audit](docs/ORIGINAL-ROM-RUNTIME-SCAN.md)
+- [Original ROM runtime and interpreter](docs/ORIGINAL-ROM-RUNTIME-SCAN.md)
+- [8080 game-command semantics](docs/8080-WORD-SEMANTICS.md)
+- [Native execution analysis](docs/NATIVE-RE-PASS.md)
+- [Graphics and maze routines](docs/GRAPHICS-AND-MAZE-RE.md)
 - [Memory map](docs/memory-map.md)
-- [MAME Midway Intel 8080 driver](https://github.com/mamedev/mame/blob/master/src/mame/midway/8080bw.cpp)
+- [MAME Midway Intel 8080 hardware driver](https://github.com/mamedev/mame/blob/master/src/mame/midway/8080bw.cpp)
