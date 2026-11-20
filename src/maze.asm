@@ -347,7 +347,7 @@ WRITE_NEXT_GLYPH_ROW:
 ; ROM graphics data: bytes below are drawn in their original order.
 FONT_37_GLYPHS_10_ROWS:         ; $0170-$02E1
 
-; font digit 0 — 8 x 10 bitmap.
+; Digit 0 8x10 bitmap.
 FONT_DIGIT_0:                        ; $0170
         DB $3C  ; ..####..
         DB $7E  ; .######.
@@ -360,7 +360,7 @@ FONT_DIGIT_0:                        ; $0170
         DB $7E  ; .######.
         DB $3C  ; ..####..
 
-; font digit 1 — 8 x 10 bitmap.
+; Digit 1 8x10 bitmap.
 FONT_DIGIT_1:                        ; $017A
         DB $18  ; ...##...
         DB $1C  ; ...###..
@@ -373,7 +373,7 @@ FONT_DIGIT_1:                        ; $017A
         DB $3C  ; ..####..
         DB $3C  ; ..####..
 
-; font digit 2 — 8 x 10 bitmap.
+; Digit 2 8x10 bitmap.
 FONT_DIGIT_2:                        ; $0184
         DB $3C  ; ..####..
         DB $7E  ; .######.
@@ -386,7 +386,7 @@ FONT_DIGIT_2:                        ; $0184
         DB $7E  ; .######.
         DB $7E  ; .######.
 
-; font digit 3 — 8 x 10 bitmap.
+; Digit 3 8x10 bitmap.
 FONT_DIGIT_3:                        ; $018E
         DB $3C  ; ..####..
         DB $7E  ; .######.
@@ -399,7 +399,7 @@ FONT_DIGIT_3:                        ; $018E
         DB $7E  ; .######.
         DB $3C  ; ..####..
 
-; font digit 4 — 8 x 10 bitmap.
+; Digit 4 8x10 bitmap.
 FONT_DIGIT_4:                        ; $0198
         DB $66  ; .##..##.
         DB $66  ; .##..##.
@@ -412,7 +412,7 @@ FONT_DIGIT_4:                        ; $0198
         DB $60  ; .##.....
         DB $60  ; .##.....
 
-; font digit 5 — 8 x 10 bitmap.
+; Digit 5 8x10 bitmap.
 FONT_DIGIT_5:                        ; $01A2
         DB $3E  ; ..#####.
         DB $3E  ; ..#####.
@@ -425,7 +425,7 @@ FONT_DIGIT_5:                        ; $01A2
         DB $7E  ; .######.
         DB $3C  ; ..####..
 
-; font digit 6 — 8 x 10 bitmap.
+; Digit 6 8x10 bitmap.
 FONT_DIGIT_6:                        ; $01AC
         DB $3C  ; ..####..
         DB $3E  ; ..#####.
@@ -438,7 +438,7 @@ FONT_DIGIT_6:                        ; $01AC
         DB $7E  ; .######.
         DB $3C  ; ..####..
 
-; font digit 7 — 8 x 10 bitmap.
+; Digit 7 8x10 bitmap.
 FONT_DIGIT_7:                        ; $01B6
         DB $7E  ; .######.
         DB $7E  ; .######.
@@ -451,7 +451,7 @@ FONT_DIGIT_7:                        ; $01B6
         DB $0C  ; ....##..
         DB $0C  ; ....##..
 
-; font digit 8 — 8 x 10 bitmap.
+; Digit 8 8x10 bitmap.
 FONT_DIGIT_8:                        ; $01C0
         DB $3C  ; ..####..
         DB $7E  ; .######.
@@ -464,7 +464,7 @@ FONT_DIGIT_8:                        ; $01C0
         DB $7E  ; .######.
         DB $3C  ; ..####..
 
-; font digit 9 — 8 x 10 bitmap.
+; Digit 9 8x10 bitmap.
 FONT_DIGIT_9:                        ; $01CA
         DB $3C  ; ..####..
         DB $7E  ; .######.
@@ -477,7 +477,7 @@ FONT_DIGIT_9:                        ; $01CA
         DB $7C  ; .#####..
         DB $3C  ; ..####..
 
-; font space — 8 x 10 bitmap.
+; Space 8x10 bitmap.
 FONT_SPACE:                        ; $01D4
         DB $00  ; ........
         DB $00  ; ........
@@ -490,7 +490,7 @@ FONT_SPACE:                        ; $01D4
         DB $00  ; ........
         DB $00  ; ........
 
-; font letter a — 8 x 10 bitmap.
+; Letter a 8x10 bitmap.
 FONT_LETTER_A:                        ; $01DE
         DB $18  ; ...##...
         DB $3C  ; ..####..
@@ -503,7 +503,7 @@ FONT_LETTER_A:                        ; $01DE
         DB $66  ; .##..##.
         DB $66  ; .##..##.
 
-; font letter b — 8 x 10 bitmap.
+; Letter b 8x10 bitmap.
 FONT_LETTER_B:                        ; $01E8
         DB $3E  ; ..#####.
         DB $7E  ; .######.
@@ -516,7 +516,7 @@ FONT_LETTER_B:                        ; $01E8
         DB $7E  ; .######.
         DB $3E  ; ..#####.
 
-; font letter c — 8 x 10 bitmap.
+; Letter c 8x10 bitmap.
 FONT_LETTER_C:                        ; $01F2
         DB $3C  ; ..####..
         DB $7E  ; .######.
@@ -529,7 +529,7 @@ FONT_LETTER_C:                        ; $01F2
         DB $7E  ; .######.
         DB $3C  ; ..####..
 
-; font letter d — 8 x 10 bitmap.
+; Letter d 8x10 bitmap.
 FONT_LETTER_D:                        ; $01FC
         DB $3E  ; ..#####.
         DB $7E  ; .######.
@@ -542,7 +542,7 @@ FONT_LETTER_D:                        ; $01FC
         DB $7E  ; .######.
         DB $3E  ; ..#####.
 
-; font letter e — 8 x 10 bitmap.
+; Letter e 8x10 bitmap.
 FONT_LETTER_E:                        ; $0206
         DB $7E  ; .######.
         DB $7E  ; .######.
@@ -555,7 +555,7 @@ FONT_LETTER_E:                        ; $0206
         DB $7E  ; .######.
         DB $7E  ; .######.
 
-; font letter f — 8 x 10 bitmap.
+; Letter f 8x10 bitmap.
 FONT_LETTER_F:                        ; $0210
         DB $7E  ; .######.
         DB $7E  ; .######.
@@ -568,7 +568,7 @@ FONT_LETTER_F:                        ; $0210
         DB $06  ; .....##.
         DB $06  ; .....##.
 
-; font letter g — 8 x 10 bitmap.
+; Letter g 8x10 bitmap.
 FONT_LETTER_G:                        ; $021A
         DB $3C  ; ..####..
         DB $7E  ; .######.
@@ -581,7 +581,7 @@ FONT_LETTER_G:                        ; $021A
         DB $7E  ; .######.
         DB $3C  ; ..####..
 
-; font letter h — 8 x 10 bitmap.
+; Letter h 8x10 bitmap.
 FONT_LETTER_H:                        ; $0224
         DB $66  ; .##..##.
         DB $66  ; .##..##.
@@ -594,7 +594,7 @@ FONT_LETTER_H:                        ; $0224
         DB $66  ; .##..##.
         DB $66  ; .##..##.
 
-; font letter i — 8 x 10 bitmap.
+; Letter i 8x10 bitmap.
 FONT_LETTER_I:                        ; $022E
         DB $3C  ; ..####..
         DB $3C  ; ..####..
@@ -607,7 +607,7 @@ FONT_LETTER_I:                        ; $022E
         DB $3C  ; ..####..
         DB $3C  ; ..####..
 
-; font letter j — 8 x 10 bitmap.
+; Letter j 8x10 bitmap.
 FONT_LETTER_J:                        ; $0238
         DB $C0  ; ##......
         DB $C0  ; ##......
@@ -620,7 +620,7 @@ FONT_LETTER_J:                        ; $0238
         DB $C0  ; ##......
         DB $C0  ; ##......
 
-; font letter k — 8 x 10 bitmap.
+; Letter k 8x10 bitmap.
 FONT_LETTER_K:                        ; $0242
         DB $66  ; .##..##.
         DB $66  ; .##..##.
@@ -633,7 +633,7 @@ FONT_LETTER_K:                        ; $0242
         DB $66  ; .##..##.
         DB $66  ; .##..##.
 
-; font letter l — 8 x 10 bitmap.
+; Letter l 8x10 bitmap.
 FONT_LETTER_L:                        ; $024C
         DB $06  ; .....##.
         DB $06  ; .....##.
@@ -646,7 +646,7 @@ FONT_LETTER_L:                        ; $024C
         DB $7E  ; .######.
         DB $7E  ; .######.
 
-; font letter m — 8 x 10 bitmap.
+; Letter m 8x10 bitmap.
 FONT_LETTER_M:                        ; $0256
         DB $C3  ; ##....##
         DB $C3  ; ##....##
@@ -659,7 +659,7 @@ FONT_LETTER_M:                        ; $0256
         DB $C3  ; ##....##
         DB $C3  ; ##....##
 
-; font letter n — 8 x 10 bitmap.
+; Letter n 8x10 bitmap.
 FONT_LETTER_N:                        ; $0260
         DB $66  ; .##..##.
         DB $66  ; .##..##.
@@ -672,7 +672,7 @@ FONT_LETTER_N:                        ; $0260
         DB $66  ; .##..##.
         DB $66  ; .##..##.
 
-; font letter o — 8 x 10 bitmap.
+; Letter o 8x10 bitmap.
 FONT_LETTER_O:                        ; $026A
         DB $3C  ; ..####..
         DB $7E  ; .######.
@@ -685,7 +685,7 @@ FONT_LETTER_O:                        ; $026A
         DB $7E  ; .######.
         DB $3C  ; ..####..
 
-; font letter p — 8 x 10 bitmap.
+; Letter p 8x10 bitmap.
 FONT_LETTER_P:                        ; $0274
         DB $3E  ; ..#####.
         DB $7E  ; .######.
@@ -698,7 +698,7 @@ FONT_LETTER_P:                        ; $0274
         DB $06  ; .....##.
         DB $06  ; .....##.
 
-; font letter q — 8 x 10 bitmap.
+; Letter q 8x10 bitmap.
 FONT_LETTER_Q:                        ; $027E
         DB $00  ; ........
         DB $00  ; ........
@@ -711,7 +711,7 @@ FONT_LETTER_Q:                        ; $027E
         DB $1C  ; ...###..
         DB $08  ; ....#...
 
-; font letter r — 8 x 10 bitmap.
+; Letter r 8x10 bitmap.
 FONT_LETTER_R:                        ; $0288
         DB $3E  ; ..#####.
         DB $7E  ; .######.
@@ -724,7 +724,7 @@ FONT_LETTER_R:                        ; $0288
         DB $66  ; .##..##.
         DB $66  ; .##..##.
 
-; font letter s — 8 x 10 bitmap.
+; Letter s 8x10 bitmap.
 FONT_LETTER_S:                        ; $0292
         DB $3C  ; ..####..
         DB $7E  ; .######.
@@ -737,7 +737,7 @@ FONT_LETTER_S:                        ; $0292
         DB $7E  ; .######.
         DB $3C  ; ..####..
 
-; font letter t — 8 x 10 bitmap.
+; Letter t 8x10 bitmap.
 FONT_LETTER_T:                        ; $029C
         DB $7E  ; .######.
         DB $7E  ; .######.
@@ -750,7 +750,7 @@ FONT_LETTER_T:                        ; $029C
         DB $18  ; ...##...
         DB $18  ; ...##...
 
-; font letter u — 8 x 10 bitmap.
+; Letter u 8x10 bitmap.
 FONT_LETTER_U:                        ; $02A6
         DB $66  ; .##..##.
         DB $66  ; .##..##.
@@ -763,7 +763,7 @@ FONT_LETTER_U:                        ; $02A6
         DB $7E  ; .######.
         DB $3C  ; ..####..
 
-; font letter v — 8 x 10 bitmap.
+; Letter v 8x10 bitmap.
 FONT_LETTER_V:                        ; $02B0
         DB $66  ; .##..##.
         DB $66  ; .##..##.
@@ -776,7 +776,7 @@ FONT_LETTER_V:                        ; $02B0
         DB $18  ; ...##...
         DB $18  ; ...##...
 
-; font letter w — 8 x 10 bitmap.
+; Letter w 8x10 bitmap.
 FONT_LETTER_W:                        ; $02BA
         DB $C3  ; ##....##
         DB $C3  ; ##....##
@@ -789,7 +789,7 @@ FONT_LETTER_W:                        ; $02BA
         DB $C3  ; ##....##
         DB $C3  ; ##....##
 
-; font letter x — 8 x 10 bitmap.
+; Letter x 8x10 bitmap.
 FONT_LETTER_X:                        ; $02C4
         DB $00  ; ........
         DB $18  ; ...##...
@@ -802,7 +802,7 @@ FONT_LETTER_X:                        ; $02C4
         DB $18  ; ...##...
         DB $00  ; ........
 
-; font letter y — 8 x 10 bitmap.
+; Letter y 8x10 bitmap.
 FONT_LETTER_Y:                        ; $02CE
         DB $66  ; .##..##.
         DB $66  ; .##..##.
@@ -815,7 +815,7 @@ FONT_LETTER_Y:                        ; $02CE
         DB $18  ; ...##...
         DB $18  ; ...##...
 
-; font letter z — 8 x 10 bitmap.
+; Letter z 8x10 bitmap.
 FONT_LETTER_Z:                        ; $02D8
         DB $7E  ; .######.
         DB $7E  ; .######.
