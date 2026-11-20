@@ -2663,12 +2663,10 @@ NATIVE_COMMAND_VECTORS:
         DW CMD_0F_BRANCH_IF_NONZERO
         DW CMD_10_PROCESS_INLINE_RECORD
         DW CMD_11_UPDATE_END_STATE
-; Original game message stream, glyph codes $40-$5A, positioning controls
-; below $30. The renderer at DRAW_TEXT_GLYPH_STREAM consumes these bytes.
-
+; Native text for the original 8080 glyph renderer.
 GAME_TEXT_STREAM:               ; $0C10-$0D32
-; Uppercase characters are native glyph codes. $40 is a displayed space;
-; values below $30 control text positioning on the framebuffer.
+; Uppercase ASCII supplies glyph codes; $40 is a display space.
+; Other numeric bytes are original screen-positioning controls.
 
 ; Initial display spacing.
 GAME_TEXT_LEADING_SPACES:
@@ -2817,363 +2815,456 @@ GAME_INDICATOR_BITMAPS:          ; $0D33-$0D63
 
         DB $18  ; ...##...
 
-; Game program: interpreted 8080 command stream beginning at $0D64.
-; $0C stores one immediate byte to RAM; $09 supplies a byte and word;
-; $07 draws from a five-byte inline record; $0B changes script address.
-; DB encodes command numbers and byte operands, DW encodes little-endian
-; word operands. The other records below retain their original ordering.
-; Original interpreted game command stream: $0D64-$0FFF.
-; The native interpreter dispatches $01-$11 through the 17-entry table;
-; $00 enters the game event/scheduler service. Inline operands follow
-; each opcode, and DW preserves the original little-endian address fields.
+; Original interpreted game program ($0D64-$0FFF).
+; DB stores the command byte and any byte operands; DW stores 16-bit
+; operands in their original little-endian order.
 INITIAL_GAME_SCRIPT:
 ; Store $00 at $202C.
         DB $0C,$00
-        DW $202C             
+        DW $202C
+
 ; Store $00 at $2031.
         DB $0C,$00
-        DW $2031             
+        DW $2031
+
 ; Store $00 at $2032.
         DB $0C,$00
-        DW $2032             
+        DW $2032
+
 ; Store $00 at $202D.
         DB $0C,$00
-        DW $202D             
+        DW $202D
+
 ; Update game-end state.
         DB $11
+
 ; Set counter $200B to $0A and save pointer $0D94.
         DB $09,$0A
-        DW $0D94             
+        DW $0D94
+
 ; Draw 16 glyph/record units from $0C10 to $2408.
         DB $07,$10
-        DW $0C10,$2408      
+        DW $0C10,$2408
+
 ; Repeat the opening instruction display with the timed event service. ($0D7F)
 INTRO_INSTRUCTIONS_FLASH:
 ; Draw 9 glyph/record units from $0D22 to $240B.
         DB $07,$09
-        DW $0D22,$240B      
+        DW $0D22,$240B
+
 ; Set frame counter $200C to $1E.
         DB $08,$1E
+
 ; Run the command-zero event service.
         DB $00
 
 ; Draw 9 glyph/record units from $0C10 to $240B.
         DB $07,$09
-        DW $0C10,$240B      
+        DW $0C10,$240B
+
 ; Set frame counter $200C to $1E.
         DB $08,$1E
+
 ; Run the command-zero event service.
         DB $00
 
 ; Transfer control to INTRO_INSTRUCTIONS_FLASH.
         DB $0B
-        DW INTRO_INSTRUCTIONS_FLASH             
+        DW INTRO_INSTRUCTIONS_FLASH
+
 ; Enter the native game-mode routine.
         DB $02
+
 ; Set counter $200B to $0A and save pointer $0DD5.
         DB $09,$0A
-        DW $0DD5             
+        DW $0DD5
+
 ; Cycle through the original maze instructions and display fields. ($0D99)
 INTRO_INSTRUCTIONS_SEQUENCE:
 ; Draw 3 glyph/record units from $0C21 to $2C0A.
         DB $07,$03
-        DW $0C21,$2C0A      
+        DW $0C21,$2C0A
+
 ; Set frame counter $200C to $0F.
         DB $08,$0F
+
 ; Run the command-zero event service.
         DB $00
 
 ; Draw 11 glyph/record units from $0C21 to $2C0A.
         DB $07,$0B
-        DW $0C21,$2C0A      
+        DW $0C21,$2C0A
+
 ; Set frame counter $200C to $0F.
         DB $08,$0F
+
 ; Run the command-zero event service.
         DB $00
 
 ; Draw 4 glyph/record units from $0C2C to $320B.
         DB $07,$04
-        DW $0C2C,$320B      
+        DW $0C2C,$320B
+
 ; Set frame counter $200C to $0F.
         DB $08,$0F
+
 ; Run the command-zero event service.
         DB $00
 
 ; Draw 4 glyph/record units from $0D22 to $3210.
         DB $07,$04
-        DW $0D22,$3210      
+        DW $0D22,$3210
+
 ; Set frame counter $200C to $3C.
         DB $08,$3C
+
 ; Run the command-zero event service.
         DB $00
 
 ; Draw 11 glyph/record units from $0C10 to $2C0A.
         DB $07,$0B
-        DW $0C10,$2C0A      
+        DW $0C10,$2C0A
+
 ; Draw 9 glyph/record units from $0C10 to $320B.
         DB $07,$09
-        DW $0C10,$320B      
+        DW $0C10,$320B
+
 ; Draw 13 glyph/record units from $0C6D to $3A09.
         DB $07,$0D
-        DW $0C6D,$3A09      
+        DW $0C6D,$3A09
+
 ; Set frame counter $200C to $0F.
         DB $08,$0F
+
 ; Run the command-zero event service.
         DB $00
 
 ; Transfer control to INTRO_INSTRUCTIONS_SEQUENCE.
         DB $0B
-        DW INTRO_INSTRUCTIONS_SEQUENCE             
+        DW INTRO_INSTRUCTIONS_SEQUENCE
+
 ; Enter the native game-mode routine.
         DB $02
+
 ; Draw 13 glyph/record units from $0C6D to $3A09.
         DB $07,$0D
-        DW $0C6D,$3A09      
+        DW $0C6D,$3A09
+
 ; Draw 25 glyph/record units from $0C41 to $2A0A.
         DB $07,$19
-        DW $0C41,$2A0A      
+        DW $0C41,$2A0A
+
 ; Set counter $200B to $08 and save pointer $0DFB.
         DB $09,$08
-        DW $0DFB             
+        DW $0DFB
+
 ; Alternate the instruction display and the cleared frame-buffer region. ($0DE6)
 INTRO_TEXT_FLASH:
 ; Draw 16 glyph/record units from $0C5D to $3608.
         DB $07,$10
-        DW $0C5D,$3608      
+        DW $0C5D,$3608
+
 ; Set frame counter $200C to $1E.
         DB $08,$1E
+
 ; Run the command-zero event service.
         DB $00
 
 ; Draw 1 glyph/record units from $0C10 to $3608.
         DB $07,$01
-        DW $0C10,$3608      
+        DW $0C10,$3608
+
 ; Set frame counter $200C to $1E.
         DB $08,$1E
+
 ; Run the command-zero event service.
         DB $00
 
 ; Transfer control to INTRO_TEXT_FLASH.
         DB $0B
-        DW INTRO_TEXT_FLASH             
+        DW INTRO_TEXT_FLASH
+
 ; Enter the native game-mode routine.
         DB $02
+
 ; Draw 31 glyph/record units from $0C3A to $2A0C.
         DB $07,$1F
-        DW $0C3A,$2A0C      
+        DW $0C3A,$2A0C
+
 ; Set counter $200B to $08 and save pointer $0E1B.
         DB $09,$08
-        DW $0E1B             
+        DW $0E1B
+
 ; Alternate the coin prompt and the cleared frame-buffer region. ($0E06)
 COIN_PROMPT_FLASH:
 ; Draw 13 glyph/record units from $0C6D to $3A09.
         DB $07,$0D
-        DW $0C6D,$3A09      
+        DW $0C6D,$3A09
+
 ; Set frame counter $200C to $14.
         DB $08,$14
+
 ; Run the command-zero event service.
         DB $00
 
 ; Draw 1 glyph/record units from $0C10 to $3A15.
         DB $07,$01
-        DW $0C10,$3A15      
+        DW $0C10,$3A15
+
 ; Set frame counter $200C to $14.
         DB $08,$14
+
 ; Run the command-zero event service.
         DB $00
 
 ; Transfer control to COIN_PROMPT_FLASH.
         DB $0B
-        DW COIN_PROMPT_FLASH             
+        DW COIN_PROMPT_FLASH
+
 ; Enter the native game-mode routine.
         DB $02
+
 ; Initialize the native game fields.
         DB $06
+
 ; Draw the current maze playfield.
         DB $03
+
 ; Set frame counter $200C to $F0.
         DB $08,$F0
+
 ; Run the command-zero event service.
         DB $00
 
 ; Render the maze-cell graphics.
         DB $0A
+
 ; Set counter $200B to $04 and save pointer $0D94.
         DB $09,$04
-        DW $0D94             
+        DW $0D94
+
 ; Run the command-zero event service.
         DB $00
 
 ; Enter the native game-mode routine.
         DB $02
+
 ; Draw 25 glyph/record units from $0D0C to $2808.
         DB $07,$19
-        DW $0D0C,$2808      
+        DW $0D0C,$2808
+
 ; Draw 13 glyph/record units from $0C41 to $3409.
         DB $07,$0D
-        DW $0C41,$3409      
+        DW $0C41,$3409
+
 ; Draw 10 glyph/record units from $0C52 to $380B.
         DB $07,$0A
-        DW $0C52,$380B      
+        DW $0C52,$380B
+
 ; Store $01 at $2034.
         DB $0C,$01
-        DW $2034             
+        DW $2034
+
 ; Alternate text at the player-selection display positions. ($0E3E)
 PLAYER_SELECTION_FLASH:
 ; Draw 1 glyph/record units from $0C10 to $3417.
         DB $07,$01
-        DW $0C10,$3417      
+        DW $0C10,$3417
+
 ; Draw 1 glyph/record units from $0C79 to $3809.
         DB $07,$01
-        DW $0C79,$3809      
+        DW $0C79,$3809
+
 ; Set frame counter $200C to $1E.
         DB $08,$1E
+
 ; Run the command-zero event service.
         DB $00
 
 ; Draw 1 glyph/record units from $0C79 to $3417.
         DB $07,$01
-        DW $0C79,$3417      
+        DW $0C79,$3417
+
 ; Draw 1 glyph/record units from $0C10 to $3809.
         DB $07,$01
-        DW $0C10,$3809      
+        DW $0C10,$3809
+
 ; Set frame counter $200C to $1E.
         DB $08,$1E
+
 ; Run the command-zero event service.
         DB $00
 
 ; Transfer control to PLAYER_SELECTION_FLASH.
         DB $0B
-        DW PLAYER_SELECTION_FLASH             
+        DW PLAYER_SELECTION_FLASH
+
 ; Enter the native game-mode routine.
         DB $02
+
 ; Store $04 at $2013.
         DB $0C,$04
-        DW $2013             
+        DW $2013
+
 ; Draw 13 glyph/record units from $0C41 to $2C09.
         DB $07,$0D
-        DW $0C41,$2C09      
+        DW $0C41,$2C09
+
 ; Draw 7 glyph/record units from $0C5D to $300C.
         DB $07,$07
-        DW $0C5D,$300C      
+        DW $0C5D,$300C
+
 ; Draw 2 glyph/record units from $0C4F to $320F.
         DB $07,$02
-        DW $0C4F,$320F      
+        DW $0C4F,$320F
+
 ; Draw 22 glyph/record units from $0C83 to $3408.
         DB $07,$16
-        DW $0C83,$3408      
+        DW $0C83,$3408
+
 ; Set frame counter $200C to $F0.
         DB $08,$F0
+
 ; Run the command-zero event service.
         DB $00
 
 ; Transfer control to ROUND_START_SETUP.
         DB $0B
-        DW ROUND_START_SETUP             
+        DW ROUND_START_SETUP
+
 ; Branch to START_STATE_SETUP when the byte at $202E is nonzero.
         DB $0F
-        DW $202E,START_STATE_SETUP      
+        DW $202E,START_STATE_SETUP
+
 ; Branch to INITIAL_GAME_SCRIPT when the byte at $2032 is nonzero.
         DB $0F
-        DW $2032,INITIAL_GAME_SCRIPT      
+        DW $2032,INITIAL_GAME_SCRIPT
+
 ; Initialize the next game-state counter and saved command pointer. ($0E8C)
 START_STATE_SETUP:
 ; Enter the native game-mode routine.
         DB $02
+
 ; Set counter $200B to $02 and save pointer $0EA6.
         DB $09,$02
-        DW $0EA6             
+        DW $0EA6
+
 ; Flash the ready-message text through the frame counter. ($0E91)
 READY_MESSAGE_FLASH:
 ; Draw 9 glyph/record units from $0C7A to $320B.
         DB $07,$09
-        DW $0C7A,$320B      
+        DW $0C7A,$320B
+
 ; Set frame counter $200C to $1E.
         DB $08,$1E
+
 ; Run the command-zero event service.
         DB $00
 
 ; Draw 9 glyph/record units from $0C10 to $320B.
         DB $07,$09
-        DW $0C10,$320B      
+        DW $0C10,$320B
+
 ; Set frame counter $200C to $0F.
         DB $08,$0F
+
 ; Run the command-zero event service.
         DB $00
 
 ; Transfer control to READY_MESSAGE_FLASH.
         DB $0B
-        DW READY_MESSAGE_FLASH             
+        DW READY_MESSAGE_FLASH
+
 ; Initialize the maze playfield and display round-start text. ($0EA6)
 ROUND_START_SETUP:
 ; Enter the native game-mode routine.
         DB $02
+
 ; Initialize the native game fields.
         DB $06
+
 ; Draw the current maze playfield.
         DB $03
+
 ; Draw 10 glyph/record units from $0CA7 to $3EA0.
         DB $07,$0A
-        DW $0CA7,$3EA0      
+        DW $0CA7,$3EA0
+
 ; Branch to ROUND_COUNT_DISPLAY when the byte at $202E is nonzero.
         DB $0F
-        DW $202E,ROUND_COUNT_DISPLAY      
+        DW $202E,ROUND_COUNT_DISPLAY
+
 ; Draw 12 glyph/record units from $0CE5 to $2408.
         DB $07,$0C
-        DW $0CE5,$2408      
+        DW $0CE5,$2408
+
 ; Store $01 at $202E.
         DB $0C,$01
-        DW $202E             
+        DW $202E
+
 ; Transfer control to ROUND_PLAY_SEQUENCE.
         DB $0B
-        DW ROUND_PLAY_SEQUENCE             
+        DW ROUND_PLAY_SEQUENCE
+
 ; Display the remaining-maze text and update its numeric field. ($0EC1)
 ROUND_COUNT_DISPLAY:
 ; Draw 13 glyph/record units from $0C9A to $2408.
         DB $07,$0D
-        DW $0C9A,$2408      
+        DW $0C9A,$2408
+
 ; Process the native display record $202E, $2416.
         DB $10
-        DW $202E,$2416      
+        DW $202E,$2416
+
 ; Draw game data, initialize counters and branch on game state. ($0ECC)
 ROUND_PLAY_SEQUENCE:
 ; Draw 9 glyph/record units from $0C31 to $3EB1.
         DB $07,$09
-        DW $0C31,$3EB1      
+        DW $0C31,$3EB1
+
 ; Process the native display record $2031, $3EBB.
         DB $10
-        DW $2031,$3EBB      
+        DW $2031,$3EBB
+
 ; Write the inline display record.
         DB $04
-        DW $2048,$0D32      
-        DW $2026             
+        DW $2048,$0D32
+        DW $2026
         DB $17,$C2               ; inline display bytes
+
 ; Write the inline display record.
         DB $04
-        DW $2059,$0D37      
-        DW $2024             
+        DW $2059,$0D37
+        DW $2024
         DB $E0,$C0               ; inline display bytes
+
 ; Store $06 at $200E.
         DB $0C,$06
-        DW $200E             
+        DW $200E
+
 ; Store $06 at $2029.
         DB $0C,$06
-        DW $2029             
+        DW $2029
+
 ; Run the command-zero event service.
         DB $00
 
 ; Set counter $200B to $04 and save pointer $0E82.
         DB $09,$04
-        DW $0E82             
+        DW $0E82
+
 ; Draw 16 glyph/record units from $0C10 to $2408.
         DB $07,$10
-        DW $0C10,$2408      
+        DW $0C10,$2408
+
 ; Process the native display record $2031, $3EBB.
         DB $10
-        DW $2031,$3EBB      
+        DW $2031,$3EBB
+
 ; Branch to PLAYER_LOSES_FLASH when the byte at $201A is zero.
         DB $0E
-        DW $201A,PLAYER_LOSES_FLASH      
+        DW $201A,PLAYER_LOSES_FLASH
+
 ; Update the native decrementing game-state counter.
         DB $0D
 
@@ -3181,207 +3272,263 @@ ROUND_PLAY_SEQUENCE:
 PLAYER_WINS_FLASH:
 ; Draw 11 glyph/record units from $0CF5 to $2408.
         DB $07,$0B
-        DW $0CF5,$2408      
+        DW $0CF5,$2408
+
 ; Set frame counter $200C to $1E.
         DB $08,$1E
+
 ; Run the command-zero event service.
         DB $00
 
 ; Draw 11 glyph/record units from $0C10 to $2408.
         DB $07,$0B
-        DW $0C10,$2408      
+        DW $0C10,$2408
+
 ; Set frame counter $200C to $1E.
         DB $08,$1E
+
 ; Run the command-zero event service.
         DB $00
 
 ; Transfer control to PLAYER_WINS_FLASH.
         DB $0B
-        DW PLAYER_WINS_FLASH             
+        DW PLAYER_WINS_FLASH
+
 ; Alternate the player-loses message and a cleared display region. ($0F1C)
 PLAYER_LOSES_FLASH:
 ; Draw 12 glyph/record units from $0D00 to $2408.
         DB $07,$0C
-        DW $0D00,$2408      
+        DW $0D00,$2408
+
 ; Set frame counter $200C to $1E.
         DB $08,$1E
+
 ; Run the command-zero event service.
         DB $00
 
 ; Draw 12 glyph/record units from $0C10 to $2408.
         DB $07,$0C
-        DW $0C10,$2408      
+        DW $0C10,$2408
+
 ; Set frame counter $200C to $1E.
         DB $08,$1E
+
 ; Run the command-zero event service.
         DB $00
 
 ; Transfer control to PLAYER_LOSES_FLASH.
         DB $0B
-        DW PLAYER_LOSES_FLASH             
+        DW PLAYER_LOSES_FLASH
+
 ; Enter the native game-mode routine.
         DB $02
+
 ; Read the player input state.
         DB $05
+
 ; Draw 10 glyph/record units from $0C52 to $2C0B.
         DB $07,$0A
-        DW $0C52,$2C0B      
+        DW $0C52,$2C0B
+
 ; Draw 7 glyph/record units from $0C5D to $300C.
         DB $07,$07
-        DW $0C5D,$300C      
+        DW $0C5D,$300C
+
 ; Set frame counter $200C to $B4.
         DB $08,$B4
+
 ; Run the command-zero event service.
         DB $00
 
 ; Transfer control to ROUND_RESULTS_SETUP.
         DB $0B
-        DW ROUND_RESULTS_SETUP             
+        DW ROUND_RESULTS_SETUP
+
 ; Branch to INITIAL_GAME_SCRIPT when the byte at $202E is zero.
         DB $0E
-        DW $202E,INITIAL_GAME_SCRIPT      
+        DW $202E,INITIAL_GAME_SCRIPT
+
 ; Enter the native game-mode routine.
         DB $02
+
 ; Set counter $200B to $02 and save pointer $0F64.
         DB $09,$02
-        DW $0F64             
+        DW $0F64
+
 ; Alternate the ready message in the second display sequence. ($0F4F)
 READY_MESSAGE_FLASH_ALT:
 ; Draw 9 glyph/record units from $0C7A to $320B.
         DB $07,$09
-        DW $0C7A,$320B      
+        DW $0C7A,$320B
+
 ; Set frame counter $200C to $1E.
         DB $08,$1E
+
 ; Run the command-zero event service.
         DB $00
 
 ; Draw 9 glyph/record units from $0C10 to $320B.
         DB $07,$09
-        DW $0C10,$320B      
+        DW $0C10,$320B
+
 ; Set frame counter $200C to $1E.
         DB $08,$1E
+
 ; Run the command-zero event service.
         DB $00
 
 ; Transfer control to READY_MESSAGE_FLASH_ALT.
         DB $0B
-        DW READY_MESSAGE_FLASH_ALT             
+        DW READY_MESSAGE_FLASH_ALT
+
 ; Draw the maze and prepare player/result display fields. ($0F64)
 ROUND_RESULTS_SETUP:
 ; Enter the native game-mode routine.
         DB $02
+
 ; Initialize the native game fields.
         DB $06
+
 ; Draw the current maze playfield.
         DB $03
+
 ; Draw 6 glyph/record units from $0CB1 to $2601.
         DB $07,$06
-        DW $0CB1,$2601      
+        DW $0CB1,$2601
+
 ; Draw 3 glyph/record units from $0CC1 to $34E1.
         DB $07,$03
-        DW $0CC1,$34E1      
+        DW $0CC1,$34E1
+
 ; Process the native display record $2032, $3C00.
         DB $10
-        DW $2032,$3C00      
+        DW $2032,$3C00
+
 ; Draw 6 glyph/record units from $0CB1 to $261E.
         DB $07,$06
-        DW $0CB1,$261E      
+        DW $0CB1,$261E
+
 ; Draw 3 glyph/record units from $0CBC to $34FE.
         DB $07,$03
-        DW $0CBC,$34FE      
+        DW $0CBC,$34FE
+
 ; Process the native display record $2031, $3C1D.
         DB $10
-        DW $2031,$3C1D      
+        DW $2031,$3C1D
+
 ; Draw 13 glyph/record units from $0C9A to $2408.
         DB $07,$0D
-        DW $0C9A,$2408      
+        DW $0C9A,$2408
+
 ; Process the native display record $202E, $2416.
         DB $10
-        DW $202E,$2416      
+        DW $202E,$2416
+
 ; Draw 4 glyph/record units from $0CAD to $3EA3.
         DB $07,$04
-        DW $0CAD,$3EA3      
+        DW $0CAD,$3EA3
+
 ; Draw 7 glyph/record units from $0D2B to $3EB1.
         DB $07,$07
-        DW $0D2B,$3EB1      
+        DW $0D2B,$3EB1
+
 ; Write the inline display record.
         DB $04
-        DW $2048,$0D37      
-        DW $2026             
+        DW $2048,$0D37
+        DW $2026
         DB $17,$C0               ; inline display bytes
+
 ; Write the inline display record.
         DB $04
-        DW $2059,$0D32      
-        DW $2024             
+        DW $2059,$0D32
+        DW $2024
         DB $E0,$C0               ; inline display bytes
+
 ; Store $01 at $200D.
         DB $0C,$01
-        DW $200D             
+        DW $200D
+
 ; Store $01 at $2020.
         DB $0C,$01
-        DW $2020             
+        DW $2020
+
 ; Run the command-zero event service.
         DB $00
 
 ; Process the native display record $202E, $2416.
         DB $10
-        DW $202E,$2416      
+        DW $202E,$2416
+
 ; Set counter $200B to $04 and save pointer $0F45.
         DB $09,$04
-        DW $0F45             
+        DW $0F45
+
 ; Branch to RESULT_NUMBER_UPDATE when the byte at $201B is zero.
         DB $0E
-        DW $201B,RESULT_NUMBER_UPDATE      
+        DW $201B,RESULT_NUMBER_UPDATE
+
 ; Process the native display record $2032, $3C00.
         DB $10
-        DW $2032,$3C00      
+        DW $2032,$3C00
+
 ; Alternate winner characters on the first display position. ($0FCE)
 WINNER_TEXT_FLASH_LEFT:
 ; Draw 10 glyph/record units from $0CD2 to $2601.
         DB $07,$0A
-        DW $0CD2,$2601      
+        DW $0CD2,$2601
+
 ; Set frame counter $200C to $1E.
         DB $08,$1E
+
 ; Run the command-zero event service.
         DB $00
 
 ; Draw 6 glyph/record units from $0CC7 to $2601.
         DB $07,$06
-        DW $0CC7,$2601      
+        DW $0CC7,$2601
+
 ; Set frame counter $200C to $1E.
         DB $08,$1E
+
 ; Run the command-zero event service.
         DB $00
 
 ; Transfer control to WINNER_TEXT_FLASH_LEFT.
         DB $0B
-        DW WINNER_TEXT_FLASH_LEFT             
+        DW WINNER_TEXT_FLASH_LEFT
+
 ; Update a numeric result display field using command $10. ($0FE3)
 RESULT_NUMBER_UPDATE:
 ; Process the native display record $2031, $3C1D.
         DB $10
-        DW $2031,$3C1D      
+        DW $2031,$3C1D
+
 ; Alternate winner characters on the second display position. ($0FE8)
 WINNER_TEXT_FLASH_RIGHT:
 ; Draw 10 glyph/record units from $0CD2 to $261E.
         DB $07,$0A
-        DW $0CD2,$261E      
+        DW $0CD2,$261E
+
 ; Set frame counter $200C to $1E.
         DB $08,$1E
+
 ; Run the command-zero event service.
         DB $00
 
 ; Draw 6 glyph/record units from $0CC7 to $261E.
         DB $07,$06
-        DW $0CC7,$261E      
+        DW $0CC7,$261E
+
 ; Set frame counter $200C to $1E.
         DB $08,$1E
+
 ; Run the command-zero event service.
         DB $00
 
 ; Transfer control to WINNER_TEXT_FLASH_RIGHT.
         DB $0B
-        DW WINNER_TEXT_FLASH_RIGHT             
+        DW WINNER_TEXT_FLASH_RIGHT
+
 ; Run the command-zero event service.
         DB $00
 
