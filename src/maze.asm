@@ -1222,12 +1222,12 @@ CLEAR_FIVE_STATE_BYTES:
         LD ($2055),A
         RET
 
-NATIVE_054B:
+DISPLAY_SCORE_AND_INCREMENT:
         LD HL,$3EB8
         LD DE,$202A
         CALL $056D
 
-NATIVE_0554:
+INCREMENT_PACKED_SCORE:
         LD HL,$2019
         LD A,(HL)
         INC A
@@ -1242,7 +1242,7 @@ NATIVE_0554:
         DAA
         LD (HL),A
 
-NATIVE_0567:
+DISPLAY_SCORE_FROM_GAME_STATE:
         LD HL,$3EA8
         LD DE,$2018
 
@@ -1442,7 +1442,7 @@ NATIVE_065C:
         EX DE,HL
         LD A,$05
 
-NATIVE_0676:
+COPY_CELL_RECORD_LOOP:
         PUSH AF
         LD A,(HL)
         LD (DE),A
@@ -1479,7 +1479,7 @@ NATIVE_0697:
         AND A
         JP Z,$06AC
 
-NATIVE_06A7:
+SHIFT_COORDINATE_TO_ROW_OFFSET:
         ADD HL,HL
         DEC A
         JP NZ,$06A7
@@ -1540,10 +1540,10 @@ NATIVE_06D8:
         LD D,A
         RET
 
-NATIVE_06E8:
+MAZE_RECALCULATE_RANDOM_STATE:
         LD A,($200A)
 
-NATIVE_06EB:
+MAZE_RANDOM_UPDATE_LOOP:
         PUSH AF
         CALL $0919
         POP AF
@@ -1566,7 +1566,7 @@ NATIVE_06F5:
         LD (HL),A
         RET
 
-NATIVE_070E:
+MAZE_INSPECT_NEIGHBOR_WALLS:
         LD D,$00
         LD A,B
         CP $00
@@ -1581,7 +1581,7 @@ NATIVE_070E:
         OR $01
         LD D,A
 
-NATIVE_0724:
+MAZE_CHECK_ROW_LIMIT:
         LD A,$19
         CP B
         JP NZ,$073C
@@ -1593,7 +1593,7 @@ NATIVE_0724:
         JP C,$074A
         JP $0746
 
-NATIVE_073C:
+MAZE_TEST_NEXT_ROW_WALL:
         INC B
         CALL MAZE_CELL_ADDRESS
         DEC B
@@ -1601,12 +1601,12 @@ NATIVE_073C:
         RRCA
         JP C,$074A
 
-NATIVE_0746:
+MAZE_FLAG_ROW_WALL:
         LD A,D
         OR $02
         LD D,A
 
-NATIVE_074A:
+MAZE_CHECK_LEFT_COLUMN:
         LD A,C
         CP $00
         JP Z,$075E
@@ -1620,7 +1620,7 @@ NATIVE_074A:
         OR $04
         LD D,A
 
-NATIVE_075E:
+MAZE_CHECK_RIGHT_COLUMN:
         LD A,$17
         CP C
         JP Z,$0772
@@ -1634,7 +1634,7 @@ NATIVE_075E:
         OR $08
         LD D,A
 
-NATIVE_0772:
+MAZE_COUNT_DIRECTION_FLAGS:
         LD E,$00
         LD A,D
         OR A
@@ -1850,7 +1850,7 @@ NATIVE_08B4:
         LD C,$18
         PUSH HL
 
-NATIVE_08B7:
+DRAW_MAZE_ROW_LOOP:
         PUSH BC
         LD A,(DE)
         INC DE
@@ -1859,7 +1859,7 @@ NATIVE_08B7:
         JP NZ,$08C5
         LD BC,$01D4
 
-NATIVE_08C5:
+DRAW_MAZE_ROW_ADVANCE:
         CALL $08DB
         POP BC
         DEC C
@@ -1873,7 +1873,7 @@ NATIVE_08C5:
         JP Z,$05EE
         RET
 
-NATIVE_08DB:
+DRAW_MAZE_TILE:
         PUSH DE
         LD E,$08
 
@@ -1912,7 +1912,7 @@ NATIVE_0903:
         LD C,A
         LD B,$00
 
-NATIVE_090A:
+RANDOM_RANGE_ACCUMULATE:
         DEC E
         JP Z,$0916
         ADD A,C
@@ -1920,7 +1920,7 @@ NATIVE_090A:
         INC B
         JP $090A
 
-NATIVE_0916:
+RANDOM_RANGE_RETURN:
         LD A,B
         POP BC
         RET
@@ -2053,7 +2053,7 @@ NATIVE_09AE:
         AND $40
         RET Z
 
-NATIVE_09B5:
+MAZE_REJECT_LEFT_STEP:
         DEC E
         RET
 
@@ -2066,7 +2066,7 @@ NATIVE_09B7:
         AND $40
         RET Z
 
-NATIVE_09C7:
+MAZE_REJECT_RIGHT_STEP:
         INC E
         RET
 
@@ -2079,7 +2079,7 @@ NATIVE_09C9:
         AND $20
         RET Z
 
-NATIVE_09D9:
+MAZE_REJECT_UP_STEP:
         DEC D
         RET
 
@@ -2094,7 +2094,7 @@ NATIVE_09DB:
         AND $20
         RET Z
 
-NATIVE_09ED:
+MAZE_REJECT_DOWN_STEP:
         INC D
         RET
 
