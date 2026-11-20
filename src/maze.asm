@@ -49,6 +49,7 @@ RESET_START:
         LD B,$01
         LD DE,$0000
 
+; Point HL to the beginning of the board RAM test area.
 DIAG_RAM_BEGIN:
         LD HL,$2000
 
@@ -67,16 +68,19 @@ DIAG_RAM_WRITE_AND_COMPARE:
         LD D,A
         JP DIAG_RAM_ADVANCE
 
+; Merge odd-address RAM test mismatches into E.
 DIAG_RECORD_ODD_ERROR:
         OR E
         LD E,A
 
+; Advance to the next RAM byte until H reaches $40.
 DIAG_RAM_ADVANCE:
         INC HL
         LD A,H
         CP $40
         JP NZ,DIAG_RAM_WRITE_AND_COMPARE
 
+; Scan the test area backward and compare saved pattern bytes.
 DIAG_RAM_REVERSE_SCAN:
         OUT ($02),A
         DEC HL
@@ -95,10 +99,12 @@ DIAG_RAM_REVERSE_SCAN:
         LD D,A
         JP DIAG_RAM_TEST_COMPLEMENT
 
+; Accumulate reverse-scan mismatches from odd RAM addresses.
 DIAG_RECORD_REVERSE_ODD_ERROR:
         OR E
         LD E,A
 
+; Write and verify the complemented RAM pattern.
 DIAG_RAM_TEST_COMPLEMENT:
         LD A,B
         CPL
@@ -114,10 +120,12 @@ DIAG_RAM_TEST_COMPLEMENT:
         LD D,A
         JP DIAG_RAM_REVERSE_NEXT
 
+; Accumulate complemented-pattern errors in E.
 DIAG_RECORD_COMPLEMENT_ODD_ERROR:
         OR E
         LD E,A
 
+; Continue the descending RAM sweep.
 DIAG_RAM_REVERSE_NEXT:
         JP DIAG_RAM_REVERSE_SCAN
 
@@ -140,15 +148,18 @@ DIAG_RAM_FINAL_SCAN:
         LD D,A
         JP DIAG_RAM_CLEAR_NEXT
 
+; Accumulate the final odd-address error bits.
 DIAG_RECORD_FINAL_ODD_ERROR:
         OR E
         LD E,A
 
+; Clear a tested RAM byte and continue the final scan.
 DIAG_RAM_CLEAR_NEXT:
         XOR A
         LD (HL),A
         JP DIAG_RAM_FINAL_SCAN
 
+; Rotate the RAM test pattern and examine accumulated error bits.
 DIAG_EVALUATE_RAM_ERRORS:
         LD A,B
         RLCA
@@ -162,17 +173,20 @@ DIAG_EVALUATE_RAM_ERRORS:
         LD DE,$2000
         LD B,$00
 
+; Initialize one diagnostic display row from saved error bits.
 DIAG_ERROR_DISPLAY_ROW:
         LD HL,$0000
         ADD HL,SP
         LD C,$10
 
+; Shift the failing-bit mask and choose its video pixel value.
 DIAG_ERROR_DISPLAY_PIXEL:
         XOR A
         ADD HL,HL
         JP C,DIAG_ERROR_WRITE_PIXEL
         CPL
 
+; Write the diagnostic pixel pair into video RAM.
 DIAG_ERROR_WRITE_PIXEL:
         LD (DE),A
         INC DE
@@ -249,6 +263,7 @@ STORE_ROM_CHECK_RESULT:
         LD A,$04
         CALL DRAW_TEXT_GLYPH_STREAM
 
+; Hold the failing ROM diagnostic output on port $02.
 DIAG_ROM_FAILURE_LOOP:
         OUT ($02),A
         JP DIAG_ROM_FAILURE_LOOP
@@ -278,11 +293,13 @@ ADVANCE_ENCODED_TEXT_POSITION:
         INC D
         INC D
 
+; Repeat the encoded cursor-advance operation for its count.
 TEXT_POSITION_CONTROL_LOOP:
         INC B
         JP NZ,ADVANCE_ENCODED_TEXT_POSITION
         JP TEXT_FETCH_NEXT_CODE
 
+; Save text pointers and convert a character code into a glyph index.
 TEXT_DECODE_FONT_INDEX:
         PUSH HL
         PUSH DE
@@ -870,6 +887,7 @@ UPDATE_FRAME_POSITION_STATE:
         CALL TEST_SIGNED_STATE_AND_COPY_POINTER
         JP RESTORE_INTERRUPT_REGISTERS
 
+; Read game timer state and process the periodic counter path.
 PERIODIC_TIMER_SERVICE:
         LD HL,$2035
         LD A,(HL)
@@ -894,6 +912,7 @@ RECORD_TIMER_EVENT_BITS:
         LD ($2035),A
         RET
 
+; Check a timer value before decrementing the selected RAM byte.
 TIMER_DECREMENT:
         LD A,(HL)
         AND A
@@ -909,6 +928,7 @@ FINISH_TIMER_BYTE_TEST:
         LD B,A
         RET
 
+; Initialize the first command-script root pointer at $0D64.
 INIT_SCRIPT_ROOT:
         LD A,$10
         CALL ENTER_NATIVE_PROGRAM_STATE
@@ -922,6 +942,7 @@ INIT_SCRIPT_ROOT:
         PUSH HL
         OUT ($02),A
 
+; Load the saved script root, initialize cursors and clear script state.
 SCRIPT_INITIALIZE:
         LD HL,($2002)
         LD A,H
@@ -934,6 +955,7 @@ SCRIPT_INITIALIZE:
         LD HL,$0000
         LD ($2002),HL
 
+; Read the next command through the script cursor at RAM $2000.
 SCRIPT_FETCH:
         LD HL,($2000)
         LD A,(HL)
@@ -956,6 +978,7 @@ SCRIPT_FETCH:
         LD L,A
         JP (HL)
 
+; Process command $00 through the event-control path.
 ZERO_COMMAND:
         LD A,($201F)
         AND A
@@ -963,6 +986,7 @@ ZERO_COMMAND:
         RET
         DB $00,$00
 
+; Clear selected maze state and reset the event counter.
 ZERO_COMMAND_EVENT:
         CALL CLEAR_MAZE_CELL_LOW_NIBBLES
         XOR A
@@ -1014,6 +1038,7 @@ CLEAR_MAZE_CELL_NIBBLE:
         RET
         DB $C9
 
+; Initialize maze and game RAM fields used by the command stream.
 CMD_06_INIT_GAME_FIELDS:
         CALL SHIFT_MAZE_CELLS_LEFT_FOUR
         XOR A
@@ -1144,6 +1169,7 @@ MERGE_INPUT_LOW_NIBBLE:
         OR C
         LD (DE),A
 
+; Return to the interpreter continuation on the 8080 stack.
 CMD_01_RETURN_SCRIPT:
         RET
 ; Tests state byte at $2035 and processes native game-state update.
@@ -1220,6 +1246,7 @@ UPDATE_ROUND_COUNTER_AND_SCORE:
         LD B,$05
         XOR A
 
+; Clear five consecutive state bytes through HL.
 CLEAR_FIVE_STATE_BYTES:
         LD (HL),A
         INC HL
@@ -1229,11 +1256,13 @@ CLEAR_FIVE_STATE_BYTES:
         LD ($2055),A
         RET
 
+; Draw the packed score field and advance score state.
 DISPLAY_SCORE_AND_INCREMENT:
         LD HL,$3EB8
         LD DE,$202A
         CALL DISPLAY_PACKED_SCORE_FIELD
 
+; Increment the packed decimal score stored at $2019.
 INCREMENT_PACKED_SCORE:
         LD HL,$2019
         LD A,(HL)
@@ -1249,10 +1278,12 @@ INCREMENT_PACKED_SCORE:
         DAA
         LD (HL),A
 
+; Select a score display source and destination.
 DISPLAY_SCORE_FROM_GAME_STATE:
         LD HL,$3EA8
         LD DE,$2018
 
+; Format a packed value into the display work buffer.
 DISPLAY_PACKED_SCORE_FIELD:
         LD BC,$2036
         CALL FORMAT_PACKED_BYTE_AS_TWO_DIGITS
@@ -1454,6 +1485,7 @@ COPY_CELL_STATE_AND_ADVANCE:
         EX DE,HL
         LD A,$05
 
+; Copy one cell-record byte from HL to DE and advance both.
 COPY_CELL_RECORD_LOOP:
         PUSH AF
         LD A,(HL)
@@ -1492,6 +1524,7 @@ UPDATE_PACKED_MAZE_COORDINATE:
         AND A
         JP Z,FINISH_COORDINATE_SHIFT
 
+; Double the row offset in HL until its count reaches zero.
 SHIFT_COORDINATE_TO_ROW_OFFSET:
         ADD HL,HL
         DEC A
@@ -1521,6 +1554,7 @@ TEST_CELL_STATE_BIT_20:
         EX DE,HL
         LD C,$05
 
+; Copy the next cell-state byte and advance source/destination.
 COPY_MAZE_CELL_RECORD_BYTE:
         LD A,(DE)
         INC DE
@@ -1557,6 +1591,7 @@ SHIFT_PACKED_COORDINATE_PAIR:
         LD D,A
         RET
 
+; Load the frame count and update the random-related state.
 MAZE_RECALCULATE_RANDOM_STATE:
         LD A,($200A)
 
@@ -1584,6 +1619,7 @@ SELECT_MAZE_RANDOM_VALUE:
         LD (HL),A
         RET
 
+; Build direction flags from surrounding maze-cell boundaries.
 MAZE_INSPECT_NEIGHBOR_WALLS:
         LD D,$00
         LD A,B
@@ -1599,6 +1635,7 @@ MAZE_INSPECT_NEIGHBOR_WALLS:
         OR $01
         LD D,A
 
+; Test the lower and upper row boundaries before inspecting cells.
 MAZE_CHECK_ROW_LIMIT:
         LD A,$19
         CP B
@@ -1611,6 +1648,7 @@ MAZE_CHECK_ROW_LIMIT:
         JP C,MAZE_CHECK_LEFT_COLUMN
         JP MAZE_FLAG_ROW_WALL
 
+; Read the next row's wall bits and restore the row index.
 MAZE_TEST_NEXT_ROW_WALL:
         INC B
         CALL MAZE_CELL_ADDRESS
@@ -1619,11 +1657,13 @@ MAZE_TEST_NEXT_ROW_WALL:
         RRCA
         JP C,MAZE_CHECK_LEFT_COLUMN
 
+; Mark the row-wall direction bit in D.
 MAZE_FLAG_ROW_WALL:
         LD A,D
         OR $02
         LD D,A
 
+; Test the left column boundary and adjacent maze cell.
 MAZE_CHECK_LEFT_COLUMN:
         LD A,C
         CP $00
@@ -1638,6 +1678,7 @@ MAZE_CHECK_LEFT_COLUMN:
         OR $04
         LD D,A
 
+; Test the right column boundary and adjacent maze cell.
 MAZE_CHECK_RIGHT_COLUMN:
         LD A,$17
         CP C
@@ -1652,16 +1693,19 @@ MAZE_CHECK_RIGHT_COLUMN:
         OR $08
         LD D,A
 
+; Count available direction flags from the mask in D.
 MAZE_COUNT_DIRECTION_FLAGS:
         LD E,$00
         LD A,D
         OR A
 
+; Shift one direction bit into carry and increment the count if set.
 COUNT_OPEN_DIRECTIONS_LOOP:
         RRA
         JP NC,COUNT_OPEN_DIRECTIONS_NEXT
         INC E
 
+; Continue until the direction mask is exhausted.
 COUNT_OPEN_DIRECTIONS_NEXT:
         OR A
         JP NZ,COUNT_OPEN_DIRECTIONS_LOOP
@@ -1767,12 +1811,14 @@ WRITE_MAZE_DIRECTION_BITS:
         LD (HL),A
         RET
 
+; Advance the column until the display-row limit.
 MAZE_ADVANCE_COLUMN:
         INC C
         LD A,$18
         CP C
         JP Z,MAZE_ADVANCE_ROW
 
+; Read current cell bits and test the next column's boundary.
 MAZE_CHECK_COLUMN_BOUNDARY:
         CALL MAZE_CELL_ADDRESS
         LD A,(HL)
@@ -1780,6 +1826,7 @@ MAZE_CHECK_COLUMN_BOUNDARY:
         JP NC,MAZE_ADVANCE_COLUMN
         RET
 
+; Reset column C and advance the row index B.
 MAZE_ADVANCE_ROW:
         LD C,$00
         INC B
@@ -1794,6 +1841,7 @@ MAZE_ADVANCE_ROW:
         LD ($2022),A
         JP MAZE_CHECK_COLUMN_BOUNDARY
 
+; Read game display state and select native maze drawing paths.
 CMD_03_GAME_DISPLAY_UPDATE:
         LD HL,$3E02
         LD D,$00
@@ -1878,6 +1926,7 @@ DRAW_MAZE_BORDER_TILE:
         POP HL
         RET
 
+; Initialize and traverse maze cell data for display updates.
 CMD_0A_GAME_CONTROL:
         LD HL,$3E03
         LD DE,$2066
@@ -1888,6 +1937,7 @@ SETUP_MAZE_ROW_DRAW_LOOP:
         LD C,$18
         PUSH HL
 
+; Read the next maze-cell state and select its display tile.
 DRAW_MAZE_ROW_LOOP:
         PUSH BC
         LD A,(DE)
@@ -1897,6 +1947,7 @@ DRAW_MAZE_ROW_LOOP:
         JP NZ,DRAW_MAZE_ROW_ADVANCE
         LD BC,$01D4
 
+; Complete a maze row and advance to the next cell record.
 DRAW_MAZE_ROW_ADVANCE:
         CALL DRAW_MAZE_TILE
         POP BC
@@ -1911,10 +1962,12 @@ DRAW_MAZE_ROW_ADVANCE:
         JP Z,DRAW_END_SCREEN_MESSAGE
         RET
 
+; Preserve DE while rendering an eight-row bitmap tile.
 DRAW_MAZE_TILE:
         PUSH DE
         LD E,$08
 
+; OR the next tile bitmap byte into the frame buffer.
 DRAW_GRAPHIC_ROW_LOOP:
         LD A,(BC)
         INC BC
@@ -1953,6 +2006,7 @@ SAMPLE_RANDOM_RANGE:
         LD C,A
         LD B,$00
 
+; Accumulate sampled state until a bounded random result is formed.
 RANDOM_RANGE_ACCUMULATE:
         DEC E
         JP Z,RANDOM_RANGE_RETURN
@@ -1961,11 +2015,13 @@ RANDOM_RANGE_ACCUMULATE:
         INC B
         JP RANDOM_RANGE_ACCUMULATE
 
+; Return the bounded value and restore BC.
 RANDOM_RANGE_RETURN:
         LD A,B
         POP BC
         RET
 
+; Load the byte at $2004 and mix its bits for the next sample.
 READ_GAME_RANDOM_STATE:
         PUSH HL
         PUSH BC
@@ -2099,6 +2155,7 @@ TEST_MAZE_UP_CELL:
         AND $40
         RET Z
 
+; Decrement the tested maze coordinate E and return.
 MAZE_REJECT_LEFT_STEP:
         DEC E
         RET
@@ -2113,6 +2170,7 @@ TRY_MAZE_STEP_DOWN:
         AND $40
         RET Z
 
+; Increment the tested maze coordinate E and return.
 MAZE_REJECT_RIGHT_STEP:
         INC E
         RET
@@ -2127,6 +2185,7 @@ TRY_MAZE_STEP_LEFT:
         AND $20
         RET Z
 
+; Decrement the tested maze coordinate D and return.
 MAZE_REJECT_UP_STEP:
         DEC D
         RET
@@ -2143,6 +2202,7 @@ TRY_MAZE_STEP_RIGHT:
         AND $20
         RET Z
 
+; Increment the tested maze coordinate D and return.
 MAZE_REJECT_DOWN_STEP:
         INC D
         RET
@@ -2375,10 +2435,12 @@ CHECK_MAZE_DOWN_PLAYER_LIMIT:
         XOR A
         RET
 
+; Load mode $0E and transfer to native program-state initialization.
 CMD_02_SET_MODE_0E:
         LD A,$0E
         JP ENTER_NATIVE_PROGRAM_STATE
 
+; Read inline source/destination information and write display data.
 CMD_04_WRITE_DISPLAY_DATA:
         DI
         EX DE,HL
@@ -2414,6 +2476,7 @@ CMD_04_WRITE_DISPLAY_DATA:
         JP NC,COPY_INLINE_GRAPHICS_BYTE
         LD C,$10
 
+; Copy one original graphics byte and move the destination pointer.
 COPY_INLINE_GRAPHICS_BYTE:
         LD A,(HL)
         INC HL
@@ -2426,6 +2489,7 @@ COPY_INLINE_GRAPHICS_BYTE:
         LD (DE),A
         RET
 
+; Sample input port $01 bit $40 and save the game input result.
 CMD_05_READ_PLAYER_INPUT:
         LD HL,$0006
         IN A,($01)
@@ -2440,6 +2504,7 @@ STORE_PLAYER_INPUT_AND_COMPLEMENT:
         LD ($202C),A
         RET
 
+; Store a one-byte immediate in RAM $200C and advance the cursor.
 CMD_08_SET_COUNTER_200C:
         EX DE,HL
         LD A,(HL)
@@ -2448,6 +2513,7 @@ CMD_08_SET_COUNTER_200C:
         LD ($200C),A
         RET
 
+; Store a count at $200B and a word at $2008.
 CMD_09_SET_COUNTER_AND_POINTER:
         EX DE,HL
         LD A,(HL)
@@ -2506,6 +2572,7 @@ CMD_07_DRAW_INLINE_RECORD:
         POP HL
         JP DRAW_TEXT_GLYPH_STREAM
 
+; Update the value at $2013 when its threshold condition is met.
 CMD_0D_DECREMENT_GAME_STATE:
         LD DE,$2013
         LD A,(DE)
@@ -2540,6 +2607,7 @@ CMD_0E_BRANCH_IF_ZERO:
         JP NZ,BRANCH_IF_NONZERO_SET_SCRIPT
         EX DE,HL
 
+; Store the selected or sequential script cursor at $2000.
 BRANCH_IF_NONZERO_SET_SCRIPT:
         LD ($2000),HL
         RET
@@ -2551,10 +2619,12 @@ CMD_0F_BRANCH_IF_NONZERO:
         JP Z,BRANCH_IF_ZERO_SET_SCRIPT
         EX DE,HL
 
+; Store the selected or sequential script cursor at $2000.
 BRANCH_IF_ZERO_SET_SCRIPT:
         LD ($2000),HL
         RET
 
+; Read inline pointers and invoke native record processing.
 CMD_10_PROCESS_INLINE_RECORD:
         EX DE,HL
         LD E,(HL)
