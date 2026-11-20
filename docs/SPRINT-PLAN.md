@@ -35,3 +35,12 @@ Produce a fully annotated original Intel 8080 source reconstruction, assemble it
 ## Acceptance
 
 `./build.sh` creates `roms/maze.zip` with members `maze.h` and `maze.g` whose SHA-1 hashes match the original archive. All behavior descriptions must be supported by original ROM evidence and reviewed native source. A successful build and a successful MAME run are separate acceptance checks.
+
+## Readability pass — 2026-11-20
+
+- [x] Remove duplicate command-index comments from all 17 native vectors.
+- [x] Segment the 291-byte game text into 20 descriptively labeled original messages and control sequences with quoted string runs.
+- [x] Replace 17 numeric script-entry names with functional names based on their native game-command sequences.
+- [x] Use preceding comments and spacing for all 190 original game command records.
+- [x] Compare normalized instructions and DB/DW contents against the previously byte-exact source: all 2,980 canonical opcode/data entries match; 4,096-byte layout matches.
+- [ ] Execute `./build.sh` and run the newly rebuilt ROM in MAME.
