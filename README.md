@@ -15,8 +15,8 @@ Unlike Checkmate's native language-selection routines, Amazing Maze's command en
 
 ## Project layout
 
-`src/amazing-maze.asm`  
-8080 reverse-engineered source (full source reconstruction in progress).
+`src/maze.asm`  
+Original-ROM-derived Intel 8080 reconstruction with native routines, original graphics, interpreter vectors and command scripts.
 
 `tools/zmac`, `tools/zmac.exe`  
 zmac v1.3 assemblers for Linux and Windows.
@@ -53,7 +53,7 @@ Windows:
 build.bat
 ```
 
-The scripts assemble `src/amazing-maze.asm` using zmac v1.3, split the 4 KB result into two 2 KB devices, compare each device's SHA-1 against the original ROM, and package `roms/maze.zip`. **The full assembly source is still being reconstructed; builds require that source and are not yet enabled.** Original bytes are available for inspection through `node tools/scan-runtime.mjs`.
+The scripts assemble `src/maze.asm` using zmac v1.3, split the 4 KB result into two 2 KB devices, compare each device's SHA-1 against the original ROM, and package `roms/maze.zip`. The original-ROM-derived assembly is present in `src/maze.asm`. The full source has not yet passed native zmac compilation or byte-exact device verification; both checks are required before treating the build as verified. Original bytes can also be inspected with `node tools/scan-runtime.mjs`.
 
 MAME:
 
@@ -96,7 +96,7 @@ The reset entry at `$0000` initializes the stack and transfers control to `$0017
 
 The dispatcher subtracts one from a nonzero command, bounds-checks the resulting index against `$11`, doubles it, and indexes the 16-bit vector table. The indexed table lookup ends in `PCHL`; this transfers execution to native 8080 code.
 
-The 17 original targets are documented in [Original ROM runtime scan](docs/ORIGINAL-ROM-RUNTIME-SCAN.md). A command-by-command audit of inline operands, handler behavior and script boundaries is the next part of source reconstruction.
+The 17 original targets are documented in [Original ROM runtime scan](docs/ORIGINAL-ROM-RUNTIME-SCAN.md). The initial native-code audit and interpreted command analysis are documented in [8080 word semantics](docs/8080-WORD-SEMANTICS.md), [native RE pass](docs/NATIVE-RE-PASS.md), and [graphics and maze RE](docs/GRAPHICS-AND-MAZE-RE.md). Further operand and continuation tracing remains open.
 
 ## Graphics and text
 
