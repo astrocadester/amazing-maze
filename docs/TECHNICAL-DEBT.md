@@ -33,3 +33,13 @@ No Python, secondary compiler, surrogate gameplay code or generated stand-in ROM
 The previous byte-exact build was reported by the user on the source carried forward from the November 8 hard-RE branch. The follow-on source-style commits revise headers, routine spacing, 56 local/native labels, and long byte-data presentation without changing documented opcodes or DB operands. **Re-run the native build and ROM hashes after the formatting and symbol changes.**
 
 Source audit remaining: 54 generic `NATIVE_xxxx` labels require code-flow review and functional names. Further clean up numeric branch targets, data classification and game-script semantic structure using actual instruction behavior. The final Checkmate-style source gate requires meaningful per-routine comments, independently identifiable tables and well-spaced, correctly classified data.
+
+## Verified source-style build — November 20, 2026
+
+User executed `git pull --ff-only` and `./build.sh` on commit `10d4e72` (source-format and label cleanup). Native zmac v1.3 assembly succeeded; split ROM hashes matched the original archive:
+
+- `maze.h` — SHA-1 `62b3fd3d04bf9c5dd9b50964374fb884dc0ab79c` — PASS
+- `maze.g` — SHA-1 `893f0a7621e7df19f777be991faff0db4a9ad571` — PASS
+- `roms/maze.zip` packaging — PASS
+
+This verifies byte-exact output after the source-style pass. MAME execution and further source-label/data cleanup remain separate tasks.
