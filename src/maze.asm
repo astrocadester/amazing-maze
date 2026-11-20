@@ -24,7 +24,7 @@ RESET:
         NOP
         NOP
         LD SP,$2400
-        JP $0017
+        JP RESET_START
 
 ; Frame interrupt vector: preserve registers and enter frame service.
 INTERRUPT_ENTRY:
@@ -38,7 +38,7 @@ INTERRUPT_ENTRY:
         PUSH BC
         PUSH DE
         PUSH HL
-        JP $02E2
+        JP INITIALIZE_FRAME_STATE
 ; Read input port 1; carry controls transition into initial script setup.
 
 ; Startup diagnostics, ROM checksums and program initialization.
@@ -57,15 +57,15 @@ DIAG_RAM_WRITE_AND_COMPARE:
         LD (HL),B
         LD A,(HL)
         XOR B
-        JP Z,$003C
+        JP Z,DIAG_RAM_ADVANCE
         LD C,A
         LD A,L
         AND $01
         LD A,C
-        JP NZ,$003A
+        JP NZ,DIAG_RECORD_ODD_ERROR
         OR D
         LD D,A
-        JP $003C
+        JP DIAG_RAM_ADVANCE
 
 DIAG_RECORD_ODD_ERROR:
         OR E
@@ -75,25 +75,25 @@ DIAG_RAM_ADVANCE:
         INC HL
         LD A,H
         CP $40
-        JP NZ,$0025
+        JP NZ,DIAG_RAM_WRITE_AND_COMPARE
 
 DIAG_RAM_REVERSE_SCAN:
         OUT ($02),A
         DEC HL
         LD A,H
         CP $1F
-        JP Z,$0079
+        JP Z,DIAG_RAM_FINAL_SCAN
         LD A,(HL)
         XOR B
-        JP Z,$0060
+        JP Z,DIAG_RAM_TEST_COMPLEMENT
         LD C,A
         LD A,L
         AND $01
         LD A,C
-        JP NZ,$005E
+        JP NZ,DIAG_RECORD_REVERSE_ODD_ERROR
         OR D
         LD D,A
-        JP $0060
+        JP DIAG_RAM_TEST_COMPLEMENT
 
 DIAG_RECORD_REVERSE_ODD_ERROR:
         OR E
@@ -104,41 +104,41 @@ DIAG_RAM_TEST_COMPLEMENT:
         CPL
         LD (HL),A
         XOR (HL)
-        JP Z,$0043
+        JP Z,DIAG_RAM_REVERSE_SCAN
         LD C,A
         LD A,L
         AND $01
         LD A,C
-        JP NZ,$0074
+        JP NZ,DIAG_RECORD_COMPLEMENT_ODD_ERROR
         OR D
         LD D,A
-        JP $0076
+        JP DIAG_RAM_REVERSE_NEXT
 
 DIAG_RECORD_COMPLEMENT_ODD_ERROR:
         OR E
         LD E,A
 
 DIAG_RAM_REVERSE_NEXT:
-        JP $0043
+        JP DIAG_RAM_REVERSE_SCAN
 
 DIAG_RAM_FINAL_SCAN:
         OUT ($02),A
         INC HL
         LD A,H
         CP $40
-        JP Z,$009C
+        JP Z,DIAG_EVALUATE_RAM_ERRORS
         LD A,B
         CPL
         XOR (HL)
-        JP Z,$0097
+        JP Z,DIAG_RAM_CLEAR_NEXT
         LD C,A
         LD A,L
         AND $01
         LD A,C
-        JP NZ,$0095
+        JP NZ,DIAG_RECORD_FINAL_ODD_ERROR
         OR D
         LD D,A
-        JP $0097
+        JP DIAG_RAM_CLEAR_NEXT
 
 DIAG_RECORD_FINAL_ODD_ERROR:
         OR E
@@ -147,16 +147,16 @@ DIAG_RECORD_FINAL_ODD_ERROR:
 DIAG_RAM_CLEAR_NEXT:
         XOR A
         LD (HL),A
-        JP $0079
+        JP DIAG_RAM_FINAL_SCAN
 
 DIAG_EVALUATE_RAM_ERRORS:
         LD A,B
         RLCA
         LD B,A
-        JP NC,$0022
+        JP NC,DIAG_RAM_BEGIN
         LD A,D
         OR E
-        JP Z,$00CC
+        JP Z,CHECK_ROM_PAGE_SUMS
         EX DE,HL
         LD SP,HL
         LD DE,$2000
@@ -170,7 +170,7 @@ DIAG_ERROR_DISPLAY_ROW:
 DIAG_ERROR_DISPLAY_PIXEL:
         XOR A
         ADD HL,HL
-        JP C,$00BA
+        JP C,DIAG_ERROR_WRITE_PIXEL
         CPL
 
 DIAG_ERROR_WRITE_PIXEL:
@@ -180,14 +180,14 @@ DIAG_ERROR_WRITE_PIXEL:
         LD (DE),A
         INC DE
         DEC C
-        JP NZ,$00B4
+        JP NZ,DIAG_ERROR_DISPLAY_PIXEL
         DEC B
-        JP NZ,$00AE
+        JP NZ,DIAG_ERROR_DISPLAY_ROW
 ; Repeatedly writes to hardware output port $02.
 
 SERVICE_HALTED_OUTPUT_LOOP:
         OUT ($02),A
-        JP $00C7
+        JP SERVICE_HALTED_OUTPUT_LOOP
 ; Computes checksums over original ROM pages, stores result/display codes in RAM $2036 onward.
 
 ; Original ROM checksum routine and diagnostic output.
@@ -210,13 +210,13 @@ ACCUMULATE_ROM_CHECKSUM:
         LD A,C
         CP H
         LD A,B
-        JP NZ,$00D8
+        JP NZ,ACCUMULATE_ROM_CHECKSUM
         PUSH HL
         LD HL,$0120
         ADD HL,DE
         CP (HL)
         LD A,$40
-        JP Z,$00F3
+        JP Z,STORE_ROM_CHECK_RESULT
         LD HL,$0125
         ADD HL,DE
         LD A,(HL)
@@ -234,7 +234,7 @@ STORE_ROM_CHECK_RESULT:
         INC C
         LD A,$14
         CP C
-        JP NZ,$00D7
+        JP NZ,BEGIN_ROM_CHECKSUM_PAGE
         LD HL,$2039
         LD A,(HL)
         DEC HL
@@ -244,14 +244,14 @@ STORE_ROM_CHECK_RESULT:
         DEC HL
         OR (HL)
         AND $BF
-        JP Z,$0000
+        JP Z,RESET
         LD DE,$3008
         LD A,$04
         CALL DRAW_TEXT_GLYPH_STREAM
 
 DIAG_ROM_FAILURE_LOOP:
         OUT ($02),A
-        JP $011B
+        JP DIAG_ROM_FAILURE_LOOP
         DB $00,$A1,$C1,$EE,$58,$48,$48,$47,$47
 ; Original native text/glyph rendering entry at $0129.
 ; Entry HL -> encoded text, DE -> framebuffer destination, A = item count.
@@ -266,7 +266,7 @@ TEXT_FETCH_NEXT_CODE:
         LD A,(HL)
         INC HL
         SUB $30
-        JP P,$0142
+        JP P,TEXT_DECODE_FONT_INDEX
         LD B,A
 ; Advances the framebuffer destination for text-position control codes.
 
@@ -274,21 +274,21 @@ ADVANCE_ENCODED_TEXT_POSITION:
         INC DE
         LD A,E
         AND $1F
-        JP NZ,$013B
+        JP NZ,TEXT_POSITION_CONTROL_LOOP
         INC D
         INC D
 
 TEXT_POSITION_CONTROL_LOOP:
         INC B
-        JP NZ,$0132
-        JP $012A
+        JP NZ,ADVANCE_ENCODED_TEXT_POSITION
+        JP TEXT_FETCH_NEXT_CODE
 
 TEXT_DECODE_FONT_INDEX:
         PUSH HL
         PUSH DE
         INC A
         CP $0B
-        JP M,$014C
+        JP M,SELECT_FONT_GLYPH
         SUB $06
 ; Converts glyph index into ten-byte ROM font offset.
 
@@ -300,7 +300,7 @@ SELECT_FONT_GLYPH:
 ADVANCE_FONT_TO_GLYPH:
         ADD HL,BC
         DEC A
-        JP NZ,$0152
+        JP NZ,ADVANCE_FONT_TO_GLYPH
         EX DE,HL
         LD BC,$0020
         LD A,$0A
@@ -314,7 +314,7 @@ WRITE_NEXT_GLYPH_ROW:
         ADD HL,BC
         POP AF
         DEC A
-        JP NZ,$015D
+        JP NZ,WRITE_NEXT_GLYPH_ROW
         POP DE
         POP HL
         INC DE
@@ -814,15 +814,15 @@ FONT_LETTER_Z:                        ; $02D8
 ; Clear working state and invoke timer and input services
 INITIALIZE_FRAME_STATE:
         XOR A
-        CALL $0302
+        CALL CHECK_FRAME_MODE_OR_INTERRUPT_EXIT
         LD (HL),A
-        CALL $061E
+        CALL SAMPLE_GAME_TIMING_STATE
         CALL PERIODIC_TIMER_SERVICE
         LD HL,$2055
-        CALL $0962
-        CALL $04BE
+        CALL TEST_SIGNED_STATE_AND_COPY_POINTER
+        CALL SERVICE_GAME_STATE_COUNTER
         CALL READ_STABLE_PORT0_INPUT
-        CALL $0453
+        CALL UPDATE_MAZE_STATE_IF_IDLE
 ; Restores HL, DE, BC, AF, enables interrupts, then returns.
 
 RESTORE_INTERRUPT_REGISTERS:
@@ -845,14 +845,14 @@ CHECK_FRAME_MODE_OR_INTERRUPT_EXIT:
 ; Interrupt service: timers, input handling and frame-state updates.
 FRAME_SERVICE:
         LD A,$10
-        CALL $0302
+        CALL CHECK_FRAME_MODE_OR_INTERRUPT_EXIT
         LD (HL),A
-        CALL $061E
-        CALL $05A2
+        CALL SAMPLE_GAME_TIMING_STATE
+        CALL SAMPLE_PORT1_INPUT_EDGE
         CALL READ_START_INPUTS
         LD A,($2030)
         DEC A
-        JP NZ,$0338
+        JP NZ,UPDATE_FRAME_POSITION_STATE
         LD A,($2020)
         AND A
         JP Z,RESTORE_INTERRUPT_REGISTERS
@@ -867,7 +867,7 @@ FRAME_SERVICE:
 
 UPDATE_FRAME_POSITION_STATE:
         LD HL,$2044
-        CALL $0962
+        CALL TEST_SIGNED_STATE_AND_COPY_POINTER
         JP RESTORE_INTERRUPT_REGISTERS
 
 PERIODIC_TIMER_SERVICE:
@@ -878,7 +878,7 @@ PERIODIC_TIMER_SERVICE:
         LD B,A
         LD HL,$200A
         DEC (HL)
-        JP NZ,$0357
+        JP NZ,RECORD_TIMER_EVENT_BITS
         LD (HL),$3C
         LD HL,$200B
         CALL TIMER_DECREMENT
@@ -897,9 +897,9 @@ RECORD_TIMER_EVENT_BITS:
 TIMER_DECREMENT:
         LD A,(HL)
         AND A
-        JP Z,$0373
+        JP Z,FINISH_TIMER_BYTE_TEST
         DEC (HL)
-        JP NZ,$0373
+        JP NZ,FINISH_TIMER_BYTE_TEST
         SCF
 ; Returns after advancing the periodic countdown and carry-driven event mask.
 
@@ -911,7 +911,7 @@ FINISH_TIMER_BYTE_TEST:
 
 INIT_SCRIPT_ROOT:
         LD A,$10
-        CALL $08EE
+        CALL ENTER_NATIVE_PROGRAM_STATE
         LD HL,$0D64
         LD ($2002),HL
         LD HL,$FFFF
@@ -967,26 +967,26 @@ ZERO_COMMAND_EVENT:
         CALL CLEAR_MAZE_CELL_LOW_NIBBLES
         XOR A
         LD ($201C),A
-        CALL $06E8
-        CALL $06F5
+        CALL MAZE_RECALCULATE_RANDOM_STATE
+        CALL SELECT_MAZE_RANDOM_VALUE
 ; Runs maze-step and output-port service until event state E is zero.
 
 RUN_ZERO_COMMAND_MAZE_EVENTS:
-        CALL $070E
+        CALL MAZE_INSPECT_NEIGHBOR_WALLS
         OUT ($02),A
         LD A,E
         AND A
-        JP Z,$03F1
-        CALL $0780
-        JP $03E1
+        JP Z,TEST_MAZE_EVENT_COMPLETION
+        CALL ADVANCE_MAZE_GENERATION_COUNT
+        JP RUN_ZERO_COMMAND_MAZE_EVENTS
 ; Checks $201D and invokes $080D; increments $201F when the event is complete.
 
 TEST_MAZE_EVENT_COMPLETION:
         LD A,($201D)
         AND A
         JP Z,ZERO_COMMAND_EVENT
-        CALL $080D
-        JP C,$03E1
+        CALL MAZE_ADVANCE_COLUMN
+        JP C,RUN_ZERO_COMMAND_MAZE_EVENTS
         INC A
         LD ($201F),A
         RET
@@ -1008,9 +1008,9 @@ CLEAR_MAZE_CELL_NIBBLE:
         LD (DE),A
         INC DE
         DEC C
-        JP NZ,$040A
+        JP NZ,CLEAR_MAZE_CELL_NIBBLE
         DEC B
-        JP NZ,$0408
+        JP NZ,CLEAR_NEXT_MAZE_ROW_NIBBLES
         RET
         DB $C9
 
@@ -1025,7 +1025,7 @@ CLEAR_NEXT_GAME_STATE_BYTE:
         LD (HL),A
         INC HL
         DEC B
-        JP NZ,$0422
+        JP NZ,CLEAR_NEXT_GAME_STATE_BYTE
         LD HL,$2023
         LD A,(HL)
         INC HL
@@ -1060,9 +1060,9 @@ SHIFT_NEXT_MAZE_CELL_NIBBLE:
         LD (DE),A
         INC DE
         DEC C
-        JP NZ,$0443
+        JP NZ,SHIFT_NEXT_MAZE_CELL_NIBBLE
         DEC B
-        JP NZ,$0443
+        JP NZ,SHIFT_NEXT_MAZE_CELL_NIBBLE
         RET
 
 ; Exit when the activity byte at $201E is set
@@ -1075,7 +1075,7 @@ UPDATE_MAZE_STATE_IF_IDLE:
         LD DE,$2056
         LD A,(DE)
         SUB $10
-        JP Z,$046B
+        JP Z,COPY_STATE_BYTE_TO_NEIGHBORS
         INC B
         LD A,(HL)
         SUB $E6
@@ -1097,7 +1097,7 @@ COPY_STATE_BYTE_TO_NEIGHBORS:
         LD HL,$2031
         LD DE,$201A
         DEC A
-        JP Z,$0488
+        JP Z,INCREMENT_PACKED_DECIMAL_STATE
         INC DE
         INC HL
 
@@ -1112,9 +1112,9 @@ INCREMENT_PACKED_DECIMAL_STATE:
         LD A,(HL)
         ADD A,$99
         DAA
-        JP M,$08AC
+        JP M,CMD_0A_GAME_CONTROL
         LD (HL),A
-        JP $08AC
+        JP CMD_0A_GAME_CONTROL
 ; Reads input port $00 twice and returns when readings disagree; otherwise updates state fields.
 
 READ_STABLE_PORT0_INPUT:
@@ -1156,11 +1156,11 @@ SERVICE_GAME_STATE_COUNTER:
         LD (HL),$00
         RRA
         PUSH AF
-        CALL C,$04DB
+        CALL C,ADVANCE_END_OF_ROUND_COUNTER
         POP AF
         RRA
         PUSH AF
-        CALL C,$0514
+        CALL C,UPDATE_ROUND_COUNTER_AND_SCORE
         POP AF
         RRA
         CALL C,SKIP_NEXT_SCRIPT_BYTE
@@ -1172,7 +1172,7 @@ SERVICE_GAME_STATE_COUNTER:
 ADVANCE_END_OF_ROUND_COUNTER:
         LD HL,$2029
         DEC (HL)
-        JP NZ,$0500
+        JP NZ,SETUP_NEXT_ROUND_DISPLAY
         LD A,$01
         LD ($200D),A
         LD ($2020),A
@@ -1203,17 +1203,17 @@ UPDATE_ROUND_COUNTER_AND_SCORE:
         LD ($200D),A
         LD A,($202C)
         AND A
-        JP Z,$0554
+        JP Z,INCREMENT_PACKED_SCORE
         LD HL,$202B
         LD A,(HL)
         ADD A,$99
         DAA
         LD (HL),A
-        JP P,$054B
+        JP P,DISPLAY_SCORE_AND_INCREMENT
         LD (HL),$59
         DEC HL
         DEC (HL)
-        JP P,$054B
+        JP P,DISPLAY_SCORE_AND_INCREMENT
         LD HL,$0D64
         LD ($2002),HL
         LD HL,$200B
@@ -1224,7 +1224,7 @@ CLEAR_FIVE_STATE_BYTES:
         LD (HL),A
         INC HL
         DEC B
-        JP NZ,$053E
+        JP NZ,CLEAR_FIVE_STATE_BYTES
         LD ($2044),A
         LD ($2055),A
         RET
@@ -1232,7 +1232,7 @@ CLEAR_FIVE_STATE_BYTES:
 DISPLAY_SCORE_AND_INCREMENT:
         LD HL,$3EB8
         LD DE,$202A
-        CALL $056D
+        CALL DISPLAY_PACKED_SCORE_FIELD
 
 INCREMENT_PACKED_SCORE:
         LD HL,$2019
@@ -1241,7 +1241,7 @@ INCREMENT_PACKED_SCORE:
         DAA
         LD (HL),A
         CP $60
-        JP NZ,$0567
+        JP NZ,DISPLAY_SCORE_FROM_GAME_STATE
         LD (HL),$00
         DEC HL
         LD A,(HL)
@@ -1263,9 +1263,9 @@ DISPLAY_PACKED_SCORE_FIELD:
         EX DE,HL
         LD HL,$2036
         PUSH HL
-        CALL $058C
+        CALL NORMALIZE_DISPLAY_GLYPH_SPACE
         INC HL
-        CALL $058C
+        CALL NORMALIZE_DISPLAY_GLYPH_SPACE
         POP HL
         LD A,$05
         JP DRAW_TEXT_GLYPH_STREAM
@@ -1324,11 +1324,11 @@ SAMPLE_PORT1_INPUT_EDGE:
         INC (HL)
         LD A,C
         AND $20
-        JP Z,$05D4
+        JP Z,RETURN_IF_END_FLAG_SET
         INC (HL)
         LD A,C
         AND $10
-        JP Z,$05D4
+        JP Z,RETURN_IF_END_FLAG_SET
         INC (HL)
 
 ; Exit when the end-state flag at $202D is set
@@ -1368,7 +1368,7 @@ READ_START_INPUTS:
         LD HL,$0E5F
         AND $01
         LD A,$01
-        JP NZ,$0615
+        JP NZ,STORE_START_SELECTION_STATE
         LD HL,$0F31
         LD A,B
         AND $02
@@ -1387,14 +1387,14 @@ STORE_START_SELECTION_STATE:
 SAMPLE_GAME_TIMING_STATE:
         LD HL,$2044
         PUSH HL
-        CALL $06AF
+        CALL TEST_CELL_STATE_BIT_20
         LD HL,$2055
         PUSH HL
-        CALL $06AF
+        CALL TEST_CELL_STATE_BIT_20
         POP HL
-        CALL $0648
+        CALL TEST_CELL_STATE_BIT_10
         POP HL
-        JP $0648
+        JP TEST_CELL_STATE_BIT_10
 ; $0634 — FORMAT PACKED BYTE AS TWO DIGITS.
 ; Expands one packed BCD-like byte from (DE) into two ASCII digit bytes at (BC); increments both pointers.
 
@@ -1428,7 +1428,7 @@ TEST_CELL_STATE_BIT_10:
         OR $20
         LD B,A
         AND $40
-        JP NZ,$065C
+        JP NZ,COPY_CELL_STATE_AND_ADVANCE
         LD B,$00
 
 ; Write the current cell state, load the next address and continue
@@ -1442,7 +1442,7 @@ COPY_CELL_STATE_AND_ADVANCE:
         LD A,E
         AND $07
         LD ($2015),A
-        CALL $06D6
+        CALL INITIALIZE_THREE_STEP_SHIFT
         LD C,(HL)
         INC HL
         LD B,(HL)
@@ -1461,7 +1461,7 @@ COPY_CELL_RECORD_LOOP:
         INC DE
         LD A,(BC)
         INC BC
-        CALL $0697
+        CALL UPDATE_PACKED_MAZE_COORDINATE
         OR (HL)
         LD (HL),A
         INC HL
@@ -1469,7 +1469,7 @@ COPY_CELL_RECORD_LOOP:
         LD (DE),A
         INC DE
         XOR A
-        CALL $0697
+        CALL UPDATE_PACKED_MAZE_COORDINATE
         OR (HL)
         LD (HL),A
         PUSH DE
@@ -1478,7 +1478,7 @@ COPY_CELL_RECORD_LOOP:
         POP DE
         POP AF
         DEC A
-        JP NZ,$0676
+        JP NZ,COPY_CELL_RECORD_LOOP
         RET
 
 ; Update the packed coordinate held at $2016
@@ -1490,12 +1490,12 @@ UPDATE_PACKED_MAZE_COORDINATE:
         LD ($2016),HL
         LD A,($2015)
         AND A
-        JP Z,$06AC
+        JP Z,FINISH_COORDINATE_SHIFT
 
 SHIFT_COORDINATE_TO_ROW_OFFSET:
         ADD HL,HL
         DEC A
-        JP NZ,$06A7
+        JP NZ,SHIFT_COORDINATE_TO_ROW_OFFSET
 
 ; Return the shifted coordinate result in A
 FINISH_COORDINATE_SHIFT:
@@ -1534,7 +1534,7 @@ COPY_MAZE_CELL_RECORD_BYTE:
         ADD HL,BC
         LD C,A
         DEC C
-        JP NZ,$06C5
+        JP NZ,COPY_MAZE_CELL_RECORD_BYTE
         RET
 
 ; Set the three-step packed-coordinate shift count
@@ -1551,7 +1551,7 @@ SHIFT_PACKED_COORDINATE_PAIR:
         RRA
         LD E,A
         DEC B
-        JP NZ,$06D8
+        JP NZ,SHIFT_PACKED_COORDINATE_PAIR
         LD A,D
         ADD A,$24
         LD D,A
@@ -1562,16 +1562,16 @@ MAZE_RECALCULATE_RANDOM_STATE:
 
 MAZE_RANDOM_UPDATE_LOOP:
         PUSH AF
-        CALL $0919
+        CALL READ_GAME_RANDOM_STATE
         POP AF
         DEC A
-        JP NZ,$06EB
+        JP NZ,MAZE_RANDOM_UPDATE_LOOP
         RET
 
 ; Derive a bounded value and store it in game state
 SELECT_MAZE_RANDOM_VALUE:
         LD E,$18
-        CALL $0903
+        CALL SAMPLE_RANDOM_RANGE
         LD ($2025),A
         LD ($2040),A
         LD C,A
@@ -1588,13 +1588,13 @@ MAZE_INSPECT_NEIGHBOR_WALLS:
         LD D,$00
         LD A,B
         CP $00
-        JP Z,$0724
+        JP Z,MAZE_CHECK_ROW_LIMIT
         DEC B
         CALL MAZE_CELL_ADDRESS
         INC B
         LD A,(HL)
         RRCA
-        JP C,$0724
+        JP C,MAZE_CHECK_ROW_LIMIT
         LD A,D
         OR $01
         LD D,A
@@ -1602,14 +1602,14 @@ MAZE_INSPECT_NEIGHBOR_WALLS:
 MAZE_CHECK_ROW_LIMIT:
         LD A,$19
         CP B
-        JP NZ,$073C
+        JP NZ,MAZE_TEST_NEXT_ROW_WALL
         LD A,($201D)
         OR A
-        JP NZ,$074A
+        JP NZ,MAZE_CHECK_LEFT_COLUMN
         LD A,($201C)
         CP $46
-        JP C,$074A
-        JP $0746
+        JP C,MAZE_CHECK_LEFT_COLUMN
+        JP MAZE_FLAG_ROW_WALL
 
 MAZE_TEST_NEXT_ROW_WALL:
         INC B
@@ -1617,7 +1617,7 @@ MAZE_TEST_NEXT_ROW_WALL:
         DEC B
         LD A,(HL)
         RRCA
-        JP C,$074A
+        JP C,MAZE_CHECK_LEFT_COLUMN
 
 MAZE_FLAG_ROW_WALL:
         LD A,D
@@ -1627,13 +1627,13 @@ MAZE_FLAG_ROW_WALL:
 MAZE_CHECK_LEFT_COLUMN:
         LD A,C
         CP $00
-        JP Z,$075E
+        JP Z,MAZE_CHECK_RIGHT_COLUMN
         DEC C
         CALL MAZE_CELL_ADDRESS
         INC C
         LD A,(HL)
         RRCA
-        JP C,$075E
+        JP C,MAZE_CHECK_RIGHT_COLUMN
         LD A,D
         OR $04
         LD D,A
@@ -1641,13 +1641,13 @@ MAZE_CHECK_LEFT_COLUMN:
 MAZE_CHECK_RIGHT_COLUMN:
         LD A,$17
         CP C
-        JP Z,$0772
+        JP Z,MAZE_COUNT_DIRECTION_FLAGS
         INC C
         CALL MAZE_CELL_ADDRESS
         DEC C
         LD A,(HL)
         RRCA
-        JP C,$0772
+        JP C,MAZE_COUNT_DIRECTION_FLAGS
         LD A,D
         OR $08
         LD D,A
@@ -1659,19 +1659,19 @@ MAZE_COUNT_DIRECTION_FLAGS:
 
 COUNT_OPEN_DIRECTIONS_LOOP:
         RRA
-        JP NC,$077B
+        JP NC,COUNT_OPEN_DIRECTIONS_NEXT
         INC E
 
 COUNT_OPEN_DIRECTIONS_NEXT:
         OR A
-        JP NZ,$0776
+        JP NZ,COUNT_OPEN_DIRECTIONS_LOOP
         RET
 
 ; Update the maze-generation counter at $201C
 ADVANCE_MAZE_GENERATION_COUNT:
         LD A,($201D)
         AND A
-        JP NZ,$078B
+        JP NZ,CHOOSE_MAZE_DIRECTION
         LD HL,$201C
         INC (HL)
 
@@ -1679,55 +1679,55 @@ ADVANCE_MAZE_GENERATION_COUNT:
 CHOOSE_MAZE_DIRECTION:
         LD A,$01
         LD ($2022),A
-        CALL $0903
+        CALL SAMPLE_RANDOM_RANGE
         LD E,A
         LD A,D
         INC E
         DEC E
         RRCA
-        JP NC,$079F
-        JP Z,$07B1
+        JP NC,TEST_DIRECTION_BIT_ZERO
+        JP Z,MARK_MAZE_PREVIOUS_ROW
         DEC E
 
 ; Rotate and test a candidate direction bit
 TEST_DIRECTION_BIT_ZERO:
         RRCA
-        JP NC,$07A7
-        JP Z,$07BA
+        JP NC,TEST_DIRECTION_BIT_ONE
+        JP Z,MARK_MAZE_NEXT_ROW
         DEC E
 
 ; Rotate and test the following candidate direction bit
 TEST_DIRECTION_BIT_ONE:
         RRCA
-        JP NC,$07F3
-        JP Z,$07E8
-        JP $07F3
+        JP NC,MARK_MAZE_NEXT_COLUMN
+        JP Z,MARK_MAZE_PREVIOUS_COLUMN
+        JP MARK_MAZE_NEXT_COLUMN
 
 ; Address the previous row and select wall state $05
 MARK_MAZE_PREVIOUS_ROW:
         DEC B
         CALL MAZE_CELL_ADDRESS
         LD D,$05
-        JP $0804
+        JP WRITE_MAZE_DIRECTION_BITS
 
 ; Mark the current cell and advance the maze row
 MARK_MAZE_NEXT_ROW:
         CALL MAZE_CELL_ADDRESS
         LD D,$04
-        CALL $0804
+        CALL WRITE_MAZE_DIRECTION_BITS
         LD A,$19
         CP B
-        JP Z,$07D1
+        JP Z,SAVE_MAZE_COLUMN_AND_DIRECTION
         INC B
         CALL MAZE_CELL_ADDRESS
         LD D,$01
-        JP $0804
+        JP WRITE_MAZE_DIRECTION_BITS
 
 ; Save the current column and direction state
 SAVE_MAZE_COLUMN_AND_DIRECTION:
         LD A,($201D)
         AND A
-        JP NZ,$07E1
+        JP NZ,RESTORE_MAZE_COLUMN
         LD A,$08
         LD ($201D),A
         LD A,C
@@ -1745,18 +1745,18 @@ MARK_MAZE_PREVIOUS_COLUMN:
         DEC C
         CALL MAZE_CELL_ADDRESS
         LD D,$03
-        JP $0804
+        JP WRITE_MAZE_DIRECTION_BITS
         DB $00,$00
 
 ; Address the current and next columns and update wall state
 MARK_MAZE_NEXT_COLUMN:
         CALL MAZE_CELL_ADDRESS
         LD D,$02
-        CALL $0804
+        CALL WRITE_MAZE_DIRECTION_BITS
         INC C
         CALL MAZE_CELL_ADDRESS
         LD D,$01
-        JP $0804
+        JP WRITE_MAZE_DIRECTION_BITS
 
 ; Combine direction flags with the selected maze cell
 WRITE_MAZE_DIRECTION_BITS:
@@ -1771,13 +1771,13 @@ MAZE_ADVANCE_COLUMN:
         INC C
         LD A,$18
         CP C
-        JP Z,$081D
+        JP Z,MAZE_ADVANCE_ROW
 
 MAZE_CHECK_COLUMN_BOUNDARY:
         CALL MAZE_CELL_ADDRESS
         LD A,(HL)
         RRCA
-        JP NC,$080D
+        JP NC,MAZE_ADVANCE_COLUMN
         RET
 
 MAZE_ADVANCE_ROW:
@@ -1785,14 +1785,14 @@ MAZE_ADVANCE_ROW:
         INC B
         LD A,$1A
         CP B
-        JP NZ,$0814
+        JP NZ,MAZE_CHECK_COLUMN_BOUNDARY
         LD B,$00
         LD A,($2022)
         OR A
         RET Z
         LD A,$00
         LD ($2022),A
-        JP $0814
+        JP MAZE_CHECK_COLUMN_BOUNDARY
 
 CMD_03_GAME_DISPLAY_UPDATE:
         LD HL,$3E02
@@ -1803,17 +1803,17 @@ DRAW_MAZE_BORDER_ROW:
         LD A,($2026)
         LD BC,$0D44
         CP D
-        JP NZ,$084A
-        CALL $08A3
+        JP NZ,ADVANCE_MAZE_BORDER_ROW
+        CALL DRAW_MAZE_BORDER_TILE
         LD BC,$01D4
 
 ; Draw the row graphic and advance the maze row index
 ADVANCE_MAZE_BORDER_ROW:
-        CALL $08DB
+        CALL DRAW_MAZE_TILE
         INC D
         LD A,$18
         CP D
-        JP NZ,$083A
+        JP NZ,DRAW_MAZE_BORDER_ROW
         LD HL,$3E23
         LD DE,$2066
         LD B,$1A
@@ -1834,31 +1834,31 @@ CHOOSE_MAZE_CELL_TILE:
         LD A,(DE)
         LD BC,$0D44
         AND $40
-        JP Z,$0874
+        JP Z,DRAW_MAZE_CELL_SIDE
         LD BC,$01D4
 
 ; Draw a tile and test the next cell's $20 flag
 DRAW_MAZE_CELL_SIDE:
         PUSH HL
-        CALL $08DB
+        CALL DRAW_MAZE_TILE
         POP HL
         LD A,(DE)
         INC DE
         LD BC,$0D4C
         AND $20
-        JP Z,$0886
+        JP Z,ADVANCE_MAZE_DRAW_CURSOR
         LD BC,$01D4
 
 ; Advance the cell loop and row display pointer
 ADVANCE_MAZE_DRAW_CURSOR:
-        CALL $08DB
+        CALL DRAW_MAZE_TILE
         POP BC
         DEC C
-        JP NZ,$0867
+        JP NZ,CHOOSE_MAZE_CELL_TILE
         POP HL
         INC HL
         DEC B
-        JP NZ,$085C
+        JP NZ,DRAW_MAZE_CELL_COLUMN
         LD A,($2024)
         INC H
 
@@ -1866,15 +1866,15 @@ ADVANCE_MAZE_DRAW_CURSOR:
 ADVANCE_MAZE_FRAMEBUFFER_ROW:
         DEC H
         DEC A
-        JP P,$0898
+        JP P,ADVANCE_MAZE_FRAMEBUFFER_ROW
         LD BC,$0D5C
-        JP $08DB
+        JP DRAW_MAZE_TILE
 
 ; Draw one border tile while preserving the display pointer
 DRAW_MAZE_BORDER_TILE:
         PUSH HL
         LD BC,$0D54
-        CALL $08DB
+        CALL DRAW_MAZE_TILE
         POP HL
         RET
 
@@ -1894,21 +1894,21 @@ DRAW_MAZE_ROW_LOOP:
         INC DE
         LD BC,$0D3C
         AND $80
-        JP NZ,$08C5
+        JP NZ,DRAW_MAZE_ROW_ADVANCE
         LD BC,$01D4
 
 DRAW_MAZE_ROW_ADVANCE:
-        CALL $08DB
+        CALL DRAW_MAZE_TILE
         POP BC
         DEC C
-        JP NZ,$08B7
+        JP NZ,DRAW_MAZE_ROW_LOOP
         POP HL
         INC HL
         DEC B
-        JP NZ,$08B4
+        JP NZ,SETUP_MAZE_ROW_DRAW_LOOP
         LD A,($201F)
         AND A
-        JP Z,$05EE
+        JP Z,DRAW_END_SCREEN_MESSAGE
         RET
 
 DRAW_MAZE_TILE:
@@ -1925,7 +1925,7 @@ DRAW_GRAPHIC_ROW_LOOP:
         ADD HL,DE
         POP DE
         DEC E
-        JP NZ,$08DE
+        JP NZ,DRAW_GRAPHIC_ROW_LOOP
         POP DE
         RET
 
@@ -1942,24 +1942,24 @@ WAIT_FOR_NATIVE_STATE_COUNTER:
         PUSH BC
         INC DE
         CP D
-        JP NZ,$08F9
+        JP NZ,WAIT_FOR_NATIVE_STATE_COUNTER
         LD SP,$2400
         JP (HL)
 
 ; Sample the random state and accumulate a bounded value
 SAMPLE_RANDOM_RANGE:
         PUSH BC
-        CALL $0919
+        CALL READ_GAME_RANDOM_STATE
         LD C,A
         LD B,$00
 
 RANDOM_RANGE_ACCUMULATE:
         DEC E
-        JP Z,$0916
+        JP Z,RANDOM_RANGE_RETURN
         ADD A,C
-        JP NC,$090A
+        JP NC,RANDOM_RANGE_ACCUMULATE
         INC B
-        JP $090A
+        JP RANDOM_RANGE_ACCUMULATE
 
 RANDOM_RANGE_RETURN:
         LD A,B
@@ -1998,7 +1998,7 @@ MIX_RANDOM_STATE_BITS:
         RLA
         LD (HL),A
         DEC B
-        JP NZ,$0921
+        JP NZ,MIX_RANDOM_STATE_BITS
         POP BC
         POP HL
         RET
@@ -2017,12 +2017,12 @@ MAZE_CELL_ADDRESS:
 
 MAZE_ROW_OFFSET_MULTIPLY:
         DEC B
-        JP Z,$0959
+        JP Z,MAZE_CELL_ADDRESS_RETURN
         ADD HL,HL
         RLA
-        JP NC,$094C
+        JP NC,MAZE_ROW_OFFSET_MULTIPLY
         ADD HL,DE
-        JP $094C
+        JP MAZE_ROW_OFFSET_MULTIPLY
 ; Adds column C and maze RAM base $2066; restores BC and DE.
 
 MAZE_CELL_ADDRESS_RETURN:
@@ -2046,18 +2046,18 @@ TEST_SIGNED_STATE_AND_COPY_POINTER:
         LD D,(HL)
         RRCA
         PUSH AF
-        CALL C,$0999
+        CALL C,TRY_MAZE_STEP_UP
         POP AF
         RRCA
         PUSH AF
-        CALL C,$09B7
+        CALL C,TRY_MAZE_STEP_DOWN
         POP AF
         RRCA
         PUSH AF
-        CALL C,$09DB
+        CALL C,TRY_MAZE_STEP_RIGHT
         POP AF
         RRCA
-        CALL C,$09C9
+        CALL C,TRY_MAZE_STEP_LEFT
         POP HL
         LD A,E
         CP $0F
@@ -2065,7 +2065,7 @@ TEST_SIGNED_STATE_AND_COPY_POINTER:
         LD A,D
         LD BC,$00EF
         CP $60
-        JP NC,$0990
+        JP NC,COMBINE_MAZE_CELL_FLAGS
         LD B,$10
 
 ; Combine mask flags and store the resulting cell record
@@ -2082,15 +2082,15 @@ COMBINE_MAZE_CELL_FLAGS:
 
 ; Test a potential maze step and the current row bound
 TRY_MAZE_STEP_UP:
-        CALL $09EF
-        JP NZ,$09B5
-        CALL $0A1D
+        CALL CHECK_MAZE_ROW_STEP_LIMIT
+        JP NZ,MAZE_REJECT_LEFT_STEP
+        CALL DECODE_MAZE_ROW_FROM_COORDINATE
         DEC B
-        JP P,$09AE
+        JP P,TEST_MAZE_UP_CELL
         LD A,($2026)
         CP C
         RET NZ
-        JP $09B5
+        JP MAZE_REJECT_LEFT_STEP
 
 ; Read the selected neighbor cell's $40 wall flag
 TEST_MAZE_UP_CELL:
@@ -2105,9 +2105,9 @@ MAZE_REJECT_LEFT_STEP:
 
 ; Test the neighboring cell state before advancing down
 TRY_MAZE_STEP_DOWN:
-        CALL $09EF
-        JP NZ,$09C7
-        CALL $0A1D
+        CALL CHECK_MAZE_ROW_STEP_LIMIT
+        JP NZ,MAZE_REJECT_RIGHT_STEP
+        CALL DECODE_MAZE_ROW_FROM_COORDINATE
         CALL MAZE_CELL_ADDRESS
         LD A,(HL)
         AND $40
@@ -2119,9 +2119,9 @@ MAZE_REJECT_RIGHT_STEP:
 
 ; Test horizontal coordinate and neighboring wall state
 TRY_MAZE_STEP_LEFT:
-        CALL $0A00
-        JP NZ,$09D9
-        CALL $0A1D
+        CALL CHECK_MAZE_COLUMN_STEP_LIMIT
+        JP NZ,MAZE_REJECT_UP_STEP
+        CALL DECODE_MAZE_ROW_FROM_COORDINATE
         CALL MAZE_CELL_ADDRESS
         LD A,(HL)
         AND $20
@@ -2133,9 +2133,9 @@ MAZE_REJECT_UP_STEP:
 
 ; Check the coordinate and neighboring wall flag
 TRY_MAZE_STEP_RIGHT:
-        CALL $0A00
-        JP NZ,$09ED
-        CALL $0A1D
+        CALL CHECK_MAZE_COLUMN_STEP_LIMIT
+        JP NZ,MAZE_REJECT_DOWN_STEP
+        CALL DECODE_MAZE_ROW_FROM_COORDINATE
         DEC C
         RET M
         CALL MAZE_CELL_ADDRESS
@@ -2155,7 +2155,7 @@ CHECK_MAZE_ROW_STEP_LIMIT:
         POP BC
         RET NZ
         PUSH BC
-        CALL $0A11
+        CALL SET_MAZE_STEP_STATE
         LD A,E
         AND $07
         CP $07
@@ -2169,7 +2169,7 @@ CHECK_MAZE_COLUMN_STEP_LIMIT:
         POP BC
         RET NZ
         PUSH BC
-        CALL $0A11
+        CALL SET_MAZE_STEP_STATE
         LD A,D
         AND $07
         CP $03
@@ -2225,64 +2225,64 @@ UPDATE_MAZE_MOVEMENT:
         DEC HL
         LD C,(HL)
         RRA
-        JP C,$0A59
+        JP C,TRY_PATH_LEFT_UP_RIGHT
         RRA
-        JP C,$0A85
+        JP C,TRY_PATH_LEFT_RIGHT_DOWN
         RRA
-        JP C,$0A6F
+        JP C,TRY_PATH_DOWN_LEFT_UP
         RRA
-        JP C,$0A9B
+        JP C,TRY_PATH_DOWN_RIGHT_UP
         RET
 ; Tests neighboring maze cells by varying column C and row B; common movement path.
 
 TRY_PATH_LEFT_UP_RIGHT:
-        CALL $0ABE
-        JP C,$0AB1
+        CALL CHECK_MAZE_LEFT_BOUNDARY
+        JP C,STORE_MAZE_POSITION_AND_WALL_STATE
         INC C
-        CALL $0ACE
-        JP C,$0AB1
+        CALL CHECK_MAZE_UP_BOUNDARY
+        JP C,STORE_MAZE_POSITION_AND_WALL_STATE
         INC B
-        CALL $0ADD
-        JP C,$0AB1
+        CALL CHECK_MAZE_RIGHT_BOUNDARY
+        JP C,STORE_MAZE_POSITION_AND_WALL_STATE
         DEC C
         RET
 ; Tests another sequence of adjacent maze-cell boundaries.
 
 TRY_PATH_DOWN_LEFT_UP:
-        CALL $0AF0
-        JP C,$0AB1
+        CALL CHECK_MAZE_DOWN_BOUNDARY
+        JP C,STORE_MAZE_POSITION_AND_WALL_STATE
         DEC B
-        CALL $0ABE
-        JP C,$0AB1
+        CALL CHECK_MAZE_LEFT_BOUNDARY
+        JP C,STORE_MAZE_POSITION_AND_WALL_STATE
         INC C
-        CALL $0ACE
-        JP C,$0AB1
+        CALL CHECK_MAZE_UP_BOUNDARY
+        JP C,STORE_MAZE_POSITION_AND_WALL_STATE
         INC B
         RET
 ; Tests adjacent maze-cell boundaries, restoring column/row counters.
 
 TRY_PATH_LEFT_RIGHT_DOWN:
-        CALL $0ABE
-        JP C,$0AB1
+        CALL CHECK_MAZE_LEFT_BOUNDARY
+        JP C,STORE_MAZE_POSITION_AND_WALL_STATE
         INC C
-        CALL $0ADD
-        JP C,$0AB1
+        CALL CHECK_MAZE_RIGHT_BOUNDARY
+        JP C,STORE_MAZE_POSITION_AND_WALL_STATE
         DEC C
-        CALL $0AF0
-        JP C,$0AB1
+        CALL CHECK_MAZE_DOWN_BOUNDARY
+        JP C,STORE_MAZE_POSITION_AND_WALL_STATE
         DEC B
         RET
 ; Tests adjacent maze-cell boundaries, restoring column/row counters.
 
 TRY_PATH_DOWN_RIGHT_UP:
-        CALL $0AF0
-        JP C,$0AB1
+        CALL CHECK_MAZE_DOWN_BOUNDARY
+        JP C,STORE_MAZE_POSITION_AND_WALL_STATE
         DEC B
-        CALL $0ADD
-        JP C,$0AB1
+        CALL CHECK_MAZE_RIGHT_BOUNDARY
+        JP C,STORE_MAZE_POSITION_AND_WALL_STATE
         DEC C
-        CALL $0ACE
-        JP C,$0AB1
+        CALL CHECK_MAZE_UP_BOUNDARY
+        JP C,STORE_MAZE_POSITION_AND_WALL_STATE
         INC B
         RET
 ; Stores column C at $2042 and row B at $2043; updates high nibble of $2044 using D.
@@ -2354,7 +2354,7 @@ CHECK_MAZE_DOWN_BOUNDARY:
         RET Z
         LD A,$1A
         CP B
-        JP Z,$0B09
+        JP Z,CHECK_MAZE_DOWN_PLAYER_LIMIT
         LD DE,$0018
         ADD HL,DE
         LD A,(HL)
@@ -2371,13 +2371,13 @@ SET_MAZE_DOWN_BOUNDARY_EVENT:
 CHECK_MAZE_DOWN_PLAYER_LIMIT:
         LD A,($2024)
         CP C
-        JP Z,$0B05
+        JP Z,SET_MAZE_DOWN_BOUNDARY_EVENT
         XOR A
         RET
 
 CMD_02_SET_MODE_0E:
         LD A,$0E
-        JP $08EE
+        JP ENTER_NATIVE_PROGRAM_STATE
 
 CMD_04_WRITE_DISPLAY_DATA:
         DI
@@ -2411,7 +2411,7 @@ CMD_04_WRITE_DISPLAY_DATA:
         DEC DE
         LD C,$00
         CP $60
-        JP NC,$0B3F
+        JP NC,COPY_INLINE_GRAPHICS_BYTE
         LD C,$10
 
 COPY_INLINE_GRAPHICS_BYTE:
@@ -2430,7 +2430,7 @@ CMD_05_READ_PLAYER_INPUT:
         LD HL,$0006
         IN A,($01)
         AND $40
-        JP Z,$0B57
+        JP Z,STORE_PLAYER_INPUT_AND_COMPLEMENT
         LD L,$04
 
 ; Save the selected player input and its complement
@@ -2537,7 +2537,7 @@ READ_CONDITION_RECORD:
 
 CMD_0E_BRANCH_IF_ZERO:
         CALL READ_CONDITION_RECORD
-        JP NZ,$0BC0
+        JP NZ,BRANCH_IF_NONZERO_SET_SCRIPT
         EX DE,HL
 
 BRANCH_IF_NONZERO_SET_SCRIPT:
@@ -2548,7 +2548,7 @@ BRANCH_IF_NONZERO_SET_SCRIPT:
 
 CMD_0F_BRANCH_IF_NONZERO:
         CALL READ_CONDITION_RECORD
-        JP Z,$0BCB
+        JP Z,BRANCH_IF_ZERO_SET_SCRIPT
         EX DE,HL
 
 BRANCH_IF_ZERO_SET_SCRIPT:
@@ -2569,7 +2569,7 @@ CMD_10_PROCESS_INLINE_RECORD:
         INC HL
         LD ($2000),HL
         LD HL,$2036
-        CALL $058C
+        CALL NORMALIZE_DISPLAY_GLYPH_SPACE
         LD A,$02
         JP DRAW_TEXT_GLYPH_STREAM
         DB $00,$00
