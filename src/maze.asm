@@ -2646,56 +2646,114 @@ CMD_10_PROCESS_INLINE_RECORD:
 
 ; Game commands $01–$11 dispatch through these original native addresses.
 NATIVE_COMMAND_VECTORS:
-        DW CMD_01_RETURN_SCRIPT               ; $01
-        DW CMD_02_SET_MODE_0E                 ; $02
-        DW CMD_03_GAME_DISPLAY_UPDATE         ; $03
-        DW CMD_04_WRITE_DISPLAY_DATA          ; $04
-        DW CMD_05_READ_PLAYER_INPUT           ; $05
-        DW CMD_06_INIT_GAME_FIELDS            ; $06
-        DW CMD_07_DRAW_INLINE_RECORD          ; $07
-        DW CMD_08_SET_COUNTER_200C            ; $08
-        DW CMD_09_SET_COUNTER_AND_POINTER     ; $09
-        DW CMD_0A_GAME_CONTROL                ; $0A
-        DW CMD_0B_GOTO_SCRIPT                 ; $0B
-        DW CMD_0C_STORE_IMMEDIATE_BYTE        ; $0C
-        DW CMD_0D_DECREMENT_GAME_STATE        ; $0D
-        DW CMD_0E_BRANCH_IF_ZERO              ; $0E
-        DW CMD_0F_BRANCH_IF_NONZERO           ; $0F
-        DW CMD_10_PROCESS_INLINE_RECORD       ; $10
-        DW CMD_11_UPDATE_END_STATE            ; $11
-
+        DW CMD_01_RETURN_SCRIPT
+        DW CMD_02_SET_MODE_0E
+        DW CMD_03_GAME_DISPLAY_UPDATE
+        DW CMD_04_WRITE_DISPLAY_DATA
+        DW CMD_05_READ_PLAYER_INPUT
+        DW CMD_06_INIT_GAME_FIELDS
+        DW CMD_07_DRAW_INLINE_RECORD
+        DW CMD_08_SET_COUNTER_200C
+        DW CMD_09_SET_COUNTER_AND_POINTER
+        DW CMD_0A_GAME_CONTROL
+        DW CMD_0B_GOTO_SCRIPT
+        DW CMD_0C_STORE_IMMEDIATE_BYTE
+        DW CMD_0D_DECREMENT_GAME_STATE
+        DW CMD_0E_BRANCH_IF_ZERO
+        DW CMD_0F_BRANCH_IF_NONZERO
+        DW CMD_10_PROCESS_INLINE_RECORD
+        DW CMD_11_UPDATE_END_STATE
 ; Original game message stream, glyph codes $40-$5A, positioning controls
 ; below $30. The renderer at DRAW_TEXT_GLYPH_STREAM consumes these bytes.
 
-GAME_TEXT_STREAM:                ; $0C10-$0D32
-; Native glyph codes use ASCII A–Z, $40 for a displayed blank, and
-; control bytes below $30 for screen positioning. Quoted text emits
-; the same character bytes as the original ROM.
-        DB $40,$40,$40,$40,$40,$40,$40,$40,$40,$40,$40,$40  ; $0C10             
-        DB $40,$40,$40,$40,$40,"THE",$40,"AMA"  ; $0C1C      THE AMA
-        DB "ZINGMAZE",$40,"MAZ"  ; $0C28 ZINGMAZE MAZ
-        DB "ES",$40,"WONSELECT"  ; $0C34 ES WONSELECT
-        DB $19,"SINGLE",$40,"PLAY"  ; $0C40 ·SINGLE PLAY
-        DB "ER",$18,"OR",$16,"TWO",$40,"PL"  ; $0C4C ER·OR·TWO PL
-        DB "AYER",$18,$33,$40,"MAZES"  ; $0C58 AYER·· MAZES
-        DB $40,"PER",$40,"GAMEINS"  ; $0C64  PER GAMEINS
-        DB "ERT",$40,"COIN",$40,"QGE"  ; $0C70 ERT COIN QGE
-        DB $54,$40,"READYPLAY",$40  ; $0C7C T READYPLAY 
-        DB "AS",$40,"LONG",$40,"AS",$1B,$59  ; $0C88 AS LONG AS·Y
-        DB "OU",$40,"WINMAZES",$40  ; $0C94 OU WINMAZES 
-        DB "TO",$40,"PLAYSTUDY"  ; $0CA0 TO PLAYSTUDY
-        DB $40,"TIMEP",$11,$4C,$11,$41,$11,$59  ; $0CAC  TIMEP·L·A·Y
-        DB $11,$45,$11,"RO",$11,$4E,$11,"ET",$11,$57  ; $0CB8 ·E·RO·N·ET·W
-        DB $11,$4F,$11,$57,$11,$49,$11,$4E,$11,$4E,$11,$45  ; $0CC4 ·O·W·I·N·N·E
-        DB $11,$52,$40,$11,$40,$11,$40,$11,$40,$11,$40,$11  ; $0CD0 ·R · · · · ·
-        DB $40,$11,$40,$11,$40,$11,$40,$11,$40,"KEE"  ; $0CDC  · · · · KEE
-        DB $50,$40,"PLAYINGWAI"  ; $0CE8 P PLAYINGWAI
-        DB "TPLAYER",$40,"WINS"  ; $0CF4 TPLAYER WINS
-        DB "PLAYER",$40,"LOSES"  ; $0D00 PLAYER LOSES
-        DB "PRESS",$40,"BUTTON"  ; $0D0C PRESS BUTTON
-        DB $40,"TO",$1C,"START",$40,"GA"  ; $0D18  TO·START GA
-        DB "ME",$40,"OVEROVERA"  ; $0D24 ME OVEROVERA
-        DB "LL",$10  ; $0D30 LL·
+GAME_TEXT_STREAM:               ; $0C10-$0D32
+; Uppercase characters are native glyph codes. $40 is a displayed space;
+; values below $30 control text positioning on the framebuffer.
+
+; Initial display spacing.
+GAME_TEXT_LEADING_SPACES:
+        DB $40,$40,$40,$40,$40,$40,$40,$40
+        DB $40,$40,$40,$40,$40,$40,$40,$40,$40
+
+; Game title.
+GAME_TEXT_TITLE:
+        DB "THE",$40,"AMAZINGMAZE",$40
+
+; Maze-count heading.
+GAME_TEXT_MAZES_WON:
+        DB "MAZES",$40,"WON"
+
+; Player-selection heading and positioning code.
+GAME_TEXT_SELECT:
+        DB "SELECT",$19
+
+; Single-player selection.
+GAME_TEXT_SINGLE_PLAYER:
+        DB "SINGLE",$40,"PLAYER",$18,"OR",$16
+
+; Two-player selection.
+GAME_TEXT_TWO_PLAYER:
+        DB "TWO",$40,"PLAYER",$18
+
+; Maze-count setting.
+GAME_TEXT_MAZES_PER_GAME:
+        DB $33,$40,"MAZES",$40,"PER",$40,"GAME"
+
+; Coin instruction and following text code.
+GAME_TEXT_INSERT_COIN:
+        DB "INSERT",$40,"COIN",$40,"Q"
+
+; Ready message and continued-play instruction.
+GAME_TEXT_READY_AND_PLAY:
+        DB "GET",$40,"READYPLAY",$40,"AS",$40,"LONG",$40,"AS",$1B
+        DB "YOU",$40,"WIN"
+
+; Remaining-maze instruction.
+GAME_TEXT_MAZES_TO_PLAY:
+        DB "MAZES",$40,"TO",$40,"PLAY"
+
+; Study-time text.
+GAME_TEXT_STUDY_TIME:
+        DB "STUDY",$40,"TIME"
+
+; Player letters separated by original positioning codes.
+GAME_TEXT_PLAYER_LETTERS:
+        DB "P",$11,"L",$11,"A",$11,"Y",$11,"E",$11,"RO",$11,"N",$11
+        DB "E"
+
+; Winner letters and positioning codes.
+GAME_TEXT_WINNER_LETTERS:
+        DB "T",$11,"W",$11,"O",$11,"W",$11,"I",$11,"N",$11,"N",$11
+        DB "E",$11,"R",$40,$11,$40,$11,$40,$11,$40,$11,$40,$11,$40
+        DB $11,$40,$11,$40,$11,$40,$11,$40
+
+; Keep playing.
+GAME_TEXT_KEEP_PLAYING:
+        DB "KEEP",$40,"PLAYING"
+
+; Wait instruction.
+GAME_TEXT_WAIT:
+        DB "WAIT"
+
+; Player wins.
+GAME_TEXT_PLAYER_WINS:
+        DB "PLAYER",$40,"WINS"
+
+; Player loses.
+GAME_TEXT_PLAYER_LOSES:
+        DB "PLAYER",$40,"LOSES"
+
+; Start-button instruction.
+GAME_TEXT_PRESS_BUTTON:
+        DB "PRESS",$40,"BUTTON",$40,"TO",$1C,"START",$40
+
+; Game over.
+GAME_TEXT_GAME_OVER:
+        DB "GAME",$40,"OVER"
+
+; Overall text and final control byte.
+GAME_TEXT_OVERALL:
+        DB "OVERALL",$10
 
 ; Small game indicators and directional bitmaps, eight pixels per byte.
 ; # = lit pixel; space = clear pixel. Original byte order preserved.
