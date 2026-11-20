@@ -2764,162 +2764,413 @@ GAME_INDICATOR_BITMAPS:          ; $0D33-$0D63
 ; $07 draws from a five-byte inline record; $0B changes script address.
 ; DB encodes command numbers and byte operands, DW encodes little-endian
 ; word operands. The other records below retain their original ordering.
-INITIAL_GAME_SCRIPT:             ; $0D64, original interpreted game program
-; The script is a stream of one-byte commands and inline operands.
-; $00 invokes the separate event path; $01-$11 dispatch via the 17
-; native-handler vectors at $0BEE. Word operands use little-endian DW.
-;
-; Verified packet boundaries and operand widths through $0E1C:
-        DB $0C,$00               ; $0D64 [$202C] = $00
-        DW $202C                ; store target
-        DB $0C,$00               ; $0D68 [$2031] = $00
-        DW $2031                ; store target
-        DB $0C,$00               ; $0D6C [$2032] = $00
-        DW $2032                ; store target
-        DB $0C,$00               ; $0D70 [$202D] = $00
-        DW $202D                ; store target
+; Original interpreted game command stream: $0D64-$0FFF.
+; The native interpreter dispatches $01-$11 through the 17-entry table;
+; $00 enters the game event/scheduler service. Inline operands follow
+; each opcode, and DW preserves the original little-endian address fields.
+INITIAL_GAME_SCRIPT:
+        DB $0C,$00               ; $0D64 STORE_BYTE_TO_RAM
+        DW $202C             ; store destination
+        DB $0C,$00               ; $0D68 STORE_BYTE_TO_RAM
+        DW $2031             ; store destination
+        DB $0C,$00               ; $0D6C STORE_BYTE_TO_RAM
+        DW $2032             ; store destination
+        DB $0C,$00               ; $0D70 STORE_BYTE_TO_RAM
+        DW $202D             ; store destination
         DB $11                   ; $0D74 UPDATE_END_STATE
         DB $09,$0A               ; $0D75 SET_COUNTER_AND_POINTER
-        DW $0D94                ; saved pointer
-        DB $07,$10               ; $0D79 DRAW_INLINE_RECORD, count $10
-        DW $0C10,$2408     ; text/data and display addresses
-        DB $07,$09               ; $0D7F DRAW_INLINE_RECORD, count $09
-        DW $0D22,$240B     ; text/data and display addresses
-        DB $08,$1E               ; $0D85 SET_COUNTER_200C = $1E
-        DB $00                   ; $0D87 ZERO_COMMAND_EVENT
-        DB $07,$09               ; $0D88 DRAW_INLINE_RECORD, count $09
-        DW $0C10,$240B     ; text/data and display addresses
-        DB $08,$1E               ; $0D8E SET_COUNTER_200C = $1E
-        DB $00                   ; $0D90 ZERO_COMMAND_EVENT
+        DW $0D94             ; saved pointer
+        DB $07,$10               ; $0D79 DRAW_TEXT_RECORD (count $10)
+        DW $0C10,$2408      ; data source, display destination
+
+; Branch destination in the original command stream.
+SCRIPT_0D7F:
+        DB $07,$09               ; $0D7F DRAW_TEXT_RECORD (count $09)
+        DW $0D22,$240B      ; data source, display destination
+        DB $08,$1E               ; $0D85 SET_FRAME_COUNTER
+        DB $00                   ; $0D87 ZERO_EVENT
+
+        DB $07,$09               ; $0D88 DRAW_TEXT_RECORD (count $09)
+        DW $0C10,$240B      ; data source, display destination
+        DB $08,$1E               ; $0D8E SET_FRAME_COUNTER
+        DB $00                   ; $0D90 ZERO_EVENT
+
         DB $0B                   ; $0D91 GOTO_SCRIPT
-        DW $0D7F                ; script target
+        DW SCRIPT_0D7F             ; next script entry
+
         DB $02                   ; $0D94 SET_MODE_0E
         DB $09,$0A               ; $0D95 SET_COUNTER_AND_POINTER
-        DW $0DD5                ; saved pointer
-        DB $07,$03               ; $0D99 DRAW_INLINE_RECORD, count $03
-        DW $0C21,$2C0A     ; text/data and display addresses
-        DB $08,$0F               ; $0D9F SET_COUNTER_200C = $0F
-        DB $00                   ; $0DA1 ZERO_COMMAND_EVENT
-        DB $07,$0B               ; $0DA2 DRAW_INLINE_RECORD, count $0B
-        DW $0C21,$2C0A     ; text/data and display addresses
-        DB $08,$0F               ; $0DA8 SET_COUNTER_200C = $0F
-        DB $00                   ; $0DAA ZERO_COMMAND_EVENT
-        DB $07,$04               ; $0DAB DRAW_INLINE_RECORD, count $04
-        DW $0C2C,$320B     ; text/data and display addresses
-        DB $08,$0F               ; $0DB1 SET_COUNTER_200C = $0F
-        DB $00                   ; $0DB3 ZERO_COMMAND_EVENT
-        DB $07,$04               ; $0DB4 DRAW_INLINE_RECORD, count $04
-        DW $0D22,$3210     ; text/data and display addresses
-        DB $08,$3C               ; $0DBA SET_COUNTER_200C = $3C
-        DB $00                   ; $0DBC ZERO_COMMAND_EVENT
-        DB $07,$0B               ; $0DBD DRAW_INLINE_RECORD, count $0B
-        DW $0C10,$2C0A     ; text/data and display addresses
-        DB $07,$09               ; $0DC3 DRAW_INLINE_RECORD, count $09
-        DW $0C10,$320B     ; text/data and display addresses
-        DB $07,$0D               ; $0DC9 DRAW_INLINE_RECORD, count $0D
-        DW $0C6D,$3A09     ; text/data and display addresses
-        DB $08,$0F               ; $0DCF SET_COUNTER_200C = $0F
-        DB $00                   ; $0DD1 ZERO_COMMAND_EVENT
+        DW $0DD5             ; saved pointer
+
+; Branch destination in the original command stream.
+SCRIPT_0D99:
+        DB $07,$03               ; $0D99 DRAW_TEXT_RECORD (count $03)
+        DW $0C21,$2C0A      ; data source, display destination
+        DB $08,$0F               ; $0D9F SET_FRAME_COUNTER
+        DB $00                   ; $0DA1 ZERO_EVENT
+
+        DB $07,$0B               ; $0DA2 DRAW_TEXT_RECORD (count $0B)
+        DW $0C21,$2C0A      ; data source, display destination
+        DB $08,$0F               ; $0DA8 SET_FRAME_COUNTER
+        DB $00                   ; $0DAA ZERO_EVENT
+
+        DB $07,$04               ; $0DAB DRAW_TEXT_RECORD (count $04)
+        DW $0C2C,$320B      ; data source, display destination
+        DB $08,$0F               ; $0DB1 SET_FRAME_COUNTER
+        DB $00                   ; $0DB3 ZERO_EVENT
+
+        DB $07,$04               ; $0DB4 DRAW_TEXT_RECORD (count $04)
+        DW $0D22,$3210      ; data source, display destination
+        DB $08,$3C               ; $0DBA SET_FRAME_COUNTER
+        DB $00                   ; $0DBC ZERO_EVENT
+
+        DB $07,$0B               ; $0DBD DRAW_TEXT_RECORD (count $0B)
+        DW $0C10,$2C0A      ; data source, display destination
+        DB $07,$09               ; $0DC3 DRAW_TEXT_RECORD (count $09)
+        DW $0C10,$320B      ; data source, display destination
+        DB $07,$0D               ; $0DC9 DRAW_TEXT_RECORD (count $0D)
+        DW $0C6D,$3A09      ; data source, display destination
+        DB $08,$0F               ; $0DCF SET_FRAME_COUNTER
+        DB $00                   ; $0DD1 ZERO_EVENT
+
         DB $0B                   ; $0DD2 GOTO_SCRIPT
-        DW $0D99                ; script target
+        DW SCRIPT_0D99             ; next script entry
+
         DB $02                   ; $0DD5 SET_MODE_0E
-        DB $07,$0D               ; $0DD6 DRAW_INLINE_RECORD, count $0D
-        DW $0C6D,$3A09     ; text/data and display addresses
-        DB $07,$19               ; $0DDC DRAW_INLINE_RECORD, count $19
-        DW $0C41,$2A0A     ; text/data and display addresses
+        DB $07,$0D               ; $0DD6 DRAW_TEXT_RECORD (count $0D)
+        DW $0C6D,$3A09      ; data source, display destination
+        DB $07,$19               ; $0DDC DRAW_TEXT_RECORD (count $19)
+        DW $0C41,$2A0A      ; data source, display destination
         DB $09,$08               ; $0DE2 SET_COUNTER_AND_POINTER
-        DW $0DFB                ; saved pointer
-        DB $07,$10               ; $0DE6 DRAW_INLINE_RECORD, count $10
-        DW $0C5D,$3608     ; text/data and display addresses
-        DB $08,$1E               ; $0DEC SET_COUNTER_200C = $1E
-        DB $00                   ; $0DEE ZERO_COMMAND_EVENT
-        DB $07,$01               ; $0DEF DRAW_INLINE_RECORD, count $01
-        DW $0C10,$3608     ; text/data and display addresses
-        DB $08,$1E               ; $0DF5 SET_COUNTER_200C = $1E
-        DB $00                   ; $0DF7 ZERO_COMMAND_EVENT
+        DW $0DFB             ; saved pointer
+
+; Branch destination in the original command stream.
+SCRIPT_0DE6:
+        DB $07,$10               ; $0DE6 DRAW_TEXT_RECORD (count $10)
+        DW $0C5D,$3608      ; data source, display destination
+        DB $08,$1E               ; $0DEC SET_FRAME_COUNTER
+        DB $00                   ; $0DEE ZERO_EVENT
+
+        DB $07,$01               ; $0DEF DRAW_TEXT_RECORD (count $01)
+        DW $0C10,$3608      ; data source, display destination
+        DB $08,$1E               ; $0DF5 SET_FRAME_COUNTER
+        DB $00                   ; $0DF7 ZERO_EVENT
+
         DB $0B                   ; $0DF8 GOTO_SCRIPT
-        DW $0DE6                ; script target
+        DW SCRIPT_0DE6             ; next script entry
+
         DB $02                   ; $0DFB SET_MODE_0E
-        DB $07,$1F               ; $0DFC DRAW_INLINE_RECORD, count $1F
-        DW $0C3A,$2A0C     ; text/data and display addresses
+        DB $07,$1F               ; $0DFC DRAW_TEXT_RECORD (count $1F)
+        DW $0C3A,$2A0C      ; data source, display destination
         DB $09,$08               ; $0E02 SET_COUNTER_AND_POINTER
-        DW $0E1B                ; saved pointer
-        DB $07,$0D               ; $0E06 DRAW_INLINE_RECORD, count $0D
-        DW $0C6D,$3A09     ; text/data and display addresses
-        DB $08,$14               ; $0E0C SET_COUNTER_200C = $14
-        DB $00                   ; $0E0E ZERO_COMMAND_EVENT
-        DB $07,$01               ; $0E0F DRAW_INLINE_RECORD, count $01
-        DW $0C10,$3A15     ; text/data and display addresses
-        DB $08,$14               ; $0E15 SET_COUNTER_200C = $14
-        DB $00                   ; $0E17 ZERO_COMMAND_EVENT
+        DW $0E1B             ; saved pointer
+
+; Branch destination in the original command stream.
+SCRIPT_0E06:
+        DB $07,$0D               ; $0E06 DRAW_TEXT_RECORD (count $0D)
+        DW $0C6D,$3A09      ; data source, display destination
+        DB $08,$14               ; $0E0C SET_FRAME_COUNTER
+        DB $00                   ; $0E0E ZERO_EVENT
+
+        DB $07,$01               ; $0E0F DRAW_TEXT_RECORD (count $01)
+        DW $0C10,$3A15      ; data source, display destination
+        DB $08,$14               ; $0E15 SET_FRAME_COUNTER
+        DB $00                   ; $0E17 ZERO_EVENT
+
         DB $0B                   ; $0E18 GOTO_SCRIPT
-        DW $0E06                ; script target
+        DW SCRIPT_0E06             ; next script entry
+
         DB $02                   ; $0E1B SET_MODE_0E
         DB $06                   ; $0E1C INIT_GAME_FIELDS
+        DB $03                   ; $0E1D DRAW_MAZE_PLAYFIELD
+        DB $08,$F0               ; $0E1E SET_FRAME_COUNTER
+        DB $00                   ; $0E20 ZERO_EVENT
 
-; Original game program continued at $0E1D.
-; This point begins command $03, whose native inline-operand contract
-; is tracked in docs/8080-WORD-SEMANTICS.md. The remaining bytes are
-; retained in their exact original order pending packet-boundary audit.
-        DB $3,$8,$F0,$000,$000A,$00009,$000004,$0000094  ; $0E1D
-        DB $D,$0,$02,$007,$0019,$0000C,$00000D,$0000008  ; $0E25
-        DB $28,$7,$0D,$041,$000C,$00009,$000034,$0000007  ; $0E2D
-        DB $A,$52,$0C,$00B,$0038,$0000C,$000001,$0000034  ; $0E35
-        DB $20,$7,$01,$010,$000C,$00017,$000034,$0000007  ; $0E3D
-        DB $1,$79,$0C,$009,$0038,$00008,$00001E,$0000000  ; $0E45
-        DB $7,$1,$79,$00C,$0017,$00034,$000007,$0000001  ; $0E4D
-        DB $10,$C,$09,$038,$0008,$0001E,$000000,$000000B  ; $0E55
-        DB $3E,$E,$02,$00C,$0004,$00013,$000020,$0000007  ; $0E5D
-        DB $D,$41,$0C,$009,$002C,$00007,$000007,$000005D  ; $0E65
-        DB $C,$C,$30,$007,$0002,$0004F,$00000C,$000000F  ; $0E6D
-        DB $32,$7,$16,$083,$000C,$00008,$000034,$0000008  ; $0E75
-        DB $F0,$0,$0B,$0A6,$000E,$0000F,$00002E,$0000020  ; $0E7D
-        DB $8C,$E,$0F,$032,$0020,$00064,$00000D,$0000002  ; $0E85
-        DB $9,$2,$A6,$00E,$0007,$00009,$00007A,$000000C  ; $0E8D
-        DB $B,$32,$08,$01E,$0000,$00007,$000009,$0000010  ; $0E95
-        DB $C,$B,$32,$008,$000F,$00000,$00000B,$0000091  ; $0E9D
-        DB $E,$2,$06,$003,$0007,$0000A,$0000A7,$000000C  ; $0EA5
-        DB $A0,$3E,$0F,$02E,$0020,$000C1,$00000E,$0000007  ; $0EAD
-        DB $C,$E5,$0C,$008,$0024,$0000C,$000001,$000002E  ; $0EB5
-        DB $20,$B,$CC,$00E,$0007,$0000D,$00009A,$000000C  ; $0EBD
-        DB $8,$24,$10,$02E,$0020,$00016,$000024,$0000007  ; $0EC5
-        DB $9,$31,$0C,$0B1,$003E,$00010,$000031,$0000020  ; $0ECD
-        DB $BB,$3E,$04,$048,$0020,$00032,$00000D,$0000026  ; $0ED5
-        DB $20,$17,$C2,$004,$0059,$00020,$000037,$000000D  ; $0EDD
-        DB $24,$20,$E0,$0C0,$000C,$00006,$00000E,$0000020  ; $0EE5
-        DB $C,$6,$29,$020,$0000,$00009,$000004,$0000082  ; $0EED
-        DB $E,$7,$10,$010,$000C,$00008,$000024,$0000010  ; $0EF5
-        DB $31,$20,$BB,$03E,$000E,$0001A,$000020,$000001C  ; $0EFD
-        DB $F,$D,$07,$00B,$00F5,$0000C,$000008,$0000024  ; $0F05
-        DB $8,$1E,$00,$007,$000B,$00010,$00000C,$0000008  ; $0F0D
-        DB $24,$8,$1E,$000,$000B,$00007,$00000F,$0000007  ; $0F15
-        DB $C,$0,$0D,$008,$0024,$00008,$00001E,$0000000  ; $0F1D
-        DB $7,$C,$10,$00C,$0008,$00024,$000008,$000001E  ; $0F25
-        DB $0,$B,$1C,$00F,$0002,$00005,$000007,$000000A  ; $0F2D
-        DB $52,$C,$0B,$02C,$0007,$00007,$00005D,$000000C  ; $0F35
-        DB $C,$30,$08,$0B4,$0000,$0000B,$000064,$000000F  ; $0F3D
-        DB $E,$2E,$20,$064,$000D,$00002,$000009,$0000002  ; $0F45
-        DB $64,$F,$07,$009,$007A,$0000C,$00000B,$0000032  ; $0F4D
-        DB $8,$1E,$00,$007,$0009,$00010,$00000C,$000000B  ; $0F55
-        DB $32,$8,$1E,$000,$000B,$0004F,$00000F,$0000002  ; $0F5D
-        DB $6,$3,$07,$006,$00B1,$0000C,$000001,$0000026  ; $0F65
-        DB $7,$3,$C1,$00C,$00E1,$00034,$000010,$0000032  ; $0F6D
-        DB $20,$0,$3C,$007,$0006,$000B1,$00000C,$000001E  ; $0F75
-        DB $26,$7,$03,$0BC,$000C,$000FE,$000034,$0000010  ; $0F7D
-        DB $31,$20,$1D,$03C,$0007,$0000D,$00009A,$000000C  ; $0F85
-        DB $8,$24,$10,$02E,$0020,$00016,$000024,$0000007  ; $0F8D
-        DB $4,$AD,$0C,$0A3,$003E,$00007,$000007,$000002B  ; $0F95
-        DB $D,$B1,$3E,$004,$0048,$00020,$000037,$000000D  ; $0F9D
-        DB $26,$20,$17,$0C0,$0004,$00059,$000020,$0000032  ; $0FA5
-        DB $D,$24,$20,$0E0,$00C0,$0000C,$000001,$000000D  ; $0FAD
-        DB $20,$C,$01,$020,$0020,$00000,$000010,$000002E  ; $0FB5
-        DB $20,$16,$24,$009,$0004,$00045,$00000F,$000000E  ; $0FBD
-        DB $1B,$20,$E3,$00F,$0010,$00032,$000020,$0000000  ; $0FC5
-        DB $3C,$7,$0A,$0D2,$000C,$00001,$000026,$0000008  ; $0FCD
-        DB $1E,$0,$07,$006,$00C7,$0000C,$000001,$0000026  ; $0FD5
-        DB $8,$1E,$00,$00B,$00CE,$0000F,$000010,$0000031  ; $0FDD
-        DB $20,$1D,$3C,$007,$000A,$000D2,$00000C,$000001E  ; $0FE5
-        DB $26,$8,$1E,$000,$0007,$00006,$0000C7,$000000C  ; $0FED
-        DB $1E,$26,$08,$01E,$0000,$0000B,$0000E8,$000000F  ; $0FF5
-        DB $0,$0,$00  ; $0FFD
+        DB $0A                   ; $0E21 DRAW_MAZE_CELLS
+        DB $09,$04               ; $0E22 SET_COUNTER_AND_POINTER
+        DW $0D94             ; saved pointer
+        DB $00                   ; $0E26 ZERO_EVENT
+
+        DB $02                   ; $0E27 SET_MODE_0E
+        DB $07,$19               ; $0E28 DRAW_TEXT_RECORD (count $19)
+        DW $0D0C,$2808      ; data source, display destination
+        DB $07,$0D               ; $0E2E DRAW_TEXT_RECORD (count $0D)
+        DW $0C41,$3409      ; data source, display destination
+        DB $07,$0A               ; $0E34 DRAW_TEXT_RECORD (count $0A)
+        DW $0C52,$380B      ; data source, display destination
+        DB $0C,$01               ; $0E3A STORE_BYTE_TO_RAM
+        DW $2034             ; store destination
+
+; Branch destination in the original command stream.
+SCRIPT_0E3E:
+        DB $07,$01               ; $0E3E DRAW_TEXT_RECORD (count $01)
+        DW $0C10,$3417      ; data source, display destination
+        DB $07,$01               ; $0E44 DRAW_TEXT_RECORD (count $01)
+        DW $0C79,$3809      ; data source, display destination
+        DB $08,$1E               ; $0E4A SET_FRAME_COUNTER
+        DB $00                   ; $0E4C ZERO_EVENT
+
+        DB $07,$01               ; $0E4D DRAW_TEXT_RECORD (count $01)
+        DW $0C79,$3417      ; data source, display destination
+        DB $07,$01               ; $0E53 DRAW_TEXT_RECORD (count $01)
+        DW $0C10,$3809      ; data source, display destination
+        DB $08,$1E               ; $0E59 SET_FRAME_COUNTER
+        DB $00                   ; $0E5B ZERO_EVENT
+
+        DB $0B                   ; $0E5C GOTO_SCRIPT
+        DW SCRIPT_0E3E             ; next script entry
+
+        DB $02                   ; $0E5F SET_MODE_0E
+        DB $0C,$04               ; $0E60 STORE_BYTE_TO_RAM
+        DW $2013             ; store destination
+        DB $07,$0D               ; $0E64 DRAW_TEXT_RECORD (count $0D)
+        DW $0C41,$2C09      ; data source, display destination
+        DB $07,$07               ; $0E6A DRAW_TEXT_RECORD (count $07)
+        DW $0C5D,$300C      ; data source, display destination
+        DB $07,$02               ; $0E70 DRAW_TEXT_RECORD (count $02)
+        DW $0C4F,$320F      ; data source, display destination
+        DB $07,$16               ; $0E76 DRAW_TEXT_RECORD (count $16)
+        DW $0C83,$3408      ; data source, display destination
+        DB $08,$F0               ; $0E7C SET_FRAME_COUNTER
+        DB $00                   ; $0E7E ZERO_EVENT
+
+        DB $0B                   ; $0E7F GOTO_SCRIPT
+        DW SCRIPT_0EA6             ; next script entry
+
+        DB $0F                   ; $0E82 BRANCH_IF_NONZERO
+        DW $202E,SCRIPT_0E8C      ; state test, branch destination
+        DB $0F                   ; $0E87 BRANCH_IF_NONZERO
+        DW $2032,INITIAL_GAME_SCRIPT      ; state test, branch destination
+
+; Branch destination in the original command stream.
+SCRIPT_0E8C:
+        DB $02                   ; $0E8C SET_MODE_0E
+        DB $09,$02               ; $0E8D SET_COUNTER_AND_POINTER
+        DW $0EA6             ; saved pointer
+
+; Branch destination in the original command stream.
+SCRIPT_0E91:
+        DB $07,$09               ; $0E91 DRAW_TEXT_RECORD (count $09)
+        DW $0C7A,$320B      ; data source, display destination
+        DB $08,$1E               ; $0E97 SET_FRAME_COUNTER
+        DB $00                   ; $0E99 ZERO_EVENT
+
+        DB $07,$09               ; $0E9A DRAW_TEXT_RECORD (count $09)
+        DW $0C10,$320B      ; data source, display destination
+        DB $08,$0F               ; $0EA0 SET_FRAME_COUNTER
+        DB $00                   ; $0EA2 ZERO_EVENT
+
+        DB $0B                   ; $0EA3 GOTO_SCRIPT
+        DW SCRIPT_0E91             ; next script entry
+
+
+; Branch destination in the original command stream.
+SCRIPT_0EA6:
+        DB $02                   ; $0EA6 SET_MODE_0E
+        DB $06                   ; $0EA7 INIT_GAME_FIELDS
+        DB $03                   ; $0EA8 DRAW_MAZE_PLAYFIELD
+        DB $07,$0A               ; $0EA9 DRAW_TEXT_RECORD (count $0A)
+        DW $0CA7,$3EA0      ; data source, display destination
+        DB $0F                   ; $0EAF BRANCH_IF_NONZERO
+        DW $202E,SCRIPT_0EC1      ; state test, branch destination
+        DB $07,$0C               ; $0EB4 DRAW_TEXT_RECORD (count $0C)
+        DW $0CE5,$2408      ; data source, display destination
+        DB $0C,$01               ; $0EBA STORE_BYTE_TO_RAM
+        DW $202E             ; store destination
+        DB $0B                   ; $0EBE GOTO_SCRIPT
+        DW SCRIPT_0ECC             ; next script entry
+
+
+; Branch destination in the original command stream.
+SCRIPT_0EC1:
+        DB $07,$0D               ; $0EC1 DRAW_TEXT_RECORD (count $0D)
+        DW $0C9A,$2408      ; data source, display destination
+        DB $10                   ; $0EC7 PROCESS_DISPLAY_RECORD
+        DW $202E,$2416      ; native inline record
+
+; Branch destination in the original command stream.
+SCRIPT_0ECC:
+        DB $07,$09               ; $0ECC DRAW_TEXT_RECORD (count $09)
+        DW $0C31,$3EB1      ; data source, display destination
+        DB $10                   ; $0ED2 PROCESS_DISPLAY_RECORD
+        DW $2031,$3EBB      ; native inline record
+        DB $04                   ; $0ED7 WRITE_DISPLAY_RECORD
+        DW $2048,$0D32      ; display destination, data word
+        DW $2026             ; source pointer
+        DB $17,$C2               ; inline display bytes
+        DB $04                   ; $0EE0 WRITE_DISPLAY_RECORD
+        DW $2059,$0D37      ; display destination, data word
+        DW $2024             ; source pointer
+        DB $E0,$C0               ; inline display bytes
+        DB $0C,$06               ; $0EE9 STORE_BYTE_TO_RAM
+        DW $200E             ; store destination
+        DB $0C,$06               ; $0EED STORE_BYTE_TO_RAM
+        DW $2029             ; store destination
+        DB $00                   ; $0EF1 ZERO_EVENT
+
+        DB $09,$04               ; $0EF2 SET_COUNTER_AND_POINTER
+        DW $0E82             ; saved pointer
+        DB $07,$10               ; $0EF6 DRAW_TEXT_RECORD (count $10)
+        DW $0C10,$2408      ; data source, display destination
+        DB $10                   ; $0EFC PROCESS_DISPLAY_RECORD
+        DW $2031,$3EBB      ; native inline record
+        DB $0E                   ; $0F01 BRANCH_IF_ZERO
+        DW $201A,SCRIPT_0F1C      ; state test, branch destination
+        DB $0D                   ; $0F06 DECREMENT_GAME_STATE
+
+; Branch destination in the original command stream.
+SCRIPT_0F07:
+        DB $07,$0B               ; $0F07 DRAW_TEXT_RECORD (count $0B)
+        DW $0CF5,$2408      ; data source, display destination
+        DB $08,$1E               ; $0F0D SET_FRAME_COUNTER
+        DB $00                   ; $0F0F ZERO_EVENT
+
+        DB $07,$0B               ; $0F10 DRAW_TEXT_RECORD (count $0B)
+        DW $0C10,$2408      ; data source, display destination
+        DB $08,$1E               ; $0F16 SET_FRAME_COUNTER
+        DB $00                   ; $0F18 ZERO_EVENT
+
+        DB $0B                   ; $0F19 GOTO_SCRIPT
+        DW SCRIPT_0F07             ; next script entry
+
+
+; Branch destination in the original command stream.
+SCRIPT_0F1C:
+        DB $07,$0C               ; $0F1C DRAW_TEXT_RECORD (count $0C)
+        DW $0D00,$2408      ; data source, display destination
+        DB $08,$1E               ; $0F22 SET_FRAME_COUNTER
+        DB $00                   ; $0F24 ZERO_EVENT
+
+        DB $07,$0C               ; $0F25 DRAW_TEXT_RECORD (count $0C)
+        DW $0C10,$2408      ; data source, display destination
+        DB $08,$1E               ; $0F2B SET_FRAME_COUNTER
+        DB $00                   ; $0F2D ZERO_EVENT
+
+        DB $0B                   ; $0F2E GOTO_SCRIPT
+        DW SCRIPT_0F1C             ; next script entry
+
+        DB $02                   ; $0F31 SET_MODE_0E
+        DB $05                   ; $0F32 READ_PLAYER_INPUT
+        DB $07,$0A               ; $0F33 DRAW_TEXT_RECORD (count $0A)
+        DW $0C52,$2C0B      ; data source, display destination
+        DB $07,$07               ; $0F39 DRAW_TEXT_RECORD (count $07)
+        DW $0C5D,$300C      ; data source, display destination
+        DB $08,$B4               ; $0F3F SET_FRAME_COUNTER
+        DB $00                   ; $0F41 ZERO_EVENT
+
+        DB $0B                   ; $0F42 GOTO_SCRIPT
+        DW SCRIPT_0F64             ; next script entry
+
+        DB $0E                   ; $0F45 BRANCH_IF_ZERO
+        DW $202E,INITIAL_GAME_SCRIPT      ; state test, branch destination
+        DB $02                   ; $0F4A SET_MODE_0E
+        DB $09,$02               ; $0F4B SET_COUNTER_AND_POINTER
+        DW $0F64             ; saved pointer
+
+; Branch destination in the original command stream.
+SCRIPT_0F4F:
+        DB $07,$09               ; $0F4F DRAW_TEXT_RECORD (count $09)
+        DW $0C7A,$320B      ; data source, display destination
+        DB $08,$1E               ; $0F55 SET_FRAME_COUNTER
+        DB $00                   ; $0F57 ZERO_EVENT
+
+        DB $07,$09               ; $0F58 DRAW_TEXT_RECORD (count $09)
+        DW $0C10,$320B      ; data source, display destination
+        DB $08,$1E               ; $0F5E SET_FRAME_COUNTER
+        DB $00                   ; $0F60 ZERO_EVENT
+
+        DB $0B                   ; $0F61 GOTO_SCRIPT
+        DW SCRIPT_0F4F             ; next script entry
+
+
+; Branch destination in the original command stream.
+SCRIPT_0F64:
+        DB $02                   ; $0F64 SET_MODE_0E
+        DB $06                   ; $0F65 INIT_GAME_FIELDS
+        DB $03                   ; $0F66 DRAW_MAZE_PLAYFIELD
+        DB $07,$06               ; $0F67 DRAW_TEXT_RECORD (count $06)
+        DW $0CB1,$2601      ; data source, display destination
+        DB $07,$03               ; $0F6D DRAW_TEXT_RECORD (count $03)
+        DW $0CC1,$34E1      ; data source, display destination
+        DB $10                   ; $0F73 PROCESS_DISPLAY_RECORD
+        DW $2032,$3C00      ; native inline record
+        DB $07,$06               ; $0F78 DRAW_TEXT_RECORD (count $06)
+        DW $0CB1,$261E      ; data source, display destination
+        DB $07,$03               ; $0F7E DRAW_TEXT_RECORD (count $03)
+        DW $0CBC,$34FE      ; data source, display destination
+        DB $10                   ; $0F84 PROCESS_DISPLAY_RECORD
+        DW $2031,$3C1D      ; native inline record
+        DB $07,$0D               ; $0F89 DRAW_TEXT_RECORD (count $0D)
+        DW $0C9A,$2408      ; data source, display destination
+        DB $10                   ; $0F8F PROCESS_DISPLAY_RECORD
+        DW $202E,$2416      ; native inline record
+        DB $07,$04               ; $0F94 DRAW_TEXT_RECORD (count $04)
+        DW $0CAD,$3EA3      ; data source, display destination
+        DB $07,$07               ; $0F9A DRAW_TEXT_RECORD (count $07)
+        DW $0D2B,$3EB1      ; data source, display destination
+        DB $04                   ; $0FA0 WRITE_DISPLAY_RECORD
+        DW $2048,$0D37      ; display destination, data word
+        DW $2026             ; source pointer
+        DB $17,$C0               ; inline display bytes
+        DB $04                   ; $0FA9 WRITE_DISPLAY_RECORD
+        DW $2059,$0D32      ; display destination, data word
+        DW $2024             ; source pointer
+        DB $E0,$C0               ; inline display bytes
+        DB $0C,$01               ; $0FB2 STORE_BYTE_TO_RAM
+        DW $200D             ; store destination
+        DB $0C,$01               ; $0FB6 STORE_BYTE_TO_RAM
+        DW $2020             ; store destination
+        DB $00                   ; $0FBA ZERO_EVENT
+
+        DB $10                   ; $0FBB PROCESS_DISPLAY_RECORD
+        DW $202E,$2416      ; native inline record
+        DB $09,$04               ; $0FC0 SET_COUNTER_AND_POINTER
+        DW $0F45             ; saved pointer
+        DB $0E                   ; $0FC4 BRANCH_IF_ZERO
+        DW $201B,SCRIPT_0FE3      ; state test, branch destination
+        DB $10                   ; $0FC9 PROCESS_DISPLAY_RECORD
+        DW $2032,$3C00      ; native inline record
+
+; Branch destination in the original command stream.
+SCRIPT_0FCE:
+        DB $07,$0A               ; $0FCE DRAW_TEXT_RECORD (count $0A)
+        DW $0CD2,$2601      ; data source, display destination
+        DB $08,$1E               ; $0FD4 SET_FRAME_COUNTER
+        DB $00                   ; $0FD6 ZERO_EVENT
+
+        DB $07,$06               ; $0FD7 DRAW_TEXT_RECORD (count $06)
+        DW $0CC7,$2601      ; data source, display destination
+        DB $08,$1E               ; $0FDD SET_FRAME_COUNTER
+        DB $00                   ; $0FDF ZERO_EVENT
+
+        DB $0B                   ; $0FE0 GOTO_SCRIPT
+        DW SCRIPT_0FCE             ; next script entry
+
+
+; Branch destination in the original command stream.
+SCRIPT_0FE3:
+        DB $10                   ; $0FE3 PROCESS_DISPLAY_RECORD
+        DW $2031,$3C1D      ; native inline record
+
+; Branch destination in the original command stream.
+SCRIPT_0FE8:
+        DB $07,$0A               ; $0FE8 DRAW_TEXT_RECORD (count $0A)
+        DW $0CD2,$261E      ; data source, display destination
+        DB $08,$1E               ; $0FEE SET_FRAME_COUNTER
+        DB $00                   ; $0FF0 ZERO_EVENT
+
+        DB $07,$06               ; $0FF1 DRAW_TEXT_RECORD (count $06)
+        DW $0CC7,$261E      ; data source, display destination
+        DB $08,$1E               ; $0FF7 SET_FRAME_COUNTER
+        DB $00                   ; $0FF9 ZERO_EVENT
+
+        DB $0B                   ; $0FFA GOTO_SCRIPT
+        DW SCRIPT_0FE8             ; next script entry
+
+        DB $00                   ; $0FFD ZERO_EVENT
+
+        DB $00                   ; $0FFE ZERO_EVENT
+
+        DB $00                   ; $0FFF ZERO_EVENT
+
         END
