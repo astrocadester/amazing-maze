@@ -2,9 +2,9 @@
 
 ## RE-001 — Complete original Intel 8080 source
 
-The source tree does not yet contain `src/amazing-maze.asm`. The original archive and existing runtime scan identify the ROM boundaries and 17-entry interpreter table, but completing the disassembly requires individual code/data classification and handler analysis. The new build scripts deliberately fail at this stage.
+The November 8 RE branch already contained a substantial 54 KB `src/maze.asm` source reconstruction, now carried forward. Native assembler and SHA-1 verification have not been run. Further code/data classification, labels and command-contract auditing remain.
 
-**Resolution:** Reconstruct and verify original instructions and data, then build with zmac v1.3.
+**Resolution:** Build the existing source using zmac v1.3, correct any actual assembler/ROM mismatches without changing original behavior, and continue semantic refinement.
 
 ## RE-002 — Interpreted command semantics
 
