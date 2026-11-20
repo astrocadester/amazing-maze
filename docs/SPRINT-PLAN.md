@@ -18,12 +18,18 @@ Produce a fully annotated original Intel 8080 source reconstruction, assemble it
 - [x] Add Linux/Windows zmac v1.3 build scripts without Python.
 - [x] Create memory map and README with Amazing Maze-specific contents.
 - [x] Carry forward `src/maze.asm` (native instruction reconstruction, glyphs, vectors and scripts) from the November 8 hard-RE branch.
-- [ ] Complete semantic cleanup of existing `src/maze.asm` and resolve remaining generic labels and unclassified regions.
+- [x] Resolve all `NATIVE_xxxx` label definitions and replace 217 numeric JP/CALL operands with verified source symbols.
+- [x] Convert 37 font glyphs and 49 indicator bytes to inline bitmap rows; render message glyph data using quoted character runs and original control bytes.
+- [x] Decode 190 command packets spanning the original 668-byte script, label 18 original script branch destinations and represent typed inline operands with DB/DW.
+- [ ] Finish instruction-level review of gameplay effects, graphics ownership, I/O and CPU register contracts.
 - [ ] Audit interrupt paths and all 17 original command handlers; establish inline operand formats and script boundaries.
-- [ ] Replace unclassified data ranges with verified graphics, strings, pointer tables or control data and add appropriate inline comments.
-- [ ] Run native zmac v1.3 assembly and require exact SHA-1 matches for both ROM devices.
+- [x] Reformat documented font, indicator graphics, encoded text and the 17 native handler pointers; retain original command/data order.
+- [ ] Review other unclassified native tables, remaining raw DB spans and individual routine contracts.
+- [x] Native zmac v1.3 assembly and exact SHA-1 matches on previous source-style commit `10d4e72`, verified by the user.
+- [ ] Rerun native assembly and both ROM SHA-1 checks after the latest inline graphics, text, branch-label and command-script edits.
 - [ ] Run `mame maze -rompath roms -window -skip_gameinfo` and record actual result.
-- [ ] Review generated ASM headers, routine separation, blank lines, comments and graphics formatting against Checkmate.
+- [x] Review Checkmate's source patterns for headers, routine comments, inline bitmaps, quoted text, pointer vectors and script data; apply them to Amazing Maze.
+- [ ] Review final formatting and native-assembly verification after the latest edits.
 - [ ] Confirm Linux and Windows build scripts and mark the PR ready only after verification.
 
 ## Acceptance
