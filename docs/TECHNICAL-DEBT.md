@@ -52,3 +52,9 @@ This verifies byte-exact output after the source-style pass. MAME execution and 
 - Encoded text uses quoted ASCII runs for original uppercase letter bytes; `$40` blanks and native cursor control bytes remain numeric.
 - The full 668-byte command program is expressed as 190 typed `DB`/`DW` records. The command $03/$0A no-operand paths and $04 eight-byte packet were audited against native handlers. Eighteen script branch destinations are aligned to named packet entries.
 - These formatting and operand transformations passed **independent source-byte and address-layout audits**. Native assembler verification of this latest version is pending; the prior commit `10d4e72` is byte-exact according to the user's build output. MAME and Windows build checks remain separate verification tasks.
+
+## Source readability pass — 2026-11-20
+
+The original 291-byte text stream is now displayed as 20 separate, descriptive, labeled message/control sequences with quoted uppercase strings and preserved numeric screen-control codes. The original 17 native vectors no longer repeat their command numbers in comments. All 17 numeric `SCRIPT_xxxx` branch labels now describe observable command sequences, and 190 game commands have preceding comments with consistent record spacing. Duplicate stream documentation was consolidated.
+
+**Independent source comparison:** compared the latest 4,096-byte source layout against commit `b9b148c` (previous user-verified byte-exact build); both contain 2,323 executable/data statements and 2,980 canonical opcode/data entries. All 2,980 normalized entries match, with no differences. Original font, vector, text, bitmap and script addresses are unchanged. Native zmac and ROM SHA-1 verification are still required for the latest edits; MAME execution remains separately pending.
