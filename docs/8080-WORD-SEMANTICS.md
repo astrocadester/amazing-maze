@@ -10,14 +10,14 @@ Decoded directly from the original two 2,048-byte 8080 ROM devices, `maze.h` at 
 | --- | --- | --- | --- | --- | --- |
 | `01` | `$04BD` | RETURN_FROM_SCRIPT_HANDLER | 0 | `RET` at entry; actual stack continuation requires trace | H (opcode only) |
 | `02` | `$0B12` | SET_MODE_0E | 0 | `MVI A,$0E; JMP $08EE` | H (native entry), M (purpose) |
-| `03` | `$0835` | UPDATE_DISPLAY_OR_GAME_STATE | Unknown | Complex native work at `$0835`; accesses `$3E02` and `$2026`; requires full graph | L |
-| `04` | `$0B17` | WRITE_COMPUTED_DISPLAY_DATA | Unknown | Disables interrupts, consumes pointer/word fields from script, performs memory writes, updates `$2000` | M |
+| `03` | `$0835` | UPDATE_DISPLAY_OR_GAME_STATE | 0 | Draws the maze playfield from state at `$2026` and video address `$3E02`; this handler reads no script operands | H (width), M (display semantics) |
+| `04` | `$0B17` | WRITE_COMPUTED_DISPLAY_DATA | 8 | Reads destination16, data16, source16, then two display bytes; updates `$2000` after eight operand bytes | H (width), M (display semantics) |
 | `05` | `$0B4B` | POLL_INPUT_BIT_40 | 0 | `IN $01; ANI $40`, selects a working value, stores `$202A`, complements/stores `$202C` | H (native state), M (game meaning) |
 | `06` | `$0419` | INITIALIZE_GAME_FIELDS | 0 | Calls `$043D`; clears `$2015–$2021` (13 bytes), copies selected bytes into adjacent state, updates `$2040` region | H (partial effects), M (meaning) |
 | `07` | `$0B90` | DRAW_OR_COPY_INLINE_RECORD | 5 | Reads a byte and two pointer16 operands, saves cursor at `$2000`, then jumps to native routine `$0129` | M |
 | `08` | `$0B5F` | SET_RAM_200C | 1 | Reads inline byte, stores at `$200C`, advances `$2000` | H |
 | `09` | `$0B69` | SET_RAM_200B_AND_2008 | 3 | Reads byte into `$200B`, then address16 into `$2008`, advances cursor | H |
-| `0A` | `$08AC` | GAME_CONTROL_NATIVE | Unknown | Native entry located; full effects not yet traced | L |
+| `0A` | `$08AC` | GAME_CONTROL_NATIVE | 0 | Draws the maze cell array from `$2066` into screen memory; reads no inline script operands | H (width), M (full game semantics) |
 | `0B` | `$0B7B` | GOTO_SCRIPT | 2 | Reads little-endian target16 from inline stream and stores at `$2000` | H |
 | `0C` | `$0B84` | STORE_INLINE_BYTE_AT_ADDRESS | 3 | Reads byte8 and target address16; `STAX D` writes the byte, advances `$2000` | H |
 | `0D` | `$0BA3` | CONDITIONAL_DECREMENT_2013 | 0 | `LXI D,$2013; LDAX D; DCR A; CPI 1; RZ; STAX D; RET`. Does not store when original byte is 2 | H (native effect) |
@@ -156,4 +156,10 @@ The earlier off-repository in-memory ZIP/DEFLATE analysis failed in a temporary 
 
 ## Work still required
 
-Native handler details above are a second **structural hard-RE pass**, not a finished emulator trace, not a reconstructed complete `src/maze.asm`, and not a byte-exact assembled ROM. Additional decoding must resolve command `03/04/07/0A/10/11` graphics/service behavior, remaining packet lengths and the screen effects of the native drawing helpers, then assemble and compare both devices with bundled zmac. No replacement gameplay implementation or synthetic interpreter is authorized.
+Native handler details above are a second **structural hard-RE pass**, not a finished emulator trace, not a reconstructed complete `src/maze.asm`, and not a byte-exact assembled ROM. The command stream is represented as 190 consecutive original records in `src/maze.asm`. Source-level auditing of the rendering, sound, and gameplay effects of commands `03/04/07/0A/10/11` continues independently of the established packet widths. No replacement gameplay implementation or synthetic interpreter is authorized.
+
+## Complete command stream structural audit — November 20, 2026
+
+The original game program spans `$0D64–$0FFF`, **668 bytes**. The handler instruction flows establish widths for all command codes encountered in that stream. Command `$03` invokes the native maze-playfield renderer and consumes zero inline bytes. Command `$0A` invokes the native maze-cell rendering routine and also consumes zero. Command `$04` consumes eight inline bytes: a 16-bit destination, a 16-bit data word, a 16-bit source pointer, and two display bytes. The handler explicitly advances the script cursor over these fields and stores its new value to `$2000`.
+
+The resulting stream has **190 consecutive command records**, with **18 unique script destinations** reached by `GOTO_SCRIPT` and conditional branches. Every jump destination aligns with a command-record boundary. The assembly expresses each command and its typed inline operands using `DB` and `DW`, with labels for the script branches. Byte-level structural reconstruction verified all 668 source bytes against the preceding data representation. Native assembly and both device SHA-1 hashes must be rerun after this source editing pass.
