@@ -27,3 +27,9 @@ The Checkmate-style build harness is committed. No byte-identical zmac build of 
 ## Build policy
 
 No Python, secondary compiler, surrogate gameplay code or generated stand-in ROM. Keep `roms/original/maze.zip` unchanged. Document every test as executed, pending, or failed.
+
+## Source-style review — November 20, 2026
+
+The previous byte-exact build was reported by the user on the source carried forward from the November 8 hard-RE branch. The follow-on source-style commits revise headers, routine spacing, 56 local/native labels, and long byte-data presentation without changing documented opcodes or DB operands. **Re-run the native build and ROM hashes after the formatting and symbol changes.**
+
+Source audit remaining: 54 generic `NATIVE_xxxx` labels require code-flow review and functional names. Further clean up numeric branch targets, data classification and game-script semantic structure using actual instruction behavior. The final Checkmate-style source gate requires meaningful per-routine comments, independently identifiable tables and well-spaced, correctly classified data.
