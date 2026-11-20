@@ -2694,108 +2694,162 @@ GAME_INDICATOR_BITMAPS:          ; $0D33-$0D63
 ; $07 draws from a five-byte inline record; $0B changes script address.
 ; DB encodes command numbers and byte operands, DW encodes little-endian
 ; word operands. The other records below retain their original ordering.
-INITIAL_GAME_SCRIPT:
+INITIAL_GAME_SCRIPT:             ; $0D64, original interpreted game program
+; The script is a stream of one-byte commands and inline operands.
+; $00 invokes the separate event path; $01-$11 dispatch via the 17
+; native-handler vectors at $0BEE. Word operands use little-endian DW.
+;
+; Verified packet boundaries and operand widths through $0E1C:
+        DB $0C,$00               ; $0D64 [$202C] = $00
+        DW $202C                ; store target
+        DB $0C,$00               ; $0D68 [$2031] = $00
+        DW $2031                ; store target
+        DB $0C,$00               ; $0D6C [$2032] = $00
+        DW $2032                ; store target
+        DB $0C,$00               ; $0D70 [$202D] = $00
+        DW $202D                ; store target
+        DB $11                   ; $0D74 UPDATE_END_STATE
+        DB $09,$0A               ; $0D75 SET_COUNTER_AND_POINTER
+        DW $0D94                ; saved pointer
+        DB $07,$10               ; $0D79 DRAW_INLINE_RECORD, count $10
+        DW $0C10,$2408     ; text/data and display addresses
+        DB $07,$09               ; $0D7F DRAW_INLINE_RECORD, count $09
+        DW $0D22,$240B     ; text/data and display addresses
+        DB $08,$1E               ; $0D85 SET_COUNTER_200C = $1E
+        DB $00                   ; $0D87 ZERO_COMMAND_EVENT
+        DB $07,$09               ; $0D88 DRAW_INLINE_RECORD, count $09
+        DW $0C10,$240B     ; text/data and display addresses
+        DB $08,$1E               ; $0D8E SET_COUNTER_200C = $1E
+        DB $00                   ; $0D90 ZERO_COMMAND_EVENT
+        DB $0B                   ; $0D91 GOTO_SCRIPT
+        DW $0D7F                ; script target
+        DB $02                   ; $0D94 SET_MODE_0E
+        DB $09,$0A               ; $0D95 SET_COUNTER_AND_POINTER
+        DW $0DD5                ; saved pointer
+        DB $07,$03               ; $0D99 DRAW_INLINE_RECORD, count $03
+        DW $0C21,$2C0A     ; text/data and display addresses
+        DB $08,$0F               ; $0D9F SET_COUNTER_200C = $0F
+        DB $00                   ; $0DA1 ZERO_COMMAND_EVENT
+        DB $07,$0B               ; $0DA2 DRAW_INLINE_RECORD, count $0B
+        DW $0C21,$2C0A     ; text/data and display addresses
+        DB $08,$0F               ; $0DA8 SET_COUNTER_200C = $0F
+        DB $00                   ; $0DAA ZERO_COMMAND_EVENT
+        DB $07,$04               ; $0DAB DRAW_INLINE_RECORD, count $04
+        DW $0C2C,$320B     ; text/data and display addresses
+        DB $08,$0F               ; $0DB1 SET_COUNTER_200C = $0F
+        DB $00                   ; $0DB3 ZERO_COMMAND_EVENT
+        DB $07,$04               ; $0DB4 DRAW_INLINE_RECORD, count $04
+        DW $0D22,$3210     ; text/data and display addresses
+        DB $08,$3C               ; $0DBA SET_COUNTER_200C = $3C
+        DB $00                   ; $0DBC ZERO_COMMAND_EVENT
+        DB $07,$0B               ; $0DBD DRAW_INLINE_RECORD, count $0B
+        DW $0C10,$2C0A     ; text/data and display addresses
+        DB $07,$09               ; $0DC3 DRAW_INLINE_RECORD, count $09
+        DW $0C10,$320B     ; text/data and display addresses
+        DB $07,$0D               ; $0DC9 DRAW_INLINE_RECORD, count $0D
+        DW $0C6D,$3A09     ; text/data and display addresses
+        DB $08,$0F               ; $0DCF SET_COUNTER_200C = $0F
+        DB $00                   ; $0DD1 ZERO_COMMAND_EVENT
+        DB $0B                   ; $0DD2 GOTO_SCRIPT
+        DW $0D99                ; script target
+        DB $02                   ; $0DD5 SET_MODE_0E
+        DB $07,$0D               ; $0DD6 DRAW_INLINE_RECORD, count $0D
+        DW $0C6D,$3A09     ; text/data and display addresses
+        DB $07,$19               ; $0DDC DRAW_INLINE_RECORD, count $19
+        DW $0C41,$2A0A     ; text/data and display addresses
+        DB $09,$08               ; $0DE2 SET_COUNTER_AND_POINTER
+        DW $0DFB                ; saved pointer
+        DB $07,$10               ; $0DE6 DRAW_INLINE_RECORD, count $10
+        DW $0C5D,$3608     ; text/data and display addresses
+        DB $08,$1E               ; $0DEC SET_COUNTER_200C = $1E
+        DB $00                   ; $0DEE ZERO_COMMAND_EVENT
+        DB $07,$01               ; $0DEF DRAW_INLINE_RECORD, count $01
+        DW $0C10,$3608     ; text/data and display addresses
+        DB $08,$1E               ; $0DF5 SET_COUNTER_200C = $1E
+        DB $00                   ; $0DF7 ZERO_COMMAND_EVENT
+        DB $0B                   ; $0DF8 GOTO_SCRIPT
+        DW $0DE6                ; script target
+        DB $02                   ; $0DFB SET_MODE_0E
+        DB $07,$1F               ; $0DFC DRAW_INLINE_RECORD, count $1F
+        DW $0C3A,$2A0C     ; text/data and display addresses
+        DB $09,$08               ; $0E02 SET_COUNTER_AND_POINTER
+        DW $0E1B                ; saved pointer
+        DB $07,$0D               ; $0E06 DRAW_INLINE_RECORD, count $0D
+        DW $0C6D,$3A09     ; text/data and display addresses
+        DB $08,$14               ; $0E0C SET_COUNTER_200C = $14
+        DB $00                   ; $0E0E ZERO_COMMAND_EVENT
+        DB $07,$01               ; $0E0F DRAW_INLINE_RECORD, count $01
+        DW $0C10,$3A15     ; text/data and display addresses
+        DB $08,$14               ; $0E15 SET_COUNTER_200C = $14
+        DB $00                   ; $0E17 ZERO_COMMAND_EVENT
+        DB $0B                   ; $0E18 GOTO_SCRIPT
+        DW $0E06                ; script target
+        DB $02                   ; $0E1B SET_MODE_0E
+        DB $06                   ; $0E1C INIT_GAME_FIELDS
 
-; Startup: clear four work-RAM bytes.
-        DB $0C,$00              ; STORE_IMMEDIATE_BYTE: [$202C] = $00
-        DW $202C
-        DB $0C,$00              ; STORE_IMMEDIATE_BYTE: [$2031] = $00
-        DW $2031
-        DB $0C,$00              ; STORE_IMMEDIATE_BYTE: [$2032] = $00
-        DW $2032
-        DB $0C,$00              ; STORE_IMMEDIATE_BYTE: [$202D] = $00
-        DW $202D
-
-; Initialize game state and establish the first display record.
-        DB $11                  ; UPDATE_END_STATE
-        DB $09,$0A              ; SET_COUNTER_AND_POINTER, count $0A
-        DW $0D94                ; saved command/data pointer
-        DB $07,$10              ; DRAW_INLINE_RECORD, count $10
-        DW $0C10                ; encoded text source
-        DW $2408                ; video RAM destination
-
-; Remaining original game program bytes from $0D7F onward.
-; Command bytes and inline parameters share this stream; the verified
-; native handlers determine each packet's length and next script address.
-        DB $07,$09,$22,$0D,$0B,$24,$08,$1E  ; $0D7F
-        DB $00,$07,$09,$10,$0C,$0B,$24,$08  ; $0D87
-        DB $1E,$00,$0B,$7F,$0D,$02,$09,$0A  ; $0D8F
-        DB $D5,$0D,$07,$03,$21,$0C,$0A,$2C  ; $0D97
-        DB $08,$0F,$00,$07,$0B,$21,$0C,$0A  ; $0D9F
-        DB $2C,$08,$0F,$00,$07,$04,$2C,$0C  ; $0DA7
-        DB $0B,$32,$08,$0F,$00,$07,$04,$22  ; $0DAF
-        DB $0D,$10,$32,$08,$3C,$00,$07,$0B  ; $0DB7
-        DB $10,$0C,$0A,$2C,$07,$09,$10,$0C  ; $0DBF
-        DB $0B,$32,$07,$0D,$6D,$0C,$09,$3A  ; $0DC7
-        DB $08,$0F,$00,$0B,$99,$0D,$02,$07  ; $0DCF
-        DB $0D,$6D,$0C,$09,$3A,$07,$19,$41  ; $0DD7
-        DB $0C,$0A,$2A,$09,$08,$FB,$0D,$07  ; $0DDF
-        DB $10,$5D,$0C,$08,$36,$08,$1E,$00  ; $0DE7
-        DB $07,$01,$10,$0C,$08,$36,$08,$1E  ; $0DEF
-        DB $00,$0B,$E6,$0D,$02,$07,$1F,$3A  ; $0DF7
-        DB $0C,$0C,$2A,$09,$08,$1B,$0E,$07  ; $0DFF
-        DB $0D,$6D,$0C,$09,$3A,$08,$14,$00  ; $0E07
-        DB $07,$01,$10,$0C,$15,$3A,$08,$14  ; $0E0F
-        DB $00,$0B,$06,$0E,$02,$06,$03,$08  ; $0E17
-        DB $F0,$00,$0A,$09,$04,$94,$0D,$00  ; $0E1F
-        DB $02,$07,$19,$0C,$0D,$08,$28,$07  ; $0E27
-        DB $0D,$41,$0C,$09,$34,$07,$0A,$52  ; $0E2F
-        DB $0C,$0B,$38,$0C,$01,$34,$20,$07  ; $0E37
-        DB $01,$10,$0C,$17,$34,$07,$01,$79  ; $0E3F
-        DB $0C,$09,$38,$08,$1E,$00,$07,$01  ; $0E47
-        DB $79,$0C,$17,$34,$07,$01,$10,$0C  ; $0E4F
-        DB $09,$38,$08,$1E,$00,$0B,$3E,$0E  ; $0E57
-        DB $02,$0C,$04,$13,$20,$07,$0D,$41  ; $0E5F
-        DB $0C,$09,$2C,$07,$07,$5D,$0C,$0C  ; $0E67
-        DB $30,$07,$02,$4F,$0C,$0F,$32,$07  ; $0E6F
-        DB $16,$83,$0C,$08,$34,$08,$F0,$00  ; $0E77
-        DB $0B,$A6,$0E,$0F,$2E,$20,$8C,$0E  ; $0E7F
-        DB $0F,$32,$20,$64,$0D,$02,$09,$02  ; $0E87
-        DB $A6,$0E,$07,$09,$7A,$0C,$0B,$32  ; $0E8F
-        DB $08,$1E,$00,$07,$09,$10,$0C,$0B  ; $0E97
-        DB $32,$08,$0F,$00,$0B,$91,$0E,$02  ; $0E9F
-        DB $06,$03,$07,$0A,$A7,$0C,$A0,$3E  ; $0EA7
-        DB $0F,$2E,$20,$C1,$0E,$07,$0C,$E5  ; $0EAF
-        DB $0C,$08,$24,$0C,$01,$2E,$20,$0B  ; $0EB7
-        DB $CC,$0E,$07,$0D,$9A,$0C,$08,$24  ; $0EBF
-        DB $10,$2E,$20,$16,$24,$07,$09,$31  ; $0EC7
-        DB $0C,$B1,$3E,$10,$31,$20,$BB,$3E  ; $0ECF
-        DB $04,$48,$20,$32,$0D,$26,$20,$17  ; $0ED7
-        DB $C2,$04,$59,$20,$37,$0D,$24,$20  ; $0EDF
-        DB $E0,$C0,$0C,$06,$0E,$20,$0C,$06  ; $0EE7
-        DB $29,$20,$00,$09,$04,$82,$0E,$07  ; $0EEF
-        DB $10,$10,$0C,$08,$24,$10,$31,$20  ; $0EF7
-        DB $BB,$3E,$0E,$1A,$20,$1C,$0F,$0D  ; $0EFF
-        DB $07,$0B,$F5,$0C,$08,$24,$08,$1E  ; $0F07
-        DB $00,$07,$0B,$10,$0C,$08,$24,$08  ; $0F0F
-        DB $1E,$00,$0B,$07,$0F,$07,$0C,$00  ; $0F17
-        DB $0D,$08,$24,$08,$1E,$00,$07,$0C  ; $0F1F
-        DB $10,$0C,$08,$24,$08,$1E,$00,$0B  ; $0F27
-        DB $1C,$0F,$02,$05,$07,$0A,$52,$0C  ; $0F2F
-        DB $0B,$2C,$07,$07,$5D,$0C,$0C,$30  ; $0F37
-        DB $08,$B4,$00,$0B,$64,$0F,$0E,$2E  ; $0F3F
-        DB $20,$64,$0D,$02,$09,$02,$64,$0F  ; $0F47
-        DB $07,$09,$7A,$0C,$0B,$32,$08,$1E  ; $0F4F
-        DB $00,$07,$09,$10,$0C,$0B,$32,$08  ; $0F57
-        DB $1E,$00,$0B,$4F,$0F,$02,$06,$03  ; $0F5F
-        DB $07,$06,$B1,$0C,$01,$26,$07,$03  ; $0F67
-        DB $C1,$0C,$E1,$34,$10,$32,$20,$00  ; $0F6F
-        DB $3C,$07,$06,$B1,$0C,$1E,$26,$07  ; $0F77
-        DB $03,$BC,$0C,$FE,$34,$10,$31,$20  ; $0F7F
-        DB $1D,$3C,$07,$0D,$9A,$0C,$08,$24  ; $0F87
-        DB $10,$2E,$20,$16,$24,$07,$04,$AD  ; $0F8F
-        DB $0C,$A3,$3E,$07,$07,$2B,$0D,$B1  ; $0F97
-        DB $3E,$04,$48,$20,$37,$0D,$26,$20  ; $0F9F
-        DB $17,$C0,$04,$59,$20,$32,$0D,$24  ; $0FA7
-        DB $20,$E0,$C0,$0C,$01,$0D,$20,$0C  ; $0FAF
-        DB $01,$20,$20,$00,$10,$2E,$20,$16  ; $0FB7
-        DB $24,$09,$04,$45,$0F,$0E,$1B,$20  ; $0FBF
-        DB $E3,$0F,$10,$32,$20,$00,$3C,$07  ; $0FC7
-        DB $0A,$D2,$0C,$01,$26,$08,$1E,$00  ; $0FCF
-        DB $07,$06,$C7,$0C,$01,$26,$08,$1E  ; $0FD7
-        DB $00,$0B,$CE,$0F,$10,$31,$20,$1D  ; $0FDF
-        DB $3C,$07,$0A,$D2,$0C,$1E,$26,$08  ; $0FE7
-        DB $1E,$00,$07,$06,$C7,$0C,$1E,$26  ; $0FEF
-        DB $08,$1E,$00,$0B,$E8,$0F,$00,$00  ; $0FF7
-        DB $00  ; $0FFF
+; Original game program continued at $0E1D.
+; This point begins command $03, whose native inline-operand contract
+; is tracked in docs/8080-WORD-SEMANTICS.md. The remaining bytes are
+; retained in their exact original order pending packet-boundary audit.
+        DB $3,$8,$F0,$000,$000A,$00009,$000004,$0000094  ; $0E1D
+        DB $D,$0,$02,$007,$0019,$0000C,$00000D,$0000008  ; $0E25
+        DB $28,$7,$0D,$041,$000C,$00009,$000034,$0000007  ; $0E2D
+        DB $A,$52,$0C,$00B,$0038,$0000C,$000001,$0000034  ; $0E35
+        DB $20,$7,$01,$010,$000C,$00017,$000034,$0000007  ; $0E3D
+        DB $1,$79,$0C,$009,$0038,$00008,$00001E,$0000000  ; $0E45
+        DB $7,$1,$79,$00C,$0017,$00034,$000007,$0000001  ; $0E4D
+        DB $10,$C,$09,$038,$0008,$0001E,$000000,$000000B  ; $0E55
+        DB $3E,$E,$02,$00C,$0004,$00013,$000020,$0000007  ; $0E5D
+        DB $D,$41,$0C,$009,$002C,$00007,$000007,$000005D  ; $0E65
+        DB $C,$C,$30,$007,$0002,$0004F,$00000C,$000000F  ; $0E6D
+        DB $32,$7,$16,$083,$000C,$00008,$000034,$0000008  ; $0E75
+        DB $F0,$0,$0B,$0A6,$000E,$0000F,$00002E,$0000020  ; $0E7D
+        DB $8C,$E,$0F,$032,$0020,$00064,$00000D,$0000002  ; $0E85
+        DB $9,$2,$A6,$00E,$0007,$00009,$00007A,$000000C  ; $0E8D
+        DB $B,$32,$08,$01E,$0000,$00007,$000009,$0000010  ; $0E95
+        DB $C,$B,$32,$008,$000F,$00000,$00000B,$0000091  ; $0E9D
+        DB $E,$2,$06,$003,$0007,$0000A,$0000A7,$000000C  ; $0EA5
+        DB $A0,$3E,$0F,$02E,$0020,$000C1,$00000E,$0000007  ; $0EAD
+        DB $C,$E5,$0C,$008,$0024,$0000C,$000001,$000002E  ; $0EB5
+        DB $20,$B,$CC,$00E,$0007,$0000D,$00009A,$000000C  ; $0EBD
+        DB $8,$24,$10,$02E,$0020,$00016,$000024,$0000007  ; $0EC5
+        DB $9,$31,$0C,$0B1,$003E,$00010,$000031,$0000020  ; $0ECD
+        DB $BB,$3E,$04,$048,$0020,$00032,$00000D,$0000026  ; $0ED5
+        DB $20,$17,$C2,$004,$0059,$00020,$000037,$000000D  ; $0EDD
+        DB $24,$20,$E0,$0C0,$000C,$00006,$00000E,$0000020  ; $0EE5
+        DB $C,$6,$29,$020,$0000,$00009,$000004,$0000082  ; $0EED
+        DB $E,$7,$10,$010,$000C,$00008,$000024,$0000010  ; $0EF5
+        DB $31,$20,$BB,$03E,$000E,$0001A,$000020,$000001C  ; $0EFD
+        DB $F,$D,$07,$00B,$00F5,$0000C,$000008,$0000024  ; $0F05
+        DB $8,$1E,$00,$007,$000B,$00010,$00000C,$0000008  ; $0F0D
+        DB $24,$8,$1E,$000,$000B,$00007,$00000F,$0000007  ; $0F15
+        DB $C,$0,$0D,$008,$0024,$00008,$00001E,$0000000  ; $0F1D
+        DB $7,$C,$10,$00C,$0008,$00024,$000008,$000001E  ; $0F25
+        DB $0,$B,$1C,$00F,$0002,$00005,$000007,$000000A  ; $0F2D
+        DB $52,$C,$0B,$02C,$0007,$00007,$00005D,$000000C  ; $0F35
+        DB $C,$30,$08,$0B4,$0000,$0000B,$000064,$000000F  ; $0F3D
+        DB $E,$2E,$20,$064,$000D,$00002,$000009,$0000002  ; $0F45
+        DB $64,$F,$07,$009,$007A,$0000C,$00000B,$0000032  ; $0F4D
+        DB $8,$1E,$00,$007,$0009,$00010,$00000C,$000000B  ; $0F55
+        DB $32,$8,$1E,$000,$000B,$0004F,$00000F,$0000002  ; $0F5D
+        DB $6,$3,$07,$006,$00B1,$0000C,$000001,$0000026  ; $0F65
+        DB $7,$3,$C1,$00C,$00E1,$00034,$000010,$0000032  ; $0F6D
+        DB $20,$0,$3C,$007,$0006,$000B1,$00000C,$000001E  ; $0F75
+        DB $26,$7,$03,$0BC,$000C,$000FE,$000034,$0000010  ; $0F7D
+        DB $31,$20,$1D,$03C,$0007,$0000D,$00009A,$000000C  ; $0F85
+        DB $8,$24,$10,$02E,$0020,$00016,$000024,$0000007  ; $0F8D
+        DB $4,$AD,$0C,$0A3,$003E,$00007,$000007,$000002B  ; $0F95
+        DB $D,$B1,$3E,$004,$0048,$00020,$000037,$000000D  ; $0F9D
+        DB $26,$20,$17,$0C0,$0004,$00059,$000020,$0000032  ; $0FA5
+        DB $D,$24,$20,$0E0,$00C0,$0000C,$000001,$000000D  ; $0FAD
+        DB $20,$C,$01,$020,$0020,$00000,$000010,$000002E  ; $0FB5
+        DB $20,$16,$24,$009,$0004,$00045,$00000F,$000000E  ; $0FBD
+        DB $1B,$20,$E3,$00F,$0010,$00032,$000020,$0000000  ; $0FC5
+        DB $3C,$7,$0A,$0D2,$000C,$00001,$000026,$0000008  ; $0FCD
+        DB $1E,$0,$07,$006,$00C7,$0000C,$000001,$0000026  ; $0FD5
+        DB $8,$1E,$00,$00B,$00CE,$0000F,$000010,$0000031  ; $0FDD
+        DB $20,$1D,$3C,$007,$000A,$000D2,$00000C,$000001E  ; $0FE5
+        DB $26,$8,$1E,$000,$0007,$00006,$0000C7,$000000C  ; $0FED
+        DB $1E,$26,$08,$01E,$0000,$0000B,$0000E8,$000000F  ; $0FF5
+        DB $0,$0,$00  ; $0FFD
         END
