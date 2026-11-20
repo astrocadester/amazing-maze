@@ -811,7 +811,8 @@ FONT_LETTER_Z:                        ; $02D8
         DB $7E  ; .######.
         DB $7E  ; .######.
 
-NATIVE_02E2:
+; Clear working state and invoke timer and input services
+INITIALIZE_FRAME_STATE:
         XOR A
         CALL $0302
         LD (HL),A
@@ -1064,7 +1065,8 @@ SHIFT_NEXT_MAZE_CELL_NIBBLE:
         JP NZ,$0443
         RET
 
-NATIVE_0453:
+; Exit when the activity byte at $201E is set
+UPDATE_MAZE_STATE_IF_IDLE:
         LD A,($201E)
         AND A
         RET NZ
@@ -1079,7 +1081,8 @@ NATIVE_0453:
         SUB $E6
         RET NZ
 
-NATIVE_046B:
+; Store a selected state byte in neighboring addresses
+COPY_STATE_BYTE_TO_NEIGHBORS:
         LD (HL),A
         DEC HL
         LD (HL),A
@@ -1098,7 +1101,8 @@ NATIVE_046B:
         INC DE
         INC HL
 
-NATIVE_0488:
+; Increment a state byte using BCD decimal adjustment
+INCREMENT_PACKED_DECIMAL_STATE:
         LD A,(HL)
         INC A
         DAA
@@ -1164,7 +1168,8 @@ SERVICE_GAME_STATE_COUNTER:
         CALL C,RESTORE_SCRIPT_ROOT_FROM_SAVED_POINTER
         RET
 
-NATIVE_04DB:
+; Decrement the round counter and select a follow-on display path
+ADVANCE_END_OF_ROUND_COUNTER:
         LD HL,$2029
         DEC (HL)
         JP NZ,$0500
@@ -1180,7 +1185,8 @@ NATIVE_04DB:
         LD A,$04
         JP DRAW_TEXT_GLYPH_STREAM
 
-NATIVE_0500:
+; Reload the frame countdown and update display state
+SETUP_NEXT_ROUND_DISPLAY:
         LD A,$3C
         LD ($200E),A
         LD A,(HL)
@@ -1191,7 +1197,8 @@ NATIVE_0500:
         LD DE,$3EAB
         JP DRAW_TEXT_GLYPH_STREAM
 
-NATIVE_0514:
+; Reload a countdown and select the score update path
+UPDATE_ROUND_COUNTER_AND_SCORE:
         LD A,$3C
         LD ($200D),A
         LD A,($202C)
@@ -1324,7 +1331,8 @@ SAMPLE_PORT1_INPUT_EDGE:
         JP Z,$05D4
         INC (HL)
 
-NATIVE_05D4:
+; Exit when the end-state flag at $202D is set
+RETURN_IF_END_FLAG_SET:
         LD A,($202D)
         AND A
         RET NZ
@@ -1342,7 +1350,8 @@ CMD_11_UPDATE_END_STATE:
         LD HL,$0E27
         LD ($2002),HL
 
-NATIVE_05EE:
+; Draw the stored end-screen text at its display destination
+DRAW_END_SCREEN_MESSAGE:
         LD HL,$0CF1
         LD DE,$3EA3
         LD A,$04
@@ -1366,7 +1375,8 @@ READ_START_INPUTS:
         LD A,$02
         RET Z
 
-NATIVE_0615:
+; Save start state and script cursor and clear an output byte
+STORE_START_SELECTION_STATE:
         LD ($2030),A
         LD ($2002),HL
         XOR A
@@ -1406,7 +1416,8 @@ FORMAT_PACKED_BYTE_AS_TWO_DIGITS:
         INC BC
         RET
 
-NATIVE_0648:
+; Compare the $10 bit in the selected cell state
+TEST_CELL_STATE_BIT_10:
         LD A,($202F)
         XOR (HL)
         AND $10
@@ -1420,7 +1431,8 @@ NATIVE_0648:
         JP NZ,$065C
         LD B,$00
 
-NATIVE_065C:
+; Write the current cell state, load the next address and continue
+COPY_CELL_STATE_AND_ADVANCE:
         LD (HL),B
         INC HL
         LD E,(HL)
@@ -1469,7 +1481,8 @@ COPY_CELL_RECORD_LOOP:
         JP NZ,$0676
         RET
 
-NATIVE_0697:
+; Update the packed coordinate held at $2016
+UPDATE_PACKED_MAZE_COORDINATE:
         PUSH HL
         LD HL,($2016)
         LD L,H
@@ -1484,12 +1497,14 @@ SHIFT_COORDINATE_TO_ROW_OFFSET:
         DEC A
         JP NZ,$06A7
 
-NATIVE_06AC:
+; Return the shifted coordinate result in A
+FINISH_COORDINATE_SHIFT:
         LD A,H
         POP HL
         RET
 
-NATIVE_06AF:
+; Compare cell-state bits and test the $20 flag
+TEST_CELL_STATE_BIT_20:
         LD A,($202F)
         XOR (HL)
         AND $10
@@ -1522,10 +1537,12 @@ COPY_MAZE_CELL_RECORD_BYTE:
         JP NZ,$06C5
         RET
 
-NATIVE_06D6:
+; Set the three-step packed-coordinate shift count
+INITIALIZE_THREE_STEP_SHIFT:
         LD B,$03
 
-NATIVE_06D8:
+; Rotate the D/E coordinate pair one bit right
+SHIFT_PACKED_COORDINATE_PAIR:
         XOR A
         LD A,D
         RRA
@@ -1551,7 +1568,8 @@ MAZE_RANDOM_UPDATE_LOOP:
         JP NZ,$06EB
         RET
 
-NATIVE_06F5:
+; Derive a bounded value and store it in game state
+SELECT_MAZE_RANDOM_VALUE:
         LD E,$18
         CALL $0903
         LD ($2025),A
@@ -1649,14 +1667,16 @@ COUNT_OPEN_DIRECTIONS_NEXT:
         JP NZ,$0776
         RET
 
-NATIVE_0780:
+; Update the maze-generation counter at $201C
+ADVANCE_MAZE_GENERATION_COUNT:
         LD A,($201D)
         AND A
         JP NZ,$078B
         LD HL,$201C
         INC (HL)
 
-NATIVE_078B:
+; Select a direction value through the random-range routine
+CHOOSE_MAZE_DIRECTION:
         LD A,$01
         LD ($2022),A
         CALL $0903
@@ -1669,25 +1689,29 @@ NATIVE_078B:
         JP Z,$07B1
         DEC E
 
-NATIVE_079F:
+; Rotate and test a candidate direction bit
+TEST_DIRECTION_BIT_ZERO:
         RRCA
         JP NC,$07A7
         JP Z,$07BA
         DEC E
 
-NATIVE_07A7:
+; Rotate and test the following candidate direction bit
+TEST_DIRECTION_BIT_ONE:
         RRCA
         JP NC,$07F3
         JP Z,$07E8
         JP $07F3
 
-NATIVE_07B1:
+; Address the previous row and select wall state $05
+MARK_MAZE_PREVIOUS_ROW:
         DEC B
         CALL MAZE_CELL_ADDRESS
         LD D,$05
         JP $0804
 
-NATIVE_07BA:
+; Mark the current cell and advance the maze row
+MARK_MAZE_NEXT_ROW:
         CALL MAZE_CELL_ADDRESS
         LD D,$04
         CALL $0804
@@ -1699,7 +1723,8 @@ NATIVE_07BA:
         LD D,$01
         JP $0804
 
-NATIVE_07D1:
+; Save the current column and direction state
+SAVE_MAZE_COLUMN_AND_DIRECTION:
         LD A,($201D)
         AND A
         JP NZ,$07E1
@@ -1708,20 +1733,23 @@ NATIVE_07D1:
         LD A,C
         LD ($2023),A
 
-NATIVE_07E1:
+; Restore the saved maze column into C
+RESTORE_MAZE_COLUMN:
         LD B,$19
         LD A,($2023)
         LD C,A
         RET
 
-NATIVE_07E8:
+; Address the previous column and select wall state $03
+MARK_MAZE_PREVIOUS_COLUMN:
         DEC C
         CALL MAZE_CELL_ADDRESS
         LD D,$03
         JP $0804
         DB $00,$00
 
-NATIVE_07F3:
+; Address the current and next columns and update wall state
+MARK_MAZE_NEXT_COLUMN:
         CALL MAZE_CELL_ADDRESS
         LD D,$02
         CALL $0804
@@ -1730,7 +1758,8 @@ NATIVE_07F3:
         LD D,$01
         JP $0804
 
-NATIVE_0804:
+; Combine direction flags with the selected maze cell
+WRITE_MAZE_DIRECTION_BITS:
         LD A,($201D)
         XOR $08
         OR (HL)
@@ -1769,7 +1798,8 @@ CMD_03_GAME_DISPLAY_UPDATE:
         LD HL,$3E02
         LD D,$00
 
-NATIVE_083A:
+; Select graphics for the current maze border row
+DRAW_MAZE_BORDER_ROW:
         LD A,($2026)
         LD BC,$0D44
         CP D
@@ -1777,7 +1807,8 @@ NATIVE_083A:
         CALL $08A3
         LD BC,$01D4
 
-NATIVE_084A:
+; Draw the row graphic and advance the maze row index
+ADVANCE_MAZE_BORDER_ROW:
         CALL $08DB
         INC D
         LD A,$18
@@ -1787,7 +1818,8 @@ NATIVE_084A:
         LD DE,$2066
         LD B,$1A
 
-NATIVE_085C:
+; Write a display byte and step through the bitmap column
+DRAW_MAZE_CELL_COLUMN:
         LD C,$18
         PUSH HL
         PUSH BC
@@ -1796,7 +1828,8 @@ NATIVE_085C:
         ADD HL,BC
         POP BC
 
-NATIVE_0867:
+; Choose a tile according to the $40 cell-state bit
+CHOOSE_MAZE_CELL_TILE:
         PUSH BC
         LD A,(DE)
         LD BC,$0D44
@@ -1804,7 +1837,8 @@ NATIVE_0867:
         JP Z,$0874
         LD BC,$01D4
 
-NATIVE_0874:
+; Draw a tile and test the next cell's $20 flag
+DRAW_MAZE_CELL_SIDE:
         PUSH HL
         CALL $08DB
         POP HL
@@ -1815,7 +1849,8 @@ NATIVE_0874:
         JP Z,$0886
         LD BC,$01D4
 
-NATIVE_0886:
+; Advance the cell loop and row display pointer
+ADVANCE_MAZE_DRAW_CURSOR:
         CALL $08DB
         POP BC
         DEC C
@@ -1827,14 +1862,16 @@ NATIVE_0886:
         LD A,($2024)
         INC H
 
-NATIVE_0898:
+; Step through display rows before selecting a tile
+ADVANCE_MAZE_FRAMEBUFFER_ROW:
         DEC H
         DEC A
         JP P,$0898
         LD BC,$0D5C
         JP $08DB
 
-NATIVE_08A3:
+; Draw one border tile while preserving the display pointer
+DRAW_MAZE_BORDER_TILE:
         PUSH HL
         LD BC,$0D54
         CALL $08DB
@@ -1846,7 +1883,8 @@ CMD_0A_GAME_CONTROL:
         LD DE,$2066
         LD B,$1A
 
-NATIVE_08B4:
+; Initialize the per-row maze display loop
+SETUP_MAZE_ROW_DRAW_LOOP:
         LD C,$18
         PUSH HL
 
@@ -1891,14 +1929,16 @@ DRAW_GRAPHIC_ROW_LOOP:
         POP DE
         RET
 
-NATIVE_08EE:
+; Reset native register state and transfer to the address in HL
+ENTER_NATIVE_PROGRAM_STATE:
         DI
         POP HL
         LD BC,$0000
         LD DE,$0000
         LD SP,$4000
 
-NATIVE_08F9:
+; Advance DE until it reaches the value in A
+WAIT_FOR_NATIVE_STATE_COUNTER:
         PUSH BC
         INC DE
         CP D
@@ -1906,7 +1946,8 @@ NATIVE_08F9:
         LD SP,$2400
         JP (HL)
 
-NATIVE_0903:
+; Sample the random state and accumulate a bounded value
+SAMPLE_RANDOM_RANGE:
         PUSH BC
         CALL $0919
         LD C,A
@@ -1932,7 +1973,8 @@ READ_GAME_RANDOM_STATE:
         LD B,$08
         LD A,(HL)
 
-NATIVE_0921:
+; Rotate and XOR the saved random-state byte
+MIX_RANDOM_STATE_BITS:
         RLCA
         RLCA
         RLCA
@@ -1992,7 +2034,8 @@ MAZE_CELL_ADDRESS_RETURN:
         POP DE
         RET
 
-NATIVE_0962:
+; Check the state sign and fetch the following pointer
+TEST_SIGNED_STATE_AND_COPY_POINTER:
         LD A,(HL)
         AND A
         RET P
@@ -2025,7 +2068,8 @@ NATIVE_0962:
         JP NC,$0990
         LD B,$10
 
-NATIVE_0990:
+; Combine mask flags and store the resulting cell record
+COMBINE_MAZE_CELL_FLAGS:
         LD A,(HL)
         AND C
         OR B
@@ -2036,7 +2080,8 @@ NATIVE_0990:
         LD (HL),D
         RET
 
-NATIVE_0999:
+; Test a potential maze step and the current row bound
+TRY_MAZE_STEP_UP:
         CALL $09EF
         JP NZ,$09B5
         CALL $0A1D
@@ -2047,7 +2092,8 @@ NATIVE_0999:
         RET NZ
         JP $09B5
 
-NATIVE_09AE:
+; Read the selected neighbor cell's $40 wall flag
+TEST_MAZE_UP_CELL:
         CALL MAZE_CELL_ADDRESS
         LD A,(HL)
         AND $40
@@ -2057,7 +2103,8 @@ MAZE_REJECT_LEFT_STEP:
         DEC E
         RET
 
-NATIVE_09B7:
+; Test the neighboring cell state before advancing down
+TRY_MAZE_STEP_DOWN:
         CALL $09EF
         JP NZ,$09C7
         CALL $0A1D
@@ -2070,7 +2117,8 @@ MAZE_REJECT_RIGHT_STEP:
         INC E
         RET
 
-NATIVE_09C9:
+; Test horizontal coordinate and neighboring wall state
+TRY_MAZE_STEP_LEFT:
         CALL $0A00
         JP NZ,$09D9
         CALL $0A1D
@@ -2083,7 +2131,8 @@ MAZE_REJECT_UP_STEP:
         DEC D
         RET
 
-NATIVE_09DB:
+; Check the coordinate and neighboring wall flag
+TRY_MAZE_STEP_RIGHT:
         CALL $0A00
         JP NZ,$09ED
         CALL $0A1D
@@ -2098,7 +2147,8 @@ MAZE_REJECT_DOWN_STEP:
         INC D
         RET
 
-NATIVE_09EF:
+; Compare the row coordinate and call the shared state check
+CHECK_MAZE_ROW_STEP_LIMIT:
         LD A,D
         AND $07
         CP $03
@@ -2111,7 +2161,8 @@ NATIVE_09EF:
         CP $07
         RET
 
-NATIVE_0A00:
+; Compare the column coordinate and call the shared state check
+CHECK_MAZE_COLUMN_STEP_LIMIT:
         LD A,E
         AND $07
         CP $07
@@ -2124,7 +2175,8 @@ NATIVE_0A00:
         CP $03
         RET
 
-NATIVE_0A11:
+; Set the step-state flag at $2020 and update its timer
+SET_MAZE_STEP_STATE:
         LD BC,$2020
         LD A,(BC)
         AND A
@@ -2134,7 +2186,8 @@ NATIVE_0A11:
         LD ($2029),A
         RET
 
-NATIVE_0A1D:
+; Shift the coordinate and store the derived row index
+DECODE_MAZE_ROW_FROM_COORDINATE:
         LD A,E
         RRA
         RRA
@@ -2380,7 +2433,8 @@ CMD_05_READ_PLAYER_INPUT:
         JP Z,$0B57
         LD L,$04
 
-NATIVE_0B57:
+; Save the selected player input and its complement
+STORE_PLAYER_INPUT_AND_COMPLEMENT:
         LD ($202A),HL
         CPL
         LD ($202C),A
