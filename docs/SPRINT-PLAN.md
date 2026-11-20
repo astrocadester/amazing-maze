@@ -17,7 +17,8 @@ Produce a fully annotated original Intel 8080 source reconstruction, assemble it
 - [x] Inspect Checkmate's build, README and SVG conventions.
 - [x] Add Linux/Windows zmac v1.3 build scripts without Python.
 - [x] Create memory map and README with Amazing Maze-specific contents.
-- [ ] Reconstruct `src/amazing-maze.asm` as original Intel 8080 instructions, labeled control flow, genuine graphics, tables and data.
+- [x] Carry forward `src/maze.asm` (native instruction reconstruction, glyphs, vectors and scripts) from the November 8 hard-RE branch.
+- [ ] Complete semantic cleanup of existing `src/maze.asm` and resolve remaining generic labels and unclassified regions.
 - [ ] Audit interrupt paths and all 17 original command handlers; establish inline operand formats and script boundaries.
 - [ ] Replace unclassified data ranges with verified graphics, strings, pointer tables or control data and add appropriate inline comments.
 - [ ] Run native zmac v1.3 assembly and require exact SHA-1 matches for both ROM devices.
