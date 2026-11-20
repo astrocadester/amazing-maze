@@ -9,7 +9,7 @@ elif [[ -x tools/zmac ]]; then zmac_bin=tools/zmac
 else zmac_bin=zmac
 fi
 command -v "$zmac_bin" >/dev/null 2>&1 || fail 'zmac v1.3 not found (set ZMAC or use tools/zmac)'
-[[ -f src/amazing-maze.asm ]] || fail 'Missing src/amazing-maze.asm'
+[[ -f src/maze.asm ]] || fail 'Missing src/maze.asm'
 [[ -f roms/original/maze.zip ]] || fail 'Missing reference roms/original/maze.zip'
 
 rom_names=(maze.h maze.g)
@@ -20,7 +20,7 @@ mkdir -p build roms
 rm -f build/amazing-maze.bin build/amazing-maze.lst roms/maze.zip
 for name in "${rom_names[@]}"; do rm -f "build/$name"; done
 echo '[2/4] Assemble native Intel 8080 source (zmac v1.3)'
-"$zmac_bin" -c -o build/amazing-maze.bin -x build/amazing-maze.lst src/amazing-maze.asm || fail 'Assembly failed'
+"$zmac_bin" -c -o build/amazing-maze.bin -x build/amazing-maze.lst src/maze.asm || fail 'Assembly failed'
 [[ -s build/amazing-maze.bin ]] || fail 'Assembler did not produce a binary image'
 size=$(stat -c %s build/amazing-maze.bin)
 (( size == 4096 )) || fail "Binary image is $size bytes; expected 4096"
