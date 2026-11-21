@@ -40,3 +40,7 @@ Keep `roms/original/maze.zip` unchanged. Assemble original Intel 8080 code with 
 **Static PASS:** 4 KB source address layout and **2,980 normalized instruction/data entries** match source commit `dd17820`; zero code/data differences. Native assembler and hash verification of these new source symbols is **pending**. The user previously verified the underlying source ROM hashes and MAME boot.
 
 **Remaining AM-RE-001 work:** computed/indirect branches, potential secondary restart entry, possible data reads through indexed pointers, isolated `$C9` at `$0418`, and the identified inter-routine bytes. The research task remains open for those dynamic proofs.
+
+### Native reachability follow-up
+
+A conservative native control-flow graph rooted at reset, restart vectors and the original 17 command handlers reaches **all 1,551 native instruction statements**. All direct JP/CALL targets resolve. Two computed jumps exist: `$03C9`, which indexes the original 17-entry command table, and `$0902`, which resumes an address popped from the stack. The latter has two source-visible callers, one via `CALL` and one via `JP`. The [full source and data audit](NATIVE-CODE-DATA-MAP.md) records these edges and the remaining hardware/dynamic reachability questions.
