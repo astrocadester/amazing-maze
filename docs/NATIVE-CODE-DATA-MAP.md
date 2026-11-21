@@ -85,6 +85,25 @@ ROM_CHECKSUM_FAILURE_GLYPHS:          ; $0125-$0128
 
 Original nonzero command $01–$11 indexes the vector table; the handlers return to the native execution continuation. Command $00 follows the distinct event path. The [word dictionary](8080-WORD-SEMANTICS.md) documents each vector and its original packet width.
 
+## Conservative native control-flow reachability
+
+A source-address control-flow walk used reset `$0000`, restart slots `$0008/$0010`, interpreter roots `$0392/$03AA/$03CA/$03D4`, and the 17 handler targets in `NATIVE_COMMAND_VECTORS`. It follows direct conditional/unconditional JP and CALL edges, includes a possible fallthrough after CALL and conditional RET, and records computed jumps separately.
+
+| Static control-flow metric | Result |
+| --- | ---: |
+| Native 8080 instruction statements | **1,551** |
+| Native statements reached from the combined roots | **1,551** |
+| Unreached statements under the conservative walk | **0** |
+| Unresolved direct JP/CALL destinations | **0** |
+| Computed `JP (HL)` sites | **2** |
+
+The two indirect jumps have different source-visible contracts:
+
+- **`$03C9`**, interpreter dispatch: reads a 16-bit handler address from the original 17-entry `NATIVE_COMMAND_VECTORS` table, then `JP (HL)`.
+- **`$0902`**, native continuation: `ENTER_NATIVE_PROGRAM_STATE` uses `POP HL` to take an address from the native stack, resets registers and stack, waits in `WAIT_FOR_NATIVE_STATE_COUNTER`, restores `SP=$2400`, and transfers through `JP (HL)`. Trace its stack producer to establish the actual continuation targets.
+
+**Reachability interpretation:** this is a conservative static upper bound, because a CALL continuation is included even when the called code might not return and both sides of conditionals are allowed. It establishes that none of the current native instruction statements is an orphan under the chosen roots. It is not a runtime execution trace and does not prove entry into every path. The two computed targets and hardware vector use still require independent evidence.
+
 ## Indirect reachability still to establish
 
 | Address | Original byte(s) | Required evidence |
