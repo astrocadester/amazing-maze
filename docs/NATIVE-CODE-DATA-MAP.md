@@ -121,8 +121,7 @@ The reconstructed source has no **direct symbolic JP/CALL** to these inter-routi
 
 - **PASS, static:** Source address calculation reaches exactly `$1000` and all established data/handler anchor labels remain at their original ROM addresses.
 - **PASS, static:** Comparison against source commit `dd17820` confirms identical normalized native instruction/data entries (**2,980 entries; zero differences**) after names and comments were updated.
-- **Pending, native:** Repeat `./build.sh` on the current branch to confirm original ROM SHA-1 hashes after these changes.
-- **Previously user-verified:** Byte-exact native assembly and MAME launch before this classification pass.
+- **PASS, user-confirmed 2026-11-21:** The AM-RE-001 source builds and the rebuilt game runs in MAME. Exact per-device hash output for this run was not pasted; previous builds verified original SHA-1 matches.
 
 ## Task disposition
 
