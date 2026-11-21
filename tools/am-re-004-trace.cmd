@@ -11,7 +11,7 @@ bp 078b,++temp1<=64,{logerror "AM004 GEN_CHOOSE pc=%04X row=%02X col=%02X mask=%
 bp 0804,++temp2<=64,{logerror "AM004 GEN_WRITE pc=%04X row=%02X col=%02X mask=%02X value=%02X",pc,b,c,d,b@hl ; g}
 
 bp 03f1,1,{logerror "AM004 GEN_FINISH_TEST pc=%04X gen=%02X flags=%02X col=%02X row=%02X",pc,b@201c,b@201d,c,b ; g}
-bp 043d,1,{logerror "AM004 SHIFT_880 pc=%04X first=%02X endgrid=%02X extra0=%02X extraend=%02X",pc,b@2066,b@22d5,b@22d6,b@23d5 ; g}
+bp 043d,1,{logerror "AM004 SHIFT_624 pc=%04X first=%02X endgrid=%02X extra0=%02X extraend=%02X",pc,b@2066,b@22d5,b@22d6,b@23d5 ; g}
 
 bp 0a32,1,{logerror "AM004 MOVE_BEGIN pc=%04X col=%02X row=%02X dir=%02X sub=%02X%02X",pc,b@2042,b@2043,b@2044,b@2045,b@2046 ; g}
 bp 0abe,1,{logerror "AM004 MOVE_LEFT pc=%04X row=%02X col=%02X",pc,b,c ; g}
