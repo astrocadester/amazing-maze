@@ -10,7 +10,7 @@ catch (error) { console.error('Cannot read trace:', error.message); process.exit
 
 const names = [
   'GEN_BEGIN', 'SEED_COLUMN', 'GEN_CELL', 'GEN_CHOOSE',
-  'GEN_WRITE', 'GEN_FINISH_TEST', 'SHIFT_880',
+  'GEN_WRITE', 'GEN_FINISH_TEST', 'SHIFT_624',
   'MOVE_BEGIN', 'MOVE_LEFT', 'MOVE_UP', 'MOVE_RIGHT', 'MOVE_DOWN',
   'MOVE_COMMIT', 'SCORE_ENTRY', 'SCORE_INC', 'ROUND', 'END_STATE',
 ];
@@ -35,7 +35,7 @@ for (const [label, keys] of [
   ['Randomized starting column', ['SEED_COLUMN']],
   ['Candidate/selection/write path', ['GEN_CELL','GEN_CHOOSE','GEN_WRITE']],
   ['Generator completion check', ['GEN_FINISH_TEST']],
-  ['Original 624-cell shift entry', ['SHIFT_880']],
+  ['Original 624-cell shift entry', ['SHIFT_624']],
   ['Player movement check', ['MOVE_BEGIN']],
   ['Boundary/collision processing', ['MOVE_LEFT','MOVE_UP','MOVE_RIGHT','MOVE_DOWN']],
   ['Movement commit', ['MOVE_COMMIT']],
