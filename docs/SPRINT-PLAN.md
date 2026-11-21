@@ -25,9 +25,8 @@ Priorities are ranked within the current work program. Completed work above is o
 | Task | Priority | Scope and acceptance evidence |
 | --- | --- | --- |
 | AM-RE-001 | P1 | **Static classification complete:** the [4 KB native code/data ledger](NATIVE-CODE-DATA-MAP.md) now accounts for every ROM byte and names the original checksum tables and inter-routine spans. **Remaining:** verify indirect branch/interrupt reachability and indexed consumers of the explicitly inventoried bytes |
-| AM-RE-002 | P1 | Audit the 17 command handlers and interpreter continuation contract: registers, flags, stack, RAM side effects, read widths, caller/return behavior and branch semantics; add confirmed contracts to [command semantics](8080-WORD-SEMANTICS.md) |
 | AM-RE-003 | P1 | Trace the interrupt/frame path through `$0008`, `$030B`, exit at `$02FC`, event path `$03CA/$03D4`, and script-root transitions; establish frame and script cursor ownership |
-| AM-RE-004 | P1 | Recover maze generation, random-state seed, storage, traversability, boundary and collision checks, movement, score/round progression and player input from original native routines |
+| AM-RE-004 | P1 | **Combined with completed AM-RE-002:** [original interpreter and maze-generator audit](MAZE-GENERATION-AND-INTERPRETER.md) establishes the command-to-generator path, four-byte random state, $2066 cell layout, candidate direction mask, maze-cell marking and movement tests. **Remaining:** trace concrete generated mazes, check the 880-byte shift span beyond the 624-cell grid, and complete state/flag/score/round effects under controlled execution |
 | AM-RE-005 | P1 | Audit the graphics/display pipeline, all decoded bitmap/data consumers, and exact behavior of display commands `$03`, `$04`, `$07`, `$0A`, `$10`, `$11`; maintain a native routine index and RAM ownership ledger |
 | AM-RE-006 | P2 | Verify hardware decoding, possible mirrors, input/output ports, interrupt timing, monochrome raster mapping and device assignments against the MAME driver and original hardware documentation |
 | AM-RE-007 | P2 | Compare the original Gun Fight and Amazing Maze interpreter instructions, command operand records and return ABI at the machine-byte level; classify exact reuse, ABI compatibility, related implementations or independent code; evaluate a shared ancestor and contemporary DNA interpreter lineage |
@@ -41,6 +40,12 @@ Priorities are ranked within the current work program. Completed work above is o
 Native build equality, MAME launch, extended gameplay tests and physical hardware are independently reported. The user has confirmed byte-exact zmac builds and successful MAME execution; extended gameplay and Windows/hardware tests remain separate research tasks. Names in the reconstructed source describe established instruction behavior and are not represented as original DNA source spellings.
 
 Detailed supporting findings remain in [native RE](NATIVE-RE-PASS.md), [word semantics](8080-WORD-SEMANTICS.md), [graphics and maze](GRAPHICS-AND-MAZE-RE.md), [original ROM scan](ORIGINAL-ROM-RUNTIME-SCAN.md), and [Gun Fight comparison](GUNFIGHT-COMPARISON.md).
+
+## AM-RE-002 consolidation — 2026-11-21
+
+- [x] Previously completed: all 17 original native command addresses and inline packet widths; 190 decoded command records and aligned script branches; documented native cursor and basic handler contracts.
+- [x] Fold existing command-to-game and control-flow research into [AM-RE-004's native maze algorithm audit](MAZE-GENERATION-AND-INTERPRETER.md). Do not redo the structural interpreter work.
+- [ ] Continue game-specific handler state/flags with AM-RE-004, display semantics with AM-RE-005, scheduler/stack with AM-RE-003.
 
 ## AM-RE-001 progress — 2026-11-21
 
