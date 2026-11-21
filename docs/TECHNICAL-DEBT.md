@@ -66,3 +66,7 @@ The source-level RE of the generator, directions, movement, collision, score/rou
 User supplied a **real 624-byte generated-maze RAM dump** captured at native breakpoint `$043D` (pre-shift), along with the zmac `amazing-maze.lst`. Both files were inspected directly; the snapshot SHA-256 matches `a4f6f85ac9e60a7551de1c4de6fe1cce76fb9a1ca97a089c453889af52d52124`, and the listing agrees with the recorded original generator/shift addresses. Full cell contents, frequencies and evidence limits are preserved in [AM-RE-004-MAME-GRID-SNAPSHOT.md](AM-RE-004-MAME-GRID-SNAPSHOT.md).
 
 **One debugger capture: OBSERVED.** Exact G1/G2 routine order, maze completion, controlled movement/collision and scoring/round outcomes still require a debugger `error.log` and matched actual input observations. Do not close AM-RE-004 on the strength of the RAM snapshot alone.
+
+### AM-RE-004 observed original native debugger run — 2026-11-21
+
+The uploaded `error.log` has **4,359 AM004 events**, but MAME concatenated `logerror` output without newlines. The original Node parser counted lines, making its totals incorrect. It has been fixed to recognize event markers. The [native run evidence ledger](AM-RE-004-MAME-EXECUTION-LOG.md) records 21 generator/seed entries, 3,964 completion tests, one native pre-shift capture, 25 successive packed-BCD scoring entries/increments, and two end-state entries. **No movement/collision or $04DB round-transition hits** were recorded. These remain the only required AM-RE-004 dynamic gates; no missing events are invented.
