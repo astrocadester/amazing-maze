@@ -55,9 +55,9 @@ The data is consumed by the original renderer and related native routines, prese
 
 `CLEAR_MAZE_CELL_LOW_NIBBLES` at **$0403** visits **26 rows × 24 columns** starting at RAM **$2066**. It masks every cell with `$F0`, leaving the high nibble.
 
-`SHIFT_MAZE_CELLS_LEFT_FOUR` at **$043D** processes **$0370 bytes** beginning at RAM **$2066**. It shifts each byte left four bits, preserving its former low nibble as the new high nibble.
+`SHIFT_MAZE_CELLS_LEFT_FOUR` at **$043D** processes **624 bytes** beginning at RAM **$2066**. The initial BC register pair is `$0370`, but B and C are decremented separately: C initially counts 112 iterations, followed by two full 256-iteration passes before B reaches zero. It shifts each byte left four bits, preserving its former low nibble as the new high nibble.
 
-These are separate native operations over the original maze representation. Importantly, **26 × 24 = 624 bytes**, but **$0370 = 880 bytes**, so the second loop also processes 256 bytes beyond the displayed/cleared maze cells, ending at `$23D5`. This is an original native instruction count, not a typo to correct. The ownership of the trailing 256 bytes requires further audit. See [maze generation and interpreter](MAZE-GENERATION-AND-INTERPRETER.md) for the native random-state, direction-selection, and completion logic.
+Both native operations cover the **same 26 × 24 = 624-byte maze region**, `$2066–$22D5`. The apparent `$0370 = 880` discrepancy was a documentation error: the original code decrements C and B separately rather than decrementing BC as a 16-bit register. The actual iteration count is **112 + 256 + 256 = 624**. See [maze generation and interpreter](MAZE-GENERATION-AND-INTERPRETER.md) for native generation and movement. See [maze generation and interpreter](MAZE-GENERATION-AND-INTERPRETER.md) for the native random-state, direction-selection, and completion logic.
 
 ### Directional boundary checks ($0A32–$0B0F)
 
