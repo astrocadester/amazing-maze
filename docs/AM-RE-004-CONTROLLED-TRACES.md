@@ -19,9 +19,12 @@ node --test test/am-re-004-native-contracts.test.mjs
 ./build.sh
 mame maze -rompath roms -window -skip_gameinfo -debug -log -debugscript tools/am-re-004-trace.cmd
 node tools/analyze-am-re-004-trace.mjs error.log
+node tools/analyze-am-re-004-grid.mjs build/am-re-004-grid.bin
 ~~~
 
-The debugger script uses documented MAME breakpoint, logging, memory-expression and continuation commands. It writes AM004-prefixed events to the MAME error log, normally error.log. The first 64 visits for several high-frequency maze operations are captured to limit output volume. No RAM or CPU register mutation is performed. Preserve each error.log and the rebuilt ROM hashes together for comparison.
+The debugger script also saves the **actual native 624-byte maze RAM region** at the command-$06 shift entry to build/am-re-004-grid.bin. The grid analyzer reads the captured bytes, reports bit frequencies and lists all 26 original 24-cell rows. Neither tool generates cells or simulates maze gameplay.
+
+The debugger script uses documented MAME breakpoint, logging, memory-expression, binary save and continuation commands. It writes AM004-prefixed events to the MAME error log, normally error.log. The first 64 visits for several high-frequency maze operations are captured to limit output volume. No RAM or CPU register mutation is performed. Preserve each error.log and the rebuilt ROM hashes together for comparison.
 
 ## Seven controlled cases
 
