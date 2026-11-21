@@ -1096,7 +1096,10 @@ CLEAR_NEXT_GAME_STATE_BYTE:
         LD (HL),B
         RET
 ; $043D — SHIFT MAZE CELLS LEFT FOUR.
-; Iterates $0370 bytes from RAM $2066 and shifts each byte four bits left, preserving its former low nibble in the high nibble.
+; Original loop spans $0370 (880) bytes at $2066-$23D5. The drawn/cleared
+; maze is only $1A x $18 = 624 bytes ($2066-$22D5): this routine also
+; shifts 256 following bytes. Preserve the original bound and audit users.
+; Each byte is shifted four bits left, moving its low nibble to high.
 
 SHIFT_MAZE_CELLS_LEFT_FOUR:
         LD DE,$2066
@@ -1630,7 +1633,8 @@ MAZE_RANDOM_UPDATE_LOOP:
         JP NZ,MAZE_RANDOM_UPDATE_LOOP
         RET
 
-; Derive a bounded value and store it in game state
+; Choose the starting column from the native sampler (E=$18 = 24),
+; save it at $2025/$2040, then mark row zero at $2066 + C with bits $09.
 SELECT_MAZE_RANDOM_VALUE:
         LD E,$18
         CALL SAMPLE_RANDOM_RANGE
@@ -1646,7 +1650,9 @@ SELECT_MAZE_RANDOM_VALUE:
         LD (HL),A
         RET
 
-; Build direction flags from surrounding maze-cell boundaries.
+; Inspect four neighboring cells and form a candidate-direction mask in D:
+; $01 previous row, $02 next row, $04 previous column, $08 next column.
+; A neighbor must pass its array-edge check and cell bit-0 test.
 MAZE_INSPECT_NEIGHBOR_WALLS:
         LD D,$00
         LD A,B
@@ -1738,7 +1744,8 @@ COUNT_OPEN_DIRECTIONS_NEXT:
         JP NZ,COUNT_OPEN_DIRECTIONS_LOOP
         RET
 
-; Update the maze-generation counter at $201C
+; During generation, increment $201C only while $201D is zero;
+; the selection path below sets $2022 and consumes the D/E direction mask.
 ADVANCE_MAZE_GENERATION_COUNT:
         LD A,($201D)
         AND A
@@ -1746,7 +1753,8 @@ ADVANCE_MAZE_GENERATION_COUNT:
         LD HL,$201C
         INC (HL)
 
-; Select a direction value through the random-range routine
+; Set maze scan flag $2022, sample one of the E candidate directions,
+; then rotate the D mask to choose a native cell-update path.
 CHOOSE_MAZE_DIRECTION:
         LD A,$01
         LD ($2022),A
@@ -1832,7 +1840,8 @@ MARK_MAZE_NEXT_COLUMN:
         LD D,$01
         JP WRITE_MAZE_DIRECTION_BITS
 
-; Combine direction flags with the selected maze cell
+; Commit selected cell flags: old cell OR D OR ([$201D] XOR $08).
+; The $201D term changes which bit is set in the special generator state.
 WRITE_MAZE_DIRECTION_BITS:
         LD A,($201D)
         XOR $08
@@ -2051,7 +2060,8 @@ RANDOM_RANGE_RETURN:
         POP BC
         RET
 
-; Load the byte at $2004 and mix its bits for the next sample.
+; Original four-byte random-state update uses $2004-$2007 for eight
+; rotate/XOR/carry rounds. The exact generator family is not established.
 READ_GAME_RANDOM_STATE:
         PUSH HL
         PUSH BC
