@@ -74,3 +74,9 @@ At $04DB the code decrements [$2029] and chooses another round-display update or
 - NOT YET RECORDED — actual G1–G3, M1–M2, S1–S2 original MAME debugger observations and their outcome comparisons.
 
 **Disposition: AM-RE-004 source analysis complete; controlled runtime evidence outstanding.** No fabricated trace logs or game outcomes are claimed.
+
+## Captured G3 entry evidence — 2026-11-21
+
+The user ran the debugger capture and supplied `am-re-004-grid.bin` and the native zmac `amazing-maze.lst`. Independent inspection verified a **624-byte original RAM dump** with matching SHA-256 and all 26×24 original cell values. See [exact captured RAM state](AM-RE-004-MAME-GRID-SNAPSHOT.md). This confirms the pre-shift **G3 breakpoint and RAM snapshot were reached**; it is not a post-shift trace or proof of full generation completion.
+
+Pending: MAME `error.log` containing original G1/G2, M1/M2 and S1/S2 routine events. Without that log, actual controlled movement, wall interactions and BCD score/round changes remain unverified.
