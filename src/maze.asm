@@ -33,6 +33,8 @@ INTERRUPT_ENTRY:
         PUSH DE
         PUSH HL
         JP FRAME_SERVICE
+; Single byte between the two original interrupt vector entry paths ($000F).
+INTERRUPT_VECTOR_GAP:
         DB $00
         PUSH AF
         PUSH BC
@@ -226,12 +228,12 @@ ACCUMULATE_ROM_CHECKSUM:
         LD A,B
         JP NZ,ACCUMULATE_ROM_CHECKSUM
         PUSH HL
-        LD HL,$0120
+        LD HL,ROM_CHECKSUM_EXPECTED_BYTES
         ADD HL,DE
         CP (HL)
         LD A,$40
         JP Z,STORE_ROM_CHECK_RESULT
-        LD HL,$0125
+        LD HL,ROM_CHECKSUM_FAILURE_GLYPHS
         ADD HL,DE
         LD A,(HL)
 ; Stores the current checksum test result in RAM $2036 + page index.
@@ -267,7 +269,20 @@ STORE_ROM_CHECK_RESULT:
 DIAG_ROM_FAILURE_LOOP:
         OUT ($02),A
         JP DIAG_ROM_FAILURE_LOOP
-        DB $00,$A1,$C1,$EE,$58,$48,$48,$47,$47
+
+; Four page-check comparison bytes, indexed by DE = 0..3 in
+; ACCUMULATE_ROM_CHECKSUM. Table access uses ROM $0120 + DE.
+ROM_CHECKSUM_EXPECTED_BYTES:
+        DB $00,$A1,$C1,$EE
+
+; Original intervening byte at $0124. Its consumer is not yet identified.
+ROM_CHECKSUM_INTERVENING_BYTE:
+        DB $58
+
+; Four diagnostic display glyph codes, read from ROM $0125 + DE
+; when a page checksum differs from its comparison byte.
+ROM_CHECKSUM_FAILURE_GLYPHS:
+        DB $48,$48,$47,$47
 ; Original native text/glyph rendering entry at $0129.
 ; Entry HL -> encoded text, DE -> framebuffer destination, A = item count.
 ; Glyph bytes write at +$20 bitmap stride for ten rows; stream bytes
@@ -984,6 +999,10 @@ ZERO_COMMAND:
         AND A
         CALL Z,ZERO_COMMAND_EVENT
         RET
+
+; Two original bytes between command-zero return and its event subroutine.
+; There is no direct JP/CALL target into this span in the source.
+ZERO_COMMAND_ENTRY_GAP:
         DB $00,$00
 
 ; Clear selected maze state and reset the event counter.
@@ -1036,6 +1055,10 @@ CLEAR_MAZE_CELL_NIBBLE:
         DEC B
         JP NZ,CLEAR_NEXT_MAZE_ROW_NIBBLES
         RET
+
+; Original $C9 (8080 RET) byte immediately before command $06 at $0419.
+; Retained as a byte until its possible indirect-entry use is traced.
+MAZE_FIELD_EXTRA_RET_BYTE:
         DB $C9
 
 ; Initialize maze and game RAM fields used by the command stream.
@@ -1790,6 +1813,9 @@ MARK_MAZE_PREVIOUS_COLUMN:
         CALL MAZE_CELL_ADDRESS
         LD D,$03
         JP WRITE_MAZE_DIRECTION_BITS
+
+; Two original bytes separating the neighboring maze-direction routines.
+MAZE_DIRECTION_ENTRY_GAP:
         DB $00,$00
 
 ; Address the current and next columns and update wall state
@@ -2642,6 +2668,9 @@ CMD_10_PROCESS_INLINE_RECORD:
         CALL NORMALIZE_DISPLAY_GLYPH_SPACE
         LD A,$02
         JP DRAW_TEXT_GLYPH_STREAM
+
+; Two original bytes before the 17-word native command dispatch table.
+COMMAND_VECTOR_ENTRY_GAP:
         DB $00,$00
 
 ; Game commands $01–$11 dispatch through these original native addresses.
