@@ -6,20 +6,6 @@ Amazing Maze is a 1976 arcade maze game developed by Dave Nutting Associates (DN
 
 The original program occupies 4 KB of ROM across two 2 KB devices. A native Intel 8080 interpreter reads one-byte game commands from a script stream, selects their corresponding routine addresses from a 17-entry table, and transfers execution to the game handlers.
 
-## Project layout
-
-| Path | Contents |
-| --- | --- |
-| `src/maze.asm` | Intel 8080 assembly reconstruction, game routines, interpreter, graphics and command scripts |
-| `roms/original/maze.zip` | Original arcade ROM reference archive |
-| `build.sh`, `build.bat` | Linux and Windows assembly, ROM verification and packaging |
-| `tools/zmac`, `tools/zmac.exe` | Bundled zmac v1.3 assemblers |
-| `tools/scan-runtime.mjs` | Original ROM identity and interpreter inspection |
-| `build/` | Generated assembly image, listing and ROM devices |
-| `roms/maze.zip` | Assembled MAME ROM set |
-| `docs/` | Native routine, game command, graphics and memory research |
-| `images/` | Arcade artwork and memory-map SVG |
-
 ## Build
 
 Linux:
@@ -33,8 +19,6 @@ Windows:
 ```bat
 build.bat
 ```
-
-The build assembles `src/maze.asm` with zmac v1.3, produces a 4 KB program image, splits it into `maze.h` and `maze.g`, verifies each device against the original SHA-1, and packages `roms/maze.zip`.
 
 Run the assembled game in MAME:
 
@@ -50,8 +34,6 @@ mame maze -rompath roms -window -skip_gameinfo
 | `maze.g` | `$0800–$0FFF` | 2 KB | `893f0a7621e7df19f777be991faff0db4a9ad571` |
 
 ![Amazing Maze Intel 8080 memory map](images/amazing-maze-memory-map.svg)
-
-The lower 4 KB contains the program ROM. The board uses 1 KB of working RAM at `$2000–$23FF` and 7 KB of bitmap video RAM at `$2400–$3FFF`. [Memory-map details](docs/memory-map.md) identify the original ROM devices and key routines.
 
 ## Architecture
 
@@ -70,11 +52,11 @@ Amazing Maze combines native Intel 8080 routines with an interpreted game-comman
 
 ### Game-command interpreter
 
-Commands `$01–$11` index 17 native handlers. The dispatcher subtracts one from the command, checks its range, doubles the resulting index to select a two-byte address, and branches to the handler using `PCHL`. Command `$00` enters the scheduler/control path at `$03CA`.
+Commands `$01–$11` index 17 native handlers. 
 
-The original handler table includes game-state updates, script-pointer changes, conditional execution and drawing services. The command `$0B` handler at `$0B7B`, for example, reads an inline 16-bit address and updates the script cursor at `$2000`.
+The dispatcher subtracts one from the command, checks its range, doubles the resulting index to select a two-byte address, and branches to the handler using `PCHL`. Command `$00` enters the scheduler/control path at `$03CA`.
 
-See [8080 word semantics](docs/8080-WORD-SEMANTICS.md), [original ROM command vectors](docs/ORIGINAL-ROM-RUNTIME-SCAN.md), and [native program analysis](docs/NATIVE-RE-PASS.md).
+![Amazing Maze interpreter](images/interpreter-amazing-maze.svg)
 
 ## Maze engine and game state
 
@@ -96,17 +78,6 @@ The text renderer at `$0129` draws characters into video RAM using ten-row glyph
 
 Encoded game text begins at `$0C10`; additional indicator graphics begin at `$0D33`. The assembly presents font bitmaps with inline pixel patterns and keeps encoded messages in their original ROM order.
 
-[Graphics and maze analysis](docs/GRAPHICS-AND-MAZE-RE.md)
-
 ## Sound and timing
 
 Native interrupt and frame-service routines maintain game timers and coordinate hardware output. The periodic service at `$0341` updates work-RAM counters; the routine at `$0369` processes adjacent countdown bytes and reports expiry information to its caller.
-
-## References
-
-- [Original ROM runtime and interpreter](docs/ORIGINAL-ROM-RUNTIME-SCAN.md)
-- [8080 game-command semantics](docs/8080-WORD-SEMANTICS.md)
-- [Native execution analysis](docs/NATIVE-RE-PASS.md)
-- [Graphics and maze routines](docs/GRAPHICS-AND-MAZE-RE.md)
-- [Memory map](docs/memory-map.md)
-- [MAME Midway Intel 8080 hardware driver](https://github.com/mamedev/mame/blob/master/src/mame/midway/8080bw.cpp)

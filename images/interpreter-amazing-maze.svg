@@ -1,0 +1,117 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1590" height="900" viewBox="0 0 1590 900" role="img" aria-labelledby="title desc">
+  <title id="title">Amazing Maze — indexed 8080 interpreter</title>
+  <desc id="desc">Amazing Maze original maze setup command sequence, fetch and dispatch loop, and the special $00 event plus 17 native command routines.</desc>
+  <defs>
+    <linearGradient id="top" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#dce9ff"/>
+      <stop offset="1" stop-color="#b0cafa"/>
+    </linearGradient>
+    <marker id="arrowBlue" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="strokeWidth">
+      <path d="M0 0 L7 4 L0 8 Z" fill="#1246e4"/>
+    </marker>
+    <marker id="arrowDark" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="strokeWidth">
+      <path d="M0 0 L7 4 L0 8 Z" fill="#152434"/>
+    </marker>
+  </defs>
+  <rect x="22" y="214" width="383" height="456" rx="22" fill="#fff" stroke="#204ceb" stroke-width="3"/>
+  <path d="M24 286 V236 Q24 216 44 216 H383 Q403 216 403 236 V286Z" fill="url(#top)"/>
+  <path d="M22 286 H405" fill="none" stroke="#204ceb" stroke-width="2"/>
+  <text x="213.5" y="260" fill="#0d182a" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="700" font-size="30">Command Stream</text>
+  <text x="46" y="319" fill="#0d182a" text-anchor="start" font-family="Arial,Helvetica,sans-serif" font-weight="700" font-size="23">$02</text>
+  <text x="133" y="319" fill="#0d182a" text-anchor="start" font-family="Arial,Helvetica,sans-serif" font-weight="400" font-size="21">Enter game mode</text>
+  <path d="M22 334 H405" fill="none" stroke="#2453e8" stroke-width="1.4"/>
+  <text x="46" y="367" fill="#0d182a" text-anchor="start" font-family="Arial,Helvetica,sans-serif" font-weight="700" font-size="23">$06</text>
+  <text x="133" y="367" fill="#0d182a" text-anchor="start" font-family="Arial,Helvetica,sans-serif" font-weight="400" font-size="21">Initialize maze fields</text>
+  <path d="M22 382 H405" fill="none" stroke="#2453e8" stroke-width="1.4"/>
+  <text x="46" y="415" fill="#0d182a" text-anchor="start" font-family="Arial,Helvetica,sans-serif" font-weight="700" font-size="23">$03</text>
+  <text x="133" y="415" fill="#0d182a" text-anchor="start" font-family="Arial,Helvetica,sans-serif" font-weight="400" font-size="21">Draw maze playfield</text>
+  <path d="M22 430 H405" fill="none" stroke="#2453e8" stroke-width="1.4"/>
+  <text x="46" y="463" fill="#0d182a" text-anchor="start" font-family="Arial,Helvetica,sans-serif" font-weight="700" font-size="23">$08</text>
+  <text x="133" y="463" fill="#0d182a" text-anchor="start" font-family="Arial,Helvetica,sans-serif" font-weight="400" font-size="21">Set timer $F0</text>
+  <path d="M22 478 H405" fill="none" stroke="#2453e8" stroke-width="1.4"/>
+  <text x="46" y="511" fill="#0d182a" text-anchor="start" font-family="Arial,Helvetica,sans-serif" font-weight="700" font-size="23">$00</text>
+  <text x="133" y="511" fill="#0d182a" text-anchor="start" font-family="Arial,Helvetica,sans-serif" font-weight="400" font-size="21">Generate maze / event</text>
+  <path d="M22 526 H405" fill="none" stroke="#2453e8" stroke-width="1.4"/>
+  <text x="46" y="559" fill="#0d182a" text-anchor="start" font-family="Arial,Helvetica,sans-serif" font-weight="700" font-size="23">$0A</text>
+  <text x="133" y="559" fill="#0d182a" text-anchor="start" font-family="Arial,Helvetica,sans-serif" font-weight="400" font-size="21">Render maze cells</text>
+  <path d="M22 574 H405" fill="none" stroke="#2453e8" stroke-width="1.4"/>
+  <text x="46" y="607" fill="#0d182a" text-anchor="start" font-family="Arial,Helvetica,sans-serif" font-weight="700" font-size="23">$09</text>
+  <text x="133" y="607" fill="#0d182a" text-anchor="start" font-family="Arial,Helvetica,sans-serif" font-weight="400" font-size="21">Set count / pointer</text>
+  <path d="M22 622 H405" fill="none" stroke="#2453e8" stroke-width="1.4"/>
+  <text x="46" y="655" fill="#0d182a" text-anchor="start" font-family="Arial,Helvetica,sans-serif" font-weight="700" font-size="23">$00</text>
+  <text x="133" y="655" fill="#0d182a" text-anchor="start" font-family="Arial,Helvetica,sans-serif" font-weight="400" font-size="21">Run event service</text>
+  <rect x="1165" y="65" width="403" height="775" rx="19" fill="white" stroke="#204ceb" stroke-width="3"/>
+  <path d="M1167 126 V84 Q1167 67 1184 67 H1549 Q1566 67 1566 84 V126Z" fill="url(#top)"/>
+  <path d="M1165 126 H1568" fill="none" stroke="#204ceb" stroke-width="2"/>
+  <path d="M1285 65 V840" fill="none" stroke="#204ceb" stroke-width="1.4"/>
+  <text x="1225" y="106" fill="#0d182a" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="700" font-size="28">Word</text>
+  <text x="1426" y="106" fill="#0d182a" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="700" font-size="28">Routine</text>
+  <text x="1225" y="156" fill="#0d182a" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="700" font-size="19">$00</text>
+  <text x="1304" y="156" fill="#0d182a" text-anchor="start" font-family="Arial,Helvetica,sans-serif" font-weight="400" font-size="19">Maze event / generate</text>
+  <path d="M1165 166 H1568" fill="none" stroke="#2453e8" stroke-width="1.2"/>
+  <text x="1225" y="194" fill="#0d182a" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="700" font-size="19">$01</text>
+  <text x="1304" y="194" fill="#0d182a" text-anchor="start" font-family="Arial,Helvetica,sans-serif" font-weight="400" font-size="19">Return</text>
+  <path d="M1165 204 H1568" fill="none" stroke="#2453e8" stroke-width="1.2"/>
+  <text x="1225" y="232" fill="#0d182a" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="700" font-size="19">$02</text>
+  <text x="1304" y="232" fill="#0d182a" text-anchor="start" font-family="Arial,Helvetica,sans-serif" font-weight="400" font-size="19">Set execution mode</text>
+  <path d="M1165 242 H1568" fill="none" stroke="#2453e8" stroke-width="1.2"/>
+  <text x="1225" y="270" fill="#0d182a" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="700" font-size="19">$03</text>
+  <text x="1304" y="270" fill="#0d182a" text-anchor="start" font-family="Arial,Helvetica,sans-serif" font-weight="400" font-size="19">Draw maze playfield</text>
+  <path d="M1165 280 H1568" fill="none" stroke="#2453e8" stroke-width="1.2"/>
+  <text x="1225" y="308" fill="#0d182a" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="700" font-size="19">$04</text>
+  <text x="1304" y="308" fill="#0d182a" text-anchor="start" font-family="Arial,Helvetica,sans-serif" font-weight="400" font-size="19">Write display data</text>
+  <path d="M1165 318 H1568" fill="none" stroke="#2453e8" stroke-width="1.2"/>
+  <text x="1225" y="346" fill="#0d182a" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="700" font-size="19">$05</text>
+  <text x="1304" y="346" fill="#0d182a" text-anchor="start" font-family="Arial,Helvetica,sans-serif" font-weight="400" font-size="19">Read player input</text>
+  <path d="M1165 356 H1568" fill="none" stroke="#2453e8" stroke-width="1.2"/>
+  <text x="1225" y="384" fill="#0d182a" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="700" font-size="19">$06</text>
+  <text x="1304" y="384" fill="#0d182a" text-anchor="start" font-family="Arial,Helvetica,sans-serif" font-weight="400" font-size="19">Initialize game fields</text>
+  <path d="M1165 394 H1568" fill="none" stroke="#2453e8" stroke-width="1.2"/>
+  <text x="1225" y="422" fill="#0d182a" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="700" font-size="19">$07</text>
+  <text x="1304" y="422" fill="#0d182a" text-anchor="start" font-family="Arial,Helvetica,sans-serif" font-weight="400" font-size="19">Draw text</text>
+  <path d="M1165 432 H1568" fill="none" stroke="#2453e8" stroke-width="1.2"/>
+  <text x="1225" y="460" fill="#0d182a" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="700" font-size="19">$08</text>
+  <text x="1304" y="460" fill="#0d182a" text-anchor="start" font-family="Arial,Helvetica,sans-serif" font-weight="400" font-size="19">Set counter $200C</text>
+  <path d="M1165 470 H1568" fill="none" stroke="#2453e8" stroke-width="1.2"/>
+  <text x="1225" y="498" fill="#0d182a" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="700" font-size="19">$09</text>
+  <text x="1304" y="498" fill="#0d182a" text-anchor="start" font-family="Arial,Helvetica,sans-serif" font-weight="400" font-size="19">Set counter / pointer</text>
+  <path d="M1165 508 H1568" fill="none" stroke="#2453e8" stroke-width="1.2"/>
+  <text x="1225" y="536" fill="#0d182a" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="700" font-size="19">$0A</text>
+  <text x="1304" y="536" fill="#0d182a" text-anchor="start" font-family="Arial,Helvetica,sans-serif" font-weight="400" font-size="19">Draw maze cells</text>
+  <path d="M1165 546 H1568" fill="none" stroke="#2453e8" stroke-width="1.2"/>
+  <text x="1225" y="574" fill="#0d182a" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="700" font-size="19">$0B</text>
+  <text x="1304" y="574" fill="#0d182a" text-anchor="start" font-family="Arial,Helvetica,sans-serif" font-weight="400" font-size="19">Goto script</text>
+  <path d="M1165 584 H1568" fill="none" stroke="#2453e8" stroke-width="1.2"/>
+  <text x="1225" y="612" fill="#0d182a" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="700" font-size="19">$0C</text>
+  <text x="1304" y="612" fill="#0d182a" text-anchor="start" font-family="Arial,Helvetica,sans-serif" font-weight="400" font-size="19">Store immediate byte</text>
+  <path d="M1165 622 H1568" fill="none" stroke="#2453e8" stroke-width="1.2"/>
+  <text x="1225" y="650" fill="#0d182a" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="700" font-size="19">$0D</text>
+  <text x="1304" y="650" fill="#0d182a" text-anchor="start" font-family="Arial,Helvetica,sans-serif" font-weight="400" font-size="19">Conditional decrement</text>
+  <path d="M1165 660 H1568" fill="none" stroke="#2453e8" stroke-width="1.2"/>
+  <text x="1225" y="688" fill="#0d182a" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="700" font-size="19">$0E</text>
+  <text x="1304" y="688" fill="#0d182a" text-anchor="start" font-family="Arial,Helvetica,sans-serif" font-weight="400" font-size="19">Branch if zero</text>
+  <path d="M1165 698 H1568" fill="none" stroke="#2453e8" stroke-width="1.2"/>
+  <text x="1225" y="726" fill="#0d182a" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="700" font-size="19">$0F</text>
+  <text x="1304" y="726" fill="#0d182a" text-anchor="start" font-family="Arial,Helvetica,sans-serif" font-weight="400" font-size="19">Branch if nonzero</text>
+  <path d="M1165 736 H1568" fill="none" stroke="#2453e8" stroke-width="1.2"/>
+  <text x="1225" y="764" fill="#0d182a" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="700" font-size="19">$10</text>
+  <text x="1304" y="764" fill="#0d182a" text-anchor="start" font-family="Arial,Helvetica,sans-serif" font-weight="400" font-size="19">Format / draw value</text>
+  <path d="M1165 774 H1568" fill="none" stroke="#2453e8" stroke-width="1.2"/>
+  <text x="1225" y="802" fill="#0d182a" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="700" font-size="19">$11</text>
+  <text x="1304" y="802" fill="#0d182a" text-anchor="start" font-family="Arial,Helvetica,sans-serif" font-weight="400" font-size="19">Update end state</text>
+  <rect x="456" y="182" width="565" height="92" rx="23" fill="url(#top)" stroke="#204ceb" stroke-width="3"/>
+  <text x="738.5" y="241" fill="#0d182a" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="700" font-size="32">Fetch Next Command</text>
+  <rect x="456" y="328" width="565" height="92" rx="23" fill="url(#top)" stroke="#204ceb" stroke-width="3"/>
+  <text x="738.5" y="387" fill="#0d182a" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="700" font-size="32">Decode / Dispatch</text>
+  <rect x="456" y="474" width="565" height="92" rx="23" fill="url(#top)" stroke="#204ceb" stroke-width="3"/>
+  <text x="738.5" y="533" fill="#0d182a" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="700" font-size="32">Execute 8080 Routine</text>
+  <rect x="456" y="620" width="565" height="92" rx="23" fill="url(#top)" stroke="#204ceb" stroke-width="3"/>
+  <text x="738.5" y="679" fill="#0d182a" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="700" font-size="32">Next Command</text>
+  <path d="M405 228 H448" fill="none" stroke="#1246e4" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrowBlue)"/>
+  <path d="M738.5 278 V319" fill="none" stroke="#152434" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrowDark)"/>
+  <path d="M738.5 424 V465" fill="none" stroke="#152434" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrowDark)"/>
+  <path d="M738.5 570 V611" fill="none" stroke="#152434" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrowDark)"/>
+  <path d="M1023 666 H1083 V228 H1032" fill="none" stroke="#1246e4" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrowBlue)"/>
+  <path d="M1023 374 H1154" fill="none" stroke="#1246e4" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrowBlue)"/>
+</svg>

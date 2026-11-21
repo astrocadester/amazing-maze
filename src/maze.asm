@@ -33,6 +33,7 @@ INTERRUPT_ENTRY:
         PUSH DE
         PUSH HL
         JP FRAME_SERVICE
+
 ; $000F aligns the next original 8080 restart vector to $0010.
 RST_08_VECTOR_FILL:
         DB $00
@@ -45,8 +46,8 @@ RST_10_ENTRY:
         PUSH DE
         PUSH HL
         JP INITIALIZE_FRAME_STATE
-; Read input port 1; carry controls transition into initial script setup.
 
+; Read input port 1; carry controls transition into initial script setup.
 ; Startup diagnostics, ROM checksums and program initialization.
 RESET_START:
         IN A,($01)
@@ -203,25 +204,25 @@ DIAG_ERROR_WRITE_PIXEL:
         JP NZ,DIAG_ERROR_DISPLAY_PIXEL
         DEC B
         JP NZ,DIAG_ERROR_DISPLAY_ROW
-; Repeatedly writes to hardware output port $02.
 
+; Repeatedly writes to hardware output port $02.
 SERVICE_HALTED_OUTPUT_LOOP:
         OUT ($02),A
         JP SERVICE_HALTED_OUTPUT_LOOP
-; Computes checksums over original ROM pages, stores result/display codes in RAM $2036 onward.
 
+; Computes checksums over original ROM pages, stores result/display codes in RAM $2036 onward.
 ; Original ROM checksum routine and diagnostic output.
 CHECK_ROM_PAGE_SUMS:
         LD SP,$2400
         LD HL,$0000
         LD DE,$0000
         LD C,$04
-; Starts the next native ROM-page checksum loop.
 
+; Starts the next native ROM-page checksum loop.
 BEGIN_ROM_CHECKSUM_PAGE:
         XOR A
-; Sums ROM bytes until the page boundary; feeds native ROM checksum comparisons.
 
+; Sums ROM bytes until the page boundary; feeds native ROM checksum comparisons.
 ACCUMULATE_ROM_CHECKSUM:
         OUT ($02),A
         ADD A,(HL)
@@ -240,8 +241,8 @@ ACCUMULATE_ROM_CHECKSUM:
         LD HL,ROM_CHECKSUM_FAILURE_GLYPHS
         ADD HL,DE
         LD A,(HL)
-; Stores the current checksum test result in RAM $2036 + page index.
 
+; Stores the current checksum test result in RAM $2036 + page index.
 STORE_ROM_CHECK_RESULT:
         LD HL,$2036
         ADD HL,DE
@@ -287,6 +288,7 @@ ROM_CHECKSUM_INTERVENING_BYTE:
 ; when a page checksum differs from its comparison byte.
 ROM_CHECKSUM_FAILURE_GLYPHS:
         DB $48,$48,$47,$47
+
 ; Original native text/glyph rendering entry at $0129.
 ; Entry HL -> encoded text, DE -> framebuffer destination, A = item count.
 ; Glyph bytes write at +$20 bitmap stride for ten rows; stream bytes
@@ -302,8 +304,8 @@ TEXT_FETCH_NEXT_CODE:
         SUB $30
         JP P,TEXT_DECODE_FONT_INDEX
         LD B,A
-; Advances the framebuffer destination for text-position control codes.
 
+; Advances the framebuffer destination for text-position control codes.
 ADVANCE_ENCODED_TEXT_POSITION:
         INC DE
         LD A,E
@@ -326,13 +328,13 @@ TEXT_DECODE_FONT_INDEX:
         CP $0B
         JP M,SELECT_FONT_GLYPH
         SUB $06
-; Converts glyph index into ten-byte ROM font offset.
 
+; Converts glyph index into ten-byte ROM font offset.
 SELECT_FONT_GLYPH:
         LD HL,$0166
         LD BC,$000A
-; Steps ten bytes per font index.
 
+; Steps ten bytes per font index.
 ADVANCE_FONT_TO_GLYPH:
         ADD HL,BC
         DEC A
@@ -340,8 +342,8 @@ ADVANCE_FONT_TO_GLYPH:
         EX DE,HL
         LD BC,$0020
         LD A,$0A
-; Copies a byte from selected glyph into framebuffer and advances destination by 32 bytes.
 
+; Copies a byte from selected glyph into framebuffer and advances destination by 32 bytes.
 WRITE_NEXT_GLYPH_ROW:
         PUSH AF
         LD A,(DE)
@@ -358,6 +360,7 @@ WRITE_NEXT_GLYPH_ROW:
         DEC A
         JP NZ,DRAW_TEXT_GLYPH_STREAM
         RET
+
 ; Original 37 glyphs: ten numeric glyphs, space and 26 uppercase letters.
 ; Each glyph is ten vertical rows, eight pixels per byte.
 ; Native drawing routine $0129 writes each row with a $20-byte screen stride.
@@ -859,8 +862,8 @@ INITIALIZE_FRAME_STATE:
         CALL SERVICE_GAME_STATE_COUNTER
         CALL READ_STABLE_PORT0_INPUT
         CALL UPDATE_MAZE_STATE_IF_IDLE
-; Restores HL, DE, BC, AF, enables interrupts, then returns.
 
+; Restores HL, DE, BC, AF, enables interrupts, then returns.
 RESTORE_INTERRUPT_REGISTERS:
         POP HL
         POP DE
@@ -868,9 +871,9 @@ RESTORE_INTERRUPT_REGISTERS:
         POP AF
         EI
         RET
+
 ; $0302 — CHECK FRAME MODE OR INTERRUPT EXIT.
 ; Compares incoming A against RAM $202F; matching mode pops the caller and branches to common interrupt exit $02FC.
-
 CHECK_FRAME_MODE_OR_INTERRUPT_EXIT:
         LD HL,$202F
         CP (HL)
@@ -899,8 +902,8 @@ FRAME_SERVICE:
         JP NZ,RESTORE_INTERRUPT_REGISTERS
         LD (HL),$00
         CALL UPDATE_MAZE_MOVEMENT
-; Loads $2044 and calls native update at $0962 before interrupt exit.
 
+; Loads $2044 and calls native update at $0962 before interrupt exit.
 UPDATE_FRAME_POSITION_STATE:
         LD HL,$2044
         CALL TEST_SIGNED_STATE_AND_COPY_POINTER
@@ -919,8 +922,8 @@ PERIODIC_TIMER_SERVICE:
         LD (HL),$3C
         LD HL,$200B
         CALL TIMER_DECREMENT
-; Completes the timer-event path and stores the accumulated status.
 
+; Completes the timer-event path and stores the accumulated status.
 RECORD_TIMER_EVENT_BITS:
         LD HL,$200C
         CALL TIMER_DECREMENT
@@ -939,8 +942,8 @@ TIMER_DECREMENT:
         DEC (HL)
         JP NZ,FINISH_TIMER_BYTE_TEST
         SCF
-; Returns after advancing the periodic countdown and carry-driven event mask.
 
+; Returns after advancing the periodic countdown and carry-driven event mask.
 FINISH_TIMER_BYTE_TEST:
         LD A,B
         RLA
@@ -1026,8 +1029,8 @@ RUN_ZERO_COMMAND_MAZE_EVENTS:
         JP Z,TEST_MAZE_EVENT_COMPLETION
         CALL ADVANCE_MAZE_GENERATION_COUNT
         JP RUN_ZERO_COMMAND_MAZE_EVENTS
-; Checks $201D and invokes $080D; increments $201F when the event is complete.
 
+; Checks $201D and invokes $080D; increments $201F when the event is complete.
 TEST_MAZE_EVENT_COMPLETION:
         LD A,($201D)
         AND A
@@ -1037,18 +1040,18 @@ TEST_MAZE_EVENT_COMPLETION:
         INC A
         LD ($201F),A
         RET
+
 ; $0403 — CLEAR MAZE CELL LOW NIBBLES.
 ; Iterates 26 x 24 bytes from RAM $2066, preserving each byte's high nibble with AND $F0.
-
 CLEAR_MAZE_CELL_LOW_NIBBLES:
         LD DE,$2066
         LD B,$1A
-; Sets inner counter C=$18 for the next one of $1A rows.
 
+; Sets inner counter C=$18 for the next one of $1A rows.
 CLEAR_NEXT_MAZE_ROW_NIBBLES:
         LD C,$18
-; Preserves each cell's high nibble with AND $F0 across the maze cell region.
 
+; Preserves each cell's high nibble with AND $F0 across the maze cell region.
 CLEAR_MAZE_CELL_NIBBLE:
         LD A,(DE)
         AND $F0
@@ -1071,8 +1074,8 @@ CMD_06_INIT_GAME_FIELDS:
         XOR A
         LD HL,$2015
         LD B,$0D
-; Writes zero to each of the thirteen RAM bytes starting at $2015.
 
+; Writes zero to each of the thirteen RAM bytes starting at $2015.
 CLEAR_NEXT_GAME_STATE_BYTE:
         LD (HL),A
         INC HL
@@ -1095,17 +1098,17 @@ CLEAR_NEXT_GAME_STATE_BYTE:
         INC HL
         LD (HL),B
         RET
+
 ; $043D — SHIFT MAZE CELLS LEFT FOUR.
 ; BC=$0370 is NOT a 16-bit byte count here. The original loop decrements
 ; C first and B only when C reaches zero: 112 + 256 + 256 = 624 bytes,
 ; exactly the 26 x 24 maze cells at $2066-$22D5. Each byte is shifted
 ; four bits left, moving its low nibble into the high nibble.
-
 SHIFT_MAZE_CELLS_LEFT_FOUR:
         LD DE,$2066
         LD BC,$0370
-; Shift maze cell byte left by four bits and advance to the next maze cell.
 
+; Shift maze cell byte left by four bits and advance to the next maze cell.
 SHIFT_NEXT_MAZE_CELL_NIBBLE:
         LD A,(DE)
         ADD A,A
@@ -1170,8 +1173,8 @@ INCREMENT_PACKED_DECIMAL_STATE:
         JP M,CMD_0A_GAME_CONTROL
         LD (HL),A
         JP CMD_0A_GAME_CONTROL
-; Reads input port $00 twice and returns when readings disagree; otherwise updates state fields.
 
+; Reads input port $00 twice and returns when readings disagree; otherwise updates state fields.
 READ_STABLE_PORT0_INPUT:
         IN A,($00)
         LD B,A
@@ -1189,8 +1192,8 @@ READ_STABLE_PORT0_INPUT:
         RRCA
         RRCA
         LD DE,$2044
-; Stores the lower four input bits in the supplied state byte while retaining its upper four bits.
 
+; Stores the lower four input bits in the supplied state byte while retaining its upper four bits.
 MERGE_INPUT_LOW_NIBBLE:
         AND $0F
         LD C,A
@@ -1202,8 +1205,8 @@ MERGE_INPUT_LOW_NIBBLE:
 ; Return to the interpreter continuation on the 8080 stack.
 CMD_01_RETURN_SCRIPT:
         RET
-; Tests state byte at $2035 and processes native game-state update.
 
+; Tests state byte at $2035 and processes native game-state update.
 SERVICE_GAME_STATE_COUNTER:
         LD HL,$2035
         LD A,(HL)
@@ -1330,33 +1333,33 @@ DISPLAY_PACKED_SCORE_FIELD:
         POP HL
         LD A,$05
         JP DRAW_TEXT_GLYPH_STREAM
+
 ; $058C — NORMALIZE DISPLAY GLYPH SPACE.
 ; Converts byte $30 at (HL) into $40; otherwise returns unchanged.
-
 NORMALIZE_DISPLAY_GLYPH_SPACE:
         LD A,(HL)
         CP $30
         RET NZ
         LD (HL),$40
         RET
+
 ; $0593 — SKIP NEXT SCRIPT BYTE.
 ; Advances the 16-bit command pointer at RAM $2000 by one and returns.
-
 SKIP_NEXT_SCRIPT_BYTE:
         LD HL,($2000)
         INC HL
         LD ($2000),HL
         RET
+
 ; $059B — RESTORE SCRIPT ROOT FROM SAVED POINTER.
 ; Copies pointer at RAM $2008 to script root RAM $2002.
-
 RESTORE_SCRIPT_ROOT_FROM_SAVED_POINTER:
         LD HL,($2008)
         LD ($2002),HL
         RET
+
 ; $05A2 — SAMPLE PORT1 INPUT EDGE.
 ; Reads I/O port $01, isolates bit $08 and compares against prior value at RAM $2028; updates credit/input state.
-
 SAMPLE_PORT1_INPUT_EDGE:
         LD HL,$2028
         IN A,($01)
@@ -1417,8 +1420,8 @@ DRAW_END_SCREEN_MESSAGE:
         LD DE,$3EA3
         LD A,$04
         JP DRAW_TEXT_GLYPH_STREAM
-; Reads port $01 and updates start/selection state.
 
+; Reads port $01 and updates start/selection state.
 READ_START_INPUTS:
         LD DE,$2034
         LD A,(DE)
@@ -1443,8 +1446,8 @@ STORE_START_SELECTION_STATE:
         XOR A
         LD (DE),A
         RET
-; Native frame-time hardware state update.
 
+; Native frame-time hardware state update.
 SAMPLE_GAME_TIMING_STATE:
         LD HL,$2044
         PUSH HL
@@ -1456,9 +1459,9 @@ SAMPLE_GAME_TIMING_STATE:
         CALL TEST_CELL_STATE_BIT_10
         POP HL
         JP TEST_CELL_STATE_BIT_10
+
 ; $0634 — FORMAT PACKED BYTE AS TWO DIGITS.
 ; Expands one packed BCD-like byte from (DE) into two ASCII digit bytes at (BC); increments both pointers.
-
 FORMAT_PACKED_BYTE_AS_TWO_DIGITS:
         LD A,(DE)
         RRA
@@ -2098,8 +2101,8 @@ MIX_RANDOM_STATE_BITS:
         POP BC
         POP HL
         RET
-; Input B=row, C=column. HL = $2066 + 24*B + C; preserves BC and DE on stack; updates A and flags.
 
+; Input B=row, C=column. HL = $2066 + 24*B + C; preserves BC and DE on stack; updates A and flags.
 ; Convert a maze cell coordinate into its packed state address.
 MAZE_CELL_ADDRESS:
         PUSH DE
@@ -2109,8 +2112,8 @@ MAZE_CELL_ADDRESS:
         LD A,B
         PUSH BC
         LD B,$09
-; Nine-iteration shift/add inner loop for the 24-byte row stride.
 
+; Nine-iteration shift/add inner loop for the 24-byte row stride.
 MAZE_ROW_OFFSET_MULTIPLY:
         DEC B
         JP Z,MAZE_CELL_ADDRESS_RETURN
@@ -2119,8 +2122,8 @@ MAZE_ROW_OFFSET_MULTIPLY:
         JP NC,MAZE_ROW_OFFSET_MULTIPLY
         ADD HL,DE
         JP MAZE_ROW_OFFSET_MULTIPLY
-; Adds column C and maze RAM base $2066; restores BC and DE.
 
+; Adds column C and maze RAM base $2066; restores BC and DE.
 MAZE_CELL_ADDRESS_RETURN:
         POP BC
         LD E,C
@@ -2305,8 +2308,8 @@ DECODE_MAZE_ROW_FROM_COORDINATE:
         SUB C
         LD C,A
         RET
-; Reads $2042-$2046 cell coordinates and direction bits; chooses one of four three-step wall-test paths.
 
+; Reads $2042-$2046 cell coordinates and direction bits; chooses one of four three-step wall-test paths.
 UPDATE_MAZE_MOVEMENT:
         LD HL,$2046
         LD A,(HL)
@@ -2333,8 +2336,8 @@ UPDATE_MAZE_MOVEMENT:
         RRA
         JP C,TRY_PATH_DOWN_RIGHT_UP
         RET
-; Tests neighboring maze cells by varying column C and row B; common movement path.
 
+; Tests neighboring maze cells by varying column C and row B; common movement path.
 TRY_PATH_LEFT_UP_RIGHT:
         CALL CHECK_MAZE_LEFT_BOUNDARY
         JP C,STORE_MAZE_POSITION_AND_WALL_STATE
@@ -2346,8 +2349,8 @@ TRY_PATH_LEFT_UP_RIGHT:
         JP C,STORE_MAZE_POSITION_AND_WALL_STATE
         DEC C
         RET
-; Tests another sequence of adjacent maze-cell boundaries.
 
+; Tests another sequence of adjacent maze-cell boundaries.
 TRY_PATH_DOWN_LEFT_UP:
         CALL CHECK_MAZE_DOWN_BOUNDARY
         JP C,STORE_MAZE_POSITION_AND_WALL_STATE
@@ -2359,8 +2362,8 @@ TRY_PATH_DOWN_LEFT_UP:
         JP C,STORE_MAZE_POSITION_AND_WALL_STATE
         INC B
         RET
-; Tests adjacent maze-cell boundaries, restoring column/row counters.
 
+; Tests adjacent maze-cell boundaries, restoring column/row counters.
 TRY_PATH_LEFT_RIGHT_DOWN:
         CALL CHECK_MAZE_LEFT_BOUNDARY
         JP C,STORE_MAZE_POSITION_AND_WALL_STATE
@@ -2372,8 +2375,8 @@ TRY_PATH_LEFT_RIGHT_DOWN:
         JP C,STORE_MAZE_POSITION_AND_WALL_STATE
         DEC B
         RET
-; Tests adjacent maze-cell boundaries, restoring column/row counters.
 
+; Tests adjacent maze-cell boundaries, restoring column/row counters.
 TRY_PATH_DOWN_RIGHT_UP:
         CALL CHECK_MAZE_DOWN_BOUNDARY
         JP C,STORE_MAZE_POSITION_AND_WALL_STATE
@@ -2385,8 +2388,8 @@ TRY_PATH_DOWN_RIGHT_UP:
         JP C,STORE_MAZE_POSITION_AND_WALL_STATE
         INC B
         RET
-; Stores column C at $2042 and row B at $2043; updates high nibble of $2044 using D.
 
+; Stores column C at $2042 and row B at $2043; updates high nibble of $2044 using D.
 STORE_MAZE_POSITION_AND_WALL_STATE:
         LD HL,$2042
         LD (HL),C
@@ -2398,8 +2401,8 @@ STORE_MAZE_POSITION_AND_WALL_STATE:
         OR D
         LD (HL),A
         RET
-; Decrements column C, checks maze cell bit $20 and high state bit; sets D=$C4 for collision/boundary state.
 
+; Decrements column C, checks maze cell bit $20 and high state bit; sets D=$C4 for collision/boundary state.
 CHECK_MAZE_LEFT_BOUNDARY:
         XOR A
         DEC C
@@ -2413,8 +2416,8 @@ CHECK_MAZE_LEFT_BOUNDARY:
         RET NC
         LD D,$C4
         RET
-; Decrements row B, checks maze cell bit $40 and high state bit; sets D=$C1 for collision/boundary state.
 
+; Decrements row B, checks maze cell bit $40 and high state bit; sets D=$C1 for collision/boundary state.
 CHECK_MAZE_UP_BOUNDARY:
         DEC B
         RET M
@@ -2427,8 +2430,8 @@ CHECK_MAZE_UP_BOUNDARY:
         RET NC
         LD D,$C1
         RET
-; Increments column C, checks maze cell bit $20, and may set D=$C8.
 
+; Increments column C, checks maze cell bit $20, and may set D=$C8.
 CHECK_MAZE_RIGHT_BOUNDARY:
         CALL MAZE_CELL_ADDRESS
         INC C
@@ -2444,8 +2447,8 @@ CHECK_MAZE_RIGHT_BOUNDARY:
         RET NC
         LD D,$C8
         RET
-; Increments row B, checks maze cell bit $40, and may set D=$C2.
 
+; Increments row B, checks maze cell bit $40, and may set D=$C2.
 CHECK_MAZE_DOWN_BOUNDARY:
         CALL MAZE_CELL_ADDRESS
         INC B
@@ -2460,14 +2463,14 @@ CHECK_MAZE_DOWN_BOUNDARY:
         LD A,(HL)
         RLA
         RET NC
-; Sets D=$C2 and carry before returning.
 
+; Sets D=$C2 and carry before returning.
 SET_MAZE_DOWN_BOUNDARY_EVENT:
         LD D,$C2
         SCF
         RET
-; Compares current column C against RAM $2024 when row B reaches $1A.
 
+; Compares current column C against RAM $2024 when row B reaches $1A.
 CHECK_MAZE_DOWN_PLAYER_LIMIT:
         LD A,($2024)
         CP C
@@ -2577,9 +2580,9 @@ CMD_0B_GOTO_SCRIPT:
         EX DE,HL
         LD ($2000),HL
         RET
+
 ; Script record: byte8, target16. RAM[target16] = byte8.
 ; Advances interpreter cursor $2000 by three bytes.
-
 CMD_0C_STORE_IMMEDIATE_BYTE:
         EX DE,HL
         LD A,(HL)
@@ -2591,10 +2594,10 @@ CMD_0C_STORE_IMMEDIATE_BYTE:
         LD ($2000),HL
         LD (DE),A
         RET
+
 ; Script record: byte8, pointer16, pointer16 (5 bytes).
 ; A = first byte, HL = first pointer, DE = second pointer on transfer
 ; to native drawing helper $0129. RAM $2000 advanced by five bytes.
-
 CMD_07_DRAW_INLINE_RECORD:
         EX DE,HL
         LD A,(HL)
@@ -2621,11 +2624,11 @@ CMD_0D_DECREMENT_GAME_STATE:
         RET Z
         LD (DE),A
         RET
+
 ; Read conditional script record, tested RAM byte, and target.
 ; Entry: DE = pointer to 4 inline bytes (test16, branch16).
 ; Exit: BC = test address; DE = branch address; HL = byte after record;
 ;       A = RAM[test]; Z flag indicates tested byte zero.
-
 READ_CONDITION_RECORD:
         EX DE,HL
         LD C,(HL)
@@ -2639,9 +2642,9 @@ READ_CONDITION_RECORD:
         LD A,(BC)
         AND A
         RET
+
 ; BRANCH_IF_ZERO: choose script target for zero, fall-through cursor otherwise.
 ; Both paths update RAM $2000; XCHG selects target from DE on taken path.
-
 CMD_0E_BRANCH_IF_ZERO:
         CALL READ_CONDITION_RECORD
         JP NZ,BRANCH_IF_NONZERO_SET_SCRIPT
@@ -2651,9 +2654,9 @@ CMD_0E_BRANCH_IF_ZERO:
 BRANCH_IF_NONZERO_SET_SCRIPT:
         LD ($2000),HL
         RET
+
 ; BRANCH_IF_NONZERO: choose script target for nonzero, fall-through otherwise.
 ; Both paths update RAM $2000.
-
 CMD_0F_BRANCH_IF_NONZERO:
         CALL READ_CONDITION_RECORD
         JP Z,BRANCH_IF_ZERO_SET_SCRIPT
@@ -2706,8 +2709,10 @@ NATIVE_COMMAND_VECTORS:
         DW CMD_0F_BRANCH_IF_NONZERO
         DW CMD_10_PROCESS_INLINE_RECORD
         DW CMD_11_UPDATE_END_STATE
+
 ; Native text for the original 8080 glyph renderer.
 GAME_TEXT_STREAM:               ; $0C10-$0D32
+
 ; Uppercase ASCII supplies glyph codes; $40 is a display space.
 ; Other numeric bytes are original screen-positioning controls.
 
@@ -3582,3 +3587,4 @@ WINNER_TEXT_FLASH_RIGHT:
         DB $00
 
         END
+        
