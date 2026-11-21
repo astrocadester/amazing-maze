@@ -1,6 +1,6 @@
-# Amazing Maze — 17-command native dictionary (hard RE pass 2)
+# Amazing Maze — 17-command native dictionary
 
-Version: v20261108-0003
+Version: v20261121-0001
 
 ## Provenance and boundaries
 
@@ -156,10 +156,10 @@ The earlier off-repository in-memory ZIP/DEFLATE analysis failed in a temporary 
 
 ## Work still required
 
-Native handler details above are a second **structural hard-RE pass**, not a finished emulator trace, not a reconstructed complete `src/maze.asm`, and not a byte-exact assembled ROM. The command stream is represented as 190 consecutive original records in `src/maze.asm`. Source-level auditing of the rendering, sound, and gameplay effects of commands `03/04/07/0A/10/11` continues independently of the established packet widths. No replacement gameplay implementation or synthetic interpreter is authorized.
+**AM-RE-002's structural command inventory is complete and incorporated into AM-RE-004.** All 17 native command entries, their original inline widths, the branch/fallthrough semantics and 190 original script records are reconstructed in `src/maze.asm`. The user has confirmed byte-exact native builds and MAME execution. Remaining source-level gameplay and state-contract investigation is tracked in [AM-RE-004 maze generation and interpreter](MAZE-GENERATION-AND-INTERPRETER.md); display-specific work for commands `03/04/07/0A/10/11` belongs to AM-RE-005; native scheduler/continuation analysis belongs to AM-RE-003. This structural pass is not a claim that every gameplay side effect has been dynamically traced. No replacement gameplay implementation or synthetic interpreter is authorized.
 
 ## Complete command stream structural audit — November 20, 2026
 
 The original game program spans `$0D64–$0FFF`, **668 bytes**. The handler instruction flows establish widths for all command codes encountered in that stream. Command `$03` invokes the native maze-playfield renderer and consumes zero inline bytes. Command `$0A` invokes the native maze-cell rendering routine and also consumes zero. Command `$04` consumes eight inline bytes: a 16-bit destination, a 16-bit data word, a 16-bit source pointer, and two display bytes. The handler explicitly advances the script cursor over these fields and stores its new value to `$2000`.
 
-The resulting stream has **190 consecutive command records**, with **18 unique script destinations** reached by `GOTO_SCRIPT` and conditional branches. Every jump destination aligns with a command-record boundary. The assembly expresses each command and its typed inline operands using `DB` and `DW`, with labels for the script branches. Byte-level structural reconstruction verified all 668 source bytes against the preceding data representation. Native assembly and both device SHA-1 hashes must be rerun after this source editing pass.
+The resulting stream has **190 consecutive command records**, with **18 unique script destinations** reached by `GOTO_SCRIPT` and conditional branches. Every jump destination aligns with a command-record boundary. The assembly expresses each command and its typed inline operands using `DB` and `DW`, with labels for the script branches. Byte-level structural reconstruction verified all 668 source bytes against the preceding data representation. The user subsequently confirmed the native source builds and the generated ROM executes in MAME; these are separate from the remaining gameplay/handler investigations.
