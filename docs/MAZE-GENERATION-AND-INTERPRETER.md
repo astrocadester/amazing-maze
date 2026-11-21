@@ -119,3 +119,7 @@ Static source analysis has not reproduced gameplay in an emulator or independent
 ## Build and runtime verification — 2026-11-21
 
 After this combined AM-RE-002/004 annotation pass, the user confirmed **native build PASS** and **MAME execution PASS**. The exact per-device SHA-1 output was not provided for this run; both hashes were verified on prior builds. This validates buildability and basic runtime execution, not the still-open controlled gameplay traces.
+
+## Real MAME generator capture — 2026-11-21
+
+The user supplied a native MAME debugger grid snapshot at the command-$06 pre-shift entry `$043D`: **624 actual RAM bytes** covering `$2066–$22D5`. Their SHA-256, exact rows and bit counts are documented in [AM-RE-004-MAME-GRID-SNAPSHOT.md](AM-RE-004-MAME-GRID-SNAPSHOT.md). The uploaded assembler listing confirms the original generator and nested B/C shift addresses. This is actual captured game data, not a generated diagram or a host-language simulation. The trace log for the generator's preceding native steps and subsequent movement/scoring is still needed.
