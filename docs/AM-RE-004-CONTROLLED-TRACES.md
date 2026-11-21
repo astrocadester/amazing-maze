@@ -80,3 +80,7 @@ At $04DB the code decrements [$2029] and chooses another round-display update or
 The user ran the debugger capture and supplied `am-re-004-grid.bin` and the native zmac `amazing-maze.lst`. Independent inspection verified a **624-byte original RAM dump** with matching SHA-256 and all 26×24 original cell values. See [exact captured RAM state](AM-RE-004-MAME-GRID-SNAPSHOT.md). This confirms the pre-shift **G3 breakpoint and RAM snapshot were reached**; it is not a post-shift trace or proof of full generation completion.
 
 Pending: MAME `error.log` containing original G1/G2, M1/M2 and S1/S2 routine events. Without that log, actual controlled movement, wall interactions and BCD score/round changes remain unverified.
+
+## Full MAME debugger log received — 2026-11-21
+
+See [AM-RE-004 MAME Execution Log](AM-RE-004-MAME-EXECUTION-LOG.md): the user submitted real `error.log` containing **4,359 native debugger events**. G1 and G2 generator execution, G3 pre-shift entry and S1 repeated BCD scoring are now evidenced. There are **zero** M1/M2 movement/collision entries and **zero** S2 round breakpoints. MAME concatenated the original `logerror` messages, requiring the accompanying Node report parser to split `AM004` event markers rather than physical lines. The outstanding work is targeted input and round-transition observation.
