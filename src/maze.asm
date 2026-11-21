@@ -1096,10 +1096,10 @@ CLEAR_NEXT_GAME_STATE_BYTE:
         LD (HL),B
         RET
 ; $043D — SHIFT MAZE CELLS LEFT FOUR.
-; Original loop spans $0370 (880) bytes at $2066-$23D5. The drawn/cleared
-; maze is only $1A x $18 = 624 bytes ($2066-$22D5): this routine also
-; shifts 256 following bytes. Preserve the original bound and audit users.
-; Each byte is shifted four bits left, moving its low nibble to high.
+; BC=$0370 is NOT a 16-bit byte count here. The original loop decrements
+; C first and B only when C reaches zero: 112 + 256 + 256 = 624 bytes,
+; exactly the 26 x 24 maze cells at $2066-$22D5. Each byte is shifted
+; four bits left, moving its low nibble into the high nibble.
 
 SHIFT_MAZE_CELLS_LEFT_FOUR:
         LD DE,$2066
