@@ -60,3 +60,9 @@ Task remains open until the remaining reachability evidence is resolved.
 
 - [x] Conservative native reachability audit: **1,551 of 1,551 original instruction statements** reachable from reset/restart/handler roots, no unresolved direct targets; the only two `JP (HL)` sites are `$03C9` (17-vector dispatch) and `$0902` (stack-supplied continuation).
 - [x] Identify the two native entry paths into the `$0902` continuation: `CALL` at `INIT_SCRIPT_ROOT` and `JP` at command `$02`; distinguish their stack sources.
+
+## AM-RE-004 build verification — 2026-11-21
+
+- [x] User confirmed `./build.sh` succeeds on the combined AM-RE-002/004 source.
+- [x] User confirmed the rebuilt ROM launches and runs successfully in MAME.
+- [ ] Controlled maze-generation, movement, collision and scoring traces remain separate research tasks.
