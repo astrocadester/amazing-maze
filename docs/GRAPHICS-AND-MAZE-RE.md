@@ -1,6 +1,6 @@
 # Amazing Maze — recovered graphics and maze native routines
 
-Version: v20261108-0012
+Version: v20261121-0001
 
 ## Source of truth
 
@@ -57,7 +57,7 @@ The data is consumed by the original renderer and related native routines, prese
 
 `SHIFT_MAZE_CELLS_LEFT_FOUR` at **$043D** processes **$0370 bytes** beginning at RAM **$2066**. It shifts each byte left four bits, preserving its former low nibble as the new high nibble.
 
-These are separate native operations over the original maze representation. They establish a nibble-based cell state scheme that the surrounding generation and collision routines manipulate.
+These are separate native operations over the original maze representation. Importantly, **26 × 24 = 624 bytes**, but **$0370 = 880 bytes**, so the second loop also processes 256 bytes beyond the displayed/cleared maze cells, ending at `$23D5`. This is an original native instruction count, not a typo to correct. The ownership of the trailing 256 bytes requires further audit. See [maze generation and interpreter](MAZE-GENERATION-AND-INTERPRETER.md) for the native random-state, direction-selection, and completion logic.
 
 ### Directional boundary checks ($0A32–$0B0F)
 
@@ -78,4 +78,4 @@ The source groups callable native routines and internal branch labels while reta
 
 The source-layout audit after this pass walks the native instruction mnemonics and `DB`/`DW` records, reaches exactly **4096 bytes**, and finds no duplicate labels. Key fixed addresses are `$0170` (font), `$0C10` (messages), `$0D33` (small graphics), `$0D64` (command script), and `$0A32` (movement).
 
-The required full verification remains: assemble with bundled `tools/zmac`, compare generated `maze.h` and `maze.g` with their original SHA-1s, then run MAME and physical hardware tests as distinct gates.
+The user has verified the native build and MAME operation; the new comment-only ASM changes require their own rebuild. Independent physical hardware testing remains a separate gate.
