@@ -1,4 +1,5 @@
 /build/
 /roms/maze.zip
 /zout/
+/cfg/
 *.lst
