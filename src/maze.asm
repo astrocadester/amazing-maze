@@ -33,9 +33,13 @@ INTERRUPT_ENTRY:
         PUSH DE
         PUSH HL
         JP FRAME_SERVICE
-; Single byte between the two original interrupt vector entry paths ($000F).
-INTERRUPT_VECTOR_GAP:
+; $000F aligns the next original 8080 restart vector to $0010.
+RST_08_VECTOR_FILL:
         DB $00
+
+; The second original restart-vector entry at $0010 (RST 10h slot).
+; Usage of this vector by the game or hardware still requires a trace.
+RST_10_ENTRY:
         PUSH AF
         PUSH BC
         PUSH DE
