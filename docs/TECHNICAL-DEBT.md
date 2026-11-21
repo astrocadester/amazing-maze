@@ -1,72 +1,39 @@
-# Amazing Maze — Technical debt and verification ledger
+# Amazing Maze — Technical debt and release verification ledger
 
-Version: v20261121-0001
+Version: v20261121-0002
+Status: **Release accepted; residual RE archived, not active**
 
-## Verified software
+## Release gates
 
-The original source is reconstructed as `src/maze.asm` and assembled with bundled zmac v1.3. The user confirmed the latest source builds, that both original 2 KB ROM SHA-1 hashes match, and that the resulting ROM runs in MAME.
-
-| Verification | Evidence | Status |
+| Gate | Evidence | Status |
 | --- | --- | --- |
-| Original ROM identity | `roms/original/maze.zip`: `maze.h` and `maze.g`, 2 KB each | PASS |
-| Native 4 KB Intel 8080 source | `src/maze.asm` with complete original 4 KB source/data layout | PASS |
-| Native build / exact hashes | `./build.sh`; `maze.h` `62b3fd3d04bf9c5dd9b50964374fb884dc0ab79c`, `maze.g` `893f0a7621e7df19f777be991faff0db4a9ad571` | PASS — user-reported |
-| Generated MAME ROM | `roms/maze.zip` containing the two split devices | PASS — user-reported |
-| MAME execution | `mame maze -rompath roms -window -skip_gameinfo` | PASS — user-reported |
-| Extended gameplay coverage | Two-player, collision, timing, progression, scoring | Open — AM-RE-008 |
-| Windows build | `build.bat` | Open — AM-RE-009 |
-| Original hardware | Physical board execution | Open — AM-RE-009 |
+| Original ROM identity | `roms/original/maze.zip`; two 2 KB devices | PASS |
+| Original `maze.h` SHA-1 | `62b3fd3d04bf9c5dd9b50964374fb884dc0ab79c` | PASS — previously user-reported native build |
+| Original `maze.g` SHA-1 | `893f0a7621e7df19f777be991faff0db4a9ad571` | PASS — previously user-reported native build |
+| Native reconstruction | `src/maze.asm`; complete original 4 KB | PASS |
+| Build and MAME | `./build.sh` and `mame maze -rompath roms -window -skip_gameinfo` | PASS — user-reported |
+| Original pre-shift maze RAM | 624 bytes, $2066–$22D5; SHA-256 `a4f6f85ac9e60a7551de1c4de6fe1cce76fb9a1ca97a089c453889af52d52124` | PASS — attached original MAME capture verified |
+| Native debugger events | 4,359 recorded; generator, choice, writes, completion checks, BCD increments | PASS for observed breakpoint entries |
+| Controlled player movement and wall collisions | No move/wall breakpoint hits | NOT OBSERVED — deferred |
+| Round-transition breakpoint $04DB | No breakpoint hit | NOT OBSERVED — deferred |
+| Windows build and physical board | No execution evidence | NOT TESTED — deferred |
 
-## Open technical research
+## Established architecture
 
-The [sprint plan](SPRINT-PLAN.md) contains the single authoritative numbered task inventory and priority order. Current technical areas are: native routine and data reachability (AM-RE-001); interrupt and execution ABI (AM-RE-003); interpreter-driven maze generation and gameplay logic (AM-RE-004, incorporating completed AM-RE-002); renderer, bitmap and RAM ownership (AM-RE-005); hardware map and I/O verification (AM-RE-006); interpreter lineage with Gun Fight and other DNA games (AM-RE-007/011); expanded MAME coverage and Windows/hardware verification (AM-RE-008/009); and archival image/test provenance (AM-RE-010).
+The original 8080 game and data occupy ROM $0000–$0FFF. The source includes 17 original interpreter vectors at $0BEE, special zero-command processing at $03CA and 190 original script records occupying $0D64–$0FFF. The maze uses **26 × 24 = 624** cell bytes at $2066–$22D5. Command-$06 initializes BC=$0370, but decrements **C and B separately**, processing 112+256+256 = 624 cells, not 880. The previously claimed 256-byte overrun was an analysis error and is corrected in source and supporting documents.
 
-Specific evidence boundaries:
+The [native code/data map](NATIVE-CODE-DATA-MAP.md) classifies all 4,096 ROM bytes and records two native computed `JP (HL)` sites ($03C9 and $0902). Static analysis reaches 1,551 native instruction statements; dynamic reachability into each isolated byte is not established.
 
-- The 17 native command vectors are identified and the 668-byte stream is decoded as 190 records. Complete native register/flag/stack and behavioral contracts still require targeted runtime tracing.
-- `$03CA` is the zero-command event path; exact timing/continuation through `$03D4` and the interrupt exit are separate audit items.
-- RAM at `$2066` holds the maze data and `$2400–$3FFF` is framebuffer memory. Complete hardware decoding, including any higher-address mirrors, requires original driver/schematic verification.
-- The [Gun Fight comparison](GUNFIGHT-COMPARISON.md) already records the common `$2000` script cursor, corresponding `GOTO_SCRIPT` operands and different 8080 entry conventions. Shared function does not, by itself, prove exact byte reuse or a common source module.
-- Original graphics are expressed inline with byte-accurate rows, game text with named control/string spans, and script commands in original DB/DW order. The functional names are analytical descriptions grounded in original code.
+The [MAME maze snapshot](AM-RE-004-MAME-GRID-SNAPSHOT.md) and [execution log audit](AM-RE-004-MAME-EXECUTION-LOG.md) preserve actual original-data evidence, including 21 generation entries, 3,964 completion-test entries, 25 packed-BCD score increments and two end-state entries. These do not prove controlled movement or round completion.
 
-## Source integrity
+## Residual research disposition
 
-Keep `roms/original/maze.zip` unchanged. Assemble original Intel 8080 code with bundled zmac and verify both device hashes after source edits. Record build results and MAME gameplay observations separately. Additional research changes should retain meaningful labels, formatted original data, complete routine documentation and reproducible executable verification.
+**No active blocking technical debt for this accepted RE release.** Unfinished research is **deferred by project decision**, not marked experimentally completed.
 
-## AM-RE-001 static source audit — 2026-11-21
+The single authoritative list of permanent AM-RE IDs and archived research scopes is maintained in [SPRINT-PLAN.md](SPRINT-PLAN.md). It covers: AM-RE-001, 003–011. AM-RE-002 is completed and integrated with AM-RE-004.
 
-[Native ROM code/data map](NATIVE-CODE-DATA-MAP.md) now partitions all **4,096 bytes** of the original ROM into 22 contiguous classified regions, including native startup/restart vectors, ROM diagnostics, named checksum and failure-glyph tables, native renderer and fonts, frame/interpreter code, maze/game code, dispatch vectors, messages, graphics, and original command script. The source names previously anonymous bytes at `$000F`, `$0120–$0128`, `$03D2–$03D3`, `$0418`, `$07F1–$07F2` and `$0BEC–$0BED`, and documents their known native readers or outstanding evidence.
+Keep ROM originals unchanged, use bundled `tools/zmac` v1.3, preserve original DNA code/data and the root [engineering rules](../ENGINEERING-RULES.md). Retain this archive and all evidence for future optional RE.
 
-**Static PASS:** 4 KB source address layout and **2,980 normalized instruction/data entries** match source commit `dd17820`; zero code/data differences. The user confirmed the AM-RE-001 source **builds and runs in MAME** on 2026-11-21. The exact per-device hashes were not pasted for this run; previous builds verified both original SHA-1 values.
+## Closeout — 2026-11-21
 
-**Remaining AM-RE-001 work:** computed/indirect branches, potential secondary restart entry, possible data reads through indexed pointers, isolated `$C9` at `$0418`, and the identified inter-routine bytes. The research task remains open for those dynamic proofs.
-
-### Native reachability follow-up
-
-A conservative native control-flow graph rooted at reset, restart vectors and the original 17 command handlers reaches **all 1,551 native instruction statements**. All direct JP/CALL targets resolve. Two computed jumps exist: `$03C9`, which indexes the original 17-entry command table, and `$0902`, which resumes an address popped from the stack. The latter has two source-visible callers, one via `CALL` and one via `JP`. The [full source and data audit](NATIVE-CODE-DATA-MAP.md) records these edges and the remaining hardware/dynamic reachability questions.
-
-## AM-RE-002 and AM-RE-004 reconciliation — 2026-11-21
-
-The 17 native command handlers, opcode/inline operand widths, script-pointer mechanics, native branch contracts, and all 190 original command records were already reconstructed. AM-RE-002's **structural interpreter audit is complete**; it is consolidated into [AM-RE-004](MAZE-GENERATION-AND-INTERPRETER.md) rather than reopening the same decoding work.
-
-The combined audit now documents the source-visible command-zero generator path, 26×24 cell storage at `$2066–$22D5`, four-byte random state at `$2004–$2007`, direction-mask bits, bottom-row generation transitions, player movement flags and the 624-byte nibble-shift loop covering `$2066–$22D5`. The earlier 880-byte interpretation is corrected: `BC=$0370` is decremented as separate B/C counters, yielding 112+256+256=624 bytes.
-
-**Open evidence:** concrete random-state/generated-maze traces, special generator completion and dynamic movement/collision/score cases. Graphic-handler behavior remains with AM-RE-005 and timing/stack continuation with AM-RE-003. Native rebuild of the new source comments is pending; no ROM bytes were intentionally modified.
-
-## AM-RE-004 user verification — 2026-11-21
-
-User confirmed successful native build and MAME execution after the combined interpreter/maze-generation research pass. These are **PASS — user-reported**. Source changes in that pass were comment-only; exact per-device SHA-1 output was not supplied for this latest run. Native game-state experiments remain open.
-
-## AM-RE-004 controlled runtime evidence gate
-
-The source-level RE of the generator, directions, movement, collision, score/round logic and the correct 624-byte shift count is documented. The repository now contains a passive debugger command file and Node-only log/grid analyzers. The MAME command file automatically captures the real maze's 624 bytes at the pre-shift entry. **Dynamic G1–G3, M1–M2 and S1–S2 evidence is still pending**; this environment could not run MAME. The previous normal MAME run was user-confirmed successful, which is a separate verification gate.
-
-### AM-RE-004 actual MAME RAM capture — 2026-11-21
-
-User supplied a **real 624-byte generated-maze RAM dump** captured at native breakpoint `$043D` (pre-shift), along with the zmac `amazing-maze.lst`. Both files were inspected directly; the snapshot SHA-256 matches `a4f6f85ac9e60a7551de1c4de6fe1cce76fb9a1ca97a089c453889af52d52124`, and the listing agrees with the recorded original generator/shift addresses. Full cell contents, frequencies and evidence limits are preserved in [AM-RE-004-MAME-GRID-SNAPSHOT.md](AM-RE-004-MAME-GRID-SNAPSHOT.md).
-
-**One debugger capture: OBSERVED.** Exact G1/G2 routine order, maze completion, controlled movement/collision and scoring/round outcomes still require a debugger `error.log` and matched actual input observations. Do not close AM-RE-004 on the strength of the RAM snapshot alone.
-
-### AM-RE-004 observed original native debugger run — 2026-11-21
-
-The uploaded `error.log` has **4,359 AM004 events**, but MAME concatenated `logerror` output without newlines. The original Node parser counted lines, making its totals incorrect. It has been fixed to recognize event markers. The [native run evidence ledger](AM-RE-004-MAME-EXECUTION-LOG.md) records 21 generator/seed entries, 3,964 completion tests, one native pre-shift capture, 25 successive packed-BCD scoring entries/increments, and two end-state entries. **No movement/collision or $04DB round-transition hits** were recorded. These remain the only required AM-RE-004 dynamic gates; no missing events are invented.
+The project owner accepted the native rebuild, MAME execution and documented RE depth as sufficient to conclude PR #3. This closeout updates **documentation only**. Original assembly, ROMs, shaders, gameplay, native toolchain and debug artifacts are not altered.
