@@ -82,3 +82,14 @@ Do not close AM-RE-004 until these native MAME debugger cases are observed and r
 - [x] Independently verify the attached 26×24 grid and 624-byte distribution: all bit-$01 cells set, $02 in 292, $04 in 332, $08 in 78, high nibble zero. Preserve the [exact original snapshot transcription](AM-RE-004-MAME-GRID-SNAPSHOT.md).
 - [x] Verify `$03CA/$03D4/$03E1/$0419/$043D/$044A/$044E/$070E/$0804` addresses from the user-provided native assembler listing.
 - [ ] Obtain `error.log` and verify actual generator choice/finish events, movement/wall traces and scoring/round transitions. The snapshot is pre-shift; its presence does not verify all G1–G3, M1–M2 or S1–S2 outcome gates.
+
+### AM-RE-004 real debugger error.log analyzed — 2026-11-21
+
+- [x] Read the uploaded `error.log` and extract **4,359 actual tagged native events** (MAME concatenates messages with no newline). [Full evidence](AM-RE-004-MAME-EXECUTION-LOG.md).
+- [x] Generator: 21 native entries, 21 seed selections, 100 bounded neighbor/choice/write samples per category, **3,964** completion-test entries, and 1 pre-shift RAM capture. Completion flags transition from `00` to `08` in observed execution.
+- [x] Score: **25** entry and increment pairs; packed-BCD sequence `0000`–`0024`, including `09→10` and `19→20` transitions across observations.
+- [x] Fix the Node trace analyzer to split concatenated `AM004` records by event markers rather than newline.
+- [ ] Movement and wall collision: **zero** movement breakpoints fired; capture active player navigation or controller input.
+- [ ] Round: **zero** `$04DB` hits; capture a complete round transition.
+
+AM-RE-004 stays open for M1/M2 and S2; G1/G2/G3 entry and S1 now have actual emulator evidence.
