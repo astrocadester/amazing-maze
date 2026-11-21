@@ -37,7 +37,7 @@ Keep `roms/original/maze.zip` unchanged. Assemble original Intel 8080 code with 
 
 [Native ROM code/data map](NATIVE-CODE-DATA-MAP.md) now partitions all **4,096 bytes** of the original ROM into 22 contiguous classified regions, including native startup/restart vectors, ROM diagnostics, named checksum and failure-glyph tables, native renderer and fonts, frame/interpreter code, maze/game code, dispatch vectors, messages, graphics, and original command script. The source names previously anonymous bytes at `$000F`, `$0120–$0128`, `$03D2–$03D3`, `$0418`, `$07F1–$07F2` and `$0BEC–$0BED`, and documents their known native readers or outstanding evidence.
 
-**Static PASS:** 4 KB source address layout and **2,980 normalized instruction/data entries** match source commit `dd17820`; zero code/data differences. Native assembler and hash verification of these new source symbols is **pending**. The user previously verified the underlying source ROM hashes and MAME boot.
+**Static PASS:** 4 KB source address layout and **2,980 normalized instruction/data entries** match source commit `dd17820`; zero code/data differences. The user confirmed the AM-RE-001 source **builds and runs in MAME** on 2026-11-21. The exact per-device hashes were not pasted for this run; previous builds verified both original SHA-1 values.
 
 **Remaining AM-RE-001 work:** computed/indirect branches, potential secondary restart entry, possible data reads through indexed pointers, isolated `$C9` at `$0418`, and the identified inter-routine bytes. The research task remains open for those dynamic proofs.
 
