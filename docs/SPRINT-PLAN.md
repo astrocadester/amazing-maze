@@ -49,7 +49,7 @@ Detailed supporting findings remain in [native RE](NATIVE-RE-PASS.md), [word sem
 - [x] Identify the second restart-vector entry at `$0010` and preserve byte-alignment and inter-routine spans with source labels.
 - [x] Compare 2,980 normalized native instruction/data entries and original source addresses against the previous byte-exact build: zero differences.
 - [ ] Prove computed/indirect native entry reachability and all unclassified span consumers; see [native ROM code/data map](NATIVE-CODE-DATA-MAP.md).
-- [ ] Execute a new native `./build.sh` on these ASM source-symbol changes and record both ROM hashes.
+- [x] Rebuild the AM-RE-001 source with `./build.sh` and launch the resulting ROM in MAME — user-confirmed PASS on 2026-11-21 (hash values not separately supplied for this run).
 
 Task remains open until the remaining reachability evidence is resolved.
 
