@@ -66,3 +66,12 @@ Task remains open until the remaining reachability evidence is resolved.
 - [x] User confirmed `./build.sh` succeeds on the combined AM-RE-002/004 source.
 - [x] User confirmed the rebuilt ROM launches and runs successfully in MAME.
 - [ ] Controlled maze-generation, movement, collision and scoring traces remain separate research tasks.
+
+## AM-RE-004 original MAME trace instrumentation — 2026-11-21
+
+- [x] Source-check native generator, random state, 624-cell transformation, movement/collision and packed-BCD score/round effects.
+- [x] Add passive MAME debugger script at `tools/am-re-004-trace.cmd` for real game execution, including binary capture of original maze RAM before shift.
+- [x] Add Node-only trace and 26×24 RAM grid analyzers; add source-contract tests (`test/am-re-004-native-contracts.test.mjs`).
+- [ ] Execute the new debugger script against the rebuilt ROM; capture G1–G3, M1–M2, S1–S2 and verify outcomes using [controlled trace protocol](AM-RE-004-CONTROLLED-TRACES.md).
+
+Do not close AM-RE-004 until these native MAME debugger cases are observed and recorded. Source analysis and tracing tools are not substituted for executed gameplay traces.
