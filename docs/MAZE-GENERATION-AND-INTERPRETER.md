@@ -42,7 +42,7 @@ Native drawing and clearing loops process **26 rows × 24 columns = 624 cell byt
 - bit `$80`: influences the `$0A` rendering path;
 - high and low nibbles: processed independently by the `$0403` and `$043D` transformations.
 
-The **generation/clear window** and **nibble-shift window are not the same size**: `CLEAR_MAZE_CELL_LOW_NIBBLES` visits 624 bytes, while `SHIFT_MAZE_CELLS_LEFT_FOUR` visits `$0370 = 880` bytes from `$2066` (ending at `$23D5`). The latter extends **256 bytes past** the standard 26×24 cell region. This is an original native loop bound and should not be silently corrected to 624; the trailing 256-byte region needs its own ownership/consumer audit.
+The **generation/clear and nibble-shift windows cover exactly the same 624 bytes** (`$2066–$22D5`). `SHIFT_MAZE_CELLS_LEFT_FOUR` loads `BC=$0370` but uses **`DEC C` / `JP NZ` followed by `DEC B` / `JP NZ`**, not `DEC BC`. C counts 112 cells, wraps, then counts 256 twice while B runs 3→2→1→0. The actual count is **112 + 256 + 256 = 624**. The former claim of 880 bytes was an interpretation error; no out-of-grid write exists in this loop.
 
 ## 2. The command-zero maze-generation path
 
@@ -112,7 +112,7 @@ Directional checks are at `$0ABE` (left), `$0ACE` (up), `$0ADD` (right), and `$0
 
 **AM-RE-002 structural inventory: complete, folded into AM-RE-004.** Native handler count, locations, inline packet widths, branches, and the complete original stream have already been decoded. Do not repeat that work.
 
-**AM-RE-004 remains open** for (1) the 880-byte shift window beyond the 624-byte maze grid, (2) a traced end-to-end generated maze with known random-state seed and input, (3) verifying the generator's behavior in its bottom-row `$201D/$201C` special case, (4) movement and collision effects under controlled MAME input, (5) complete scoring/round transitions. Any unresolved display-specific effects of `$03/$04/$07/$0A/$10/$11` belong in AM-RE-005; native scheduler/stack continuation details belong in AM-RE-003.
+**AM-RE-004 remains open** for (1) a traced end-to-end generated maze with known random-state seed and input, (2) verifying the generator's bottom-row `$201D/$201C` special case, (3) movement/collision effects under controlled MAME input, (4) complete scoring/round transitions. The apparent 880/624-byte discrepancy is resolved: both loops visit the original 624-cell grid. Any unresolved display-specific effects of `$03/$04/$07/$0A/$10/$11` belong in AM-RE-005; native scheduler/stack continuation details belong in AM-RE-003.
 
 Static source analysis has not reproduced gameplay in an emulator or independently executed a new build. All descriptions here are grounded in original native instruction sequences and the already decoded script.
 
