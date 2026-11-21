@@ -70,8 +70,6 @@ The game maintains maze cell data in working RAM beginning at `$2066`. Native ro
 | `$2066` onward | Maze cell storage |
 | `$2400–$3FFF` | Monochrome framebuffer |
 
-The [native RE documentation](docs/NATIVE-RE-PASS.md) traces the interpreter, event services and game-state routines.
-
 ## Graphics and text
 
 The text renderer at `$0129` draws characters into video RAM using ten-row glyphs. The ROM contains **37 original glyphs** beginning at `$0170`: digits, a space and uppercase letters. Each glyph occupies ten bytes, with one byte per eight-pixel row.
