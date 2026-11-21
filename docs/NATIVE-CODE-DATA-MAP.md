@@ -100,7 +100,7 @@ A source-address control-flow walk used reset `$0000`, restart slots `$0008/$001
 The two indirect jumps have different source-visible contracts:
 
 - **`$03C9`**, interpreter dispatch: reads a 16-bit handler address from the original 17-entry `NATIVE_COMMAND_VECTORS` table, then `JP (HL)`.
-- **`$0902`**, native continuation: `ENTER_NATIVE_PROGRAM_STATE` uses `POP HL` to take an address from the native stack, resets registers and stack, waits in `WAIT_FOR_NATIVE_STATE_COUNTER`, restores `SP=$2400`, and transfers through `JP (HL)`. Trace its stack producer to establish the actual continuation targets.
+- **`$0902`**, native continuation: `ENTER_NATIVE_PROGRAM_STATE` uses `POP HL` to take an address from the native stack, resets registers and stack, waits in `WAIT_FOR_NATIVE_STATE_COUNTER`, restores `SP=$2400`, and transfers through `JP (HL)`. The source has two native entry edges: `INIT_SCRIPT_ROOT` uses `CALL ENTER_NATIVE_PROGRAM_STATE` (which pushes the return to `$037C` before the helper pops it), while `CMD_02_SET_MODE_0E` uses `JP ENTER_NATIVE_PROGRAM_STATE` (which reuses the already-present stack continuation). The latter's caller/stack ownership needs a runtime trace.
 
 **Reachability interpretation:** this is a conservative static upper bound, because a CALL continuation is included even when the called code might not return and both sides of conditionals are allowed. It establishes that none of the current native instruction statements is an orphan under the chosen roots. It is not a runtime execution trace and does not prove entry into every path. The two computed targets and hardware vector use still require independent evidence.
 
