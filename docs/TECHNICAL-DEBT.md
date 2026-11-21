@@ -19,7 +19,7 @@ The original source is reconstructed as `src/maze.asm` and assembled with bundle
 
 ## Open technical research
 
-The [sprint plan](SPRINT-PLAN.md) contains the single authoritative numbered task inventory and priority order. Current technical areas are: native routine and data reachability (AM-RE-001); command, interrupt and execution ABI (AM-RE-002/003); maze generation and gameplay logic (AM-RE-004); renderer, bitmap and RAM ownership (AM-RE-005); hardware map and I/O verification (AM-RE-006); interpreter lineage with Gun Fight and other DNA games (AM-RE-007/011); expanded MAME coverage and Windows/hardware verification (AM-RE-008/009); and archival image/test provenance (AM-RE-010).
+The [sprint plan](SPRINT-PLAN.md) contains the single authoritative numbered task inventory and priority order. Current technical areas are: native routine and data reachability (AM-RE-001); interrupt and execution ABI (AM-RE-003); interpreter-driven maze generation and gameplay logic (AM-RE-004, incorporating completed AM-RE-002); renderer, bitmap and RAM ownership (AM-RE-005); hardware map and I/O verification (AM-RE-006); interpreter lineage with Gun Fight and other DNA games (AM-RE-007/011); expanded MAME coverage and Windows/hardware verification (AM-RE-008/009); and archival image/test provenance (AM-RE-010).
 
 Specific evidence boundaries:
 
@@ -44,3 +44,11 @@ Keep `roms/original/maze.zip` unchanged. Assemble original Intel 8080 code with 
 ### Native reachability follow-up
 
 A conservative native control-flow graph rooted at reset, restart vectors and the original 17 command handlers reaches **all 1,551 native instruction statements**. All direct JP/CALL targets resolve. Two computed jumps exist: `$03C9`, which indexes the original 17-entry command table, and `$0902`, which resumes an address popped from the stack. The latter has two source-visible callers, one via `CALL` and one via `JP`. The [full source and data audit](NATIVE-CODE-DATA-MAP.md) records these edges and the remaining hardware/dynamic reachability questions.
+
+## AM-RE-002 and AM-RE-004 reconciliation — 2026-11-21
+
+The 17 native command handlers, opcode/inline operand widths, script-pointer mechanics, native branch contracts, and all 190 original command records were already reconstructed. AM-RE-002's **structural interpreter audit is complete**; it is consolidated into [AM-RE-004](MAZE-GENERATION-AND-INTERPRETER.md) rather than reopening the same decoding work.
+
+The combined audit now documents the source-visible command-zero generator path, 26×24 cell storage at `$2066–$22D5`, four-byte random state at `$2004–$2007`, direction-mask bits, bottom-row generation transitions, player movement flags and the 880-byte native nibble-shift region extending through `$23D5`. The 256-byte mismatch between the shift window and the standard cell array needs consumer/ownership tracing.
+
+**Open evidence:** concrete random-state/generated-maze traces, special generator completion and dynamic movement/collision/score cases. Graphic-handler behavior remains with AM-RE-005 and timing/stack continuation with AM-RE-003. Native rebuild of the new source comments is pending; no ROM bytes were intentionally modified.
