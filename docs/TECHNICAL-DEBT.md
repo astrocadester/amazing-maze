@@ -49,7 +49,7 @@ A conservative native control-flow graph rooted at reset, restart vectors and th
 
 The 17 native command handlers, opcode/inline operand widths, script-pointer mechanics, native branch contracts, and all 190 original command records were already reconstructed. AM-RE-002's **structural interpreter audit is complete**; it is consolidated into [AM-RE-004](MAZE-GENERATION-AND-INTERPRETER.md) rather than reopening the same decoding work.
 
-The combined audit now documents the source-visible command-zero generator path, 26×24 cell storage at `$2066–$22D5`, four-byte random state at `$2004–$2007`, direction-mask bits, bottom-row generation transitions, player movement flags and the 880-byte native nibble-shift region extending through `$23D5`. The 256-byte mismatch between the shift window and the standard cell array needs consumer/ownership tracing.
+The combined audit now documents the source-visible command-zero generator path, 26×24 cell storage at `$2066–$22D5`, four-byte random state at `$2004–$2007`, direction-mask bits, bottom-row generation transitions, player movement flags and the 624-byte nibble-shift loop covering `$2066–$22D5`. The earlier 880-byte interpretation is corrected: `BC=$0370` is decremented as separate B/C counters, yielding 112+256+256=624 bytes.
 
 **Open evidence:** concrete random-state/generated-maze traces, special generator completion and dynamic movement/collision/score cases. Graphic-handler behavior remains with AM-RE-005 and timing/stack continuation with AM-RE-003. Native rebuild of the new source comments is pending; no ROM bytes were intentionally modified.
 
