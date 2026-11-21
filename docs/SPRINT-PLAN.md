@@ -75,3 +75,10 @@ Task remains open until the remaining reachability evidence is resolved.
 - [ ] Execute the new debugger script against the rebuilt ROM; capture G1–G3, M1–M2, S1–S2 and verify outcomes using [controlled trace protocol](AM-RE-004-CONTROLLED-TRACES.md).
 
 Do not close AM-RE-004 until these native MAME debugger cases are observed and recorded. Source analysis and tracing tools are not substituted for executed gameplay traces.
+
+### AM-RE-004 original MAME snapshot — user evidence, 2026-11-21
+
+- [x] Actual MAME debugger capture at `$043D`: `build/am-re-004-grid.bin`, 624 bytes over RAM `$2066–$22D5`; SHA-256 `a4f6f85ac9e60a7551de1c4de6fe1cce76fb9a1ca97a089c453889af52d52124`.
+- [x] Independently verify the attached 26×24 grid and 624-byte distribution: all bit-$01 cells set, $02 in 292, $04 in 332, $08 in 78, high nibble zero. Preserve the [exact original snapshot transcription](AM-RE-004-MAME-GRID-SNAPSHOT.md).
+- [x] Verify `$03CA/$03D4/$03E1/$0419/$043D/$044A/$044E/$070E/$0804` addresses from the user-provided native assembler listing.
+- [ ] Obtain `error.log` and verify actual generator choice/finish events, movement/wall traces and scoring/round transitions. The snapshot is pre-shift; its presence does not verify all G1–G3, M1–M2 or S1–S2 outcome gates.
