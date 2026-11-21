@@ -52,3 +52,6 @@ Detailed supporting findings remain in [native RE](NATIVE-RE-PASS.md), [word sem
 - [ ] Execute a new native `./build.sh` on these ASM source-symbol changes and record both ROM hashes.
 
 Task remains open until the remaining reachability evidence is resolved.
+
+- [x] Conservative native reachability audit: **1,551 of 1,551 original instruction statements** reachable from reset/restart/handler roots, no unresolved direct targets; the only two `JP (HL)` sites are `$03C9` (17-vector dispatch) and `$0902` (stack-supplied continuation).
+- [x] Identify the two native entry paths into the `$0902` continuation: `CALL` at `INIT_SCRIPT_ROOT` and `JP` at command `$02`; distinguish their stack sources.
