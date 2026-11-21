@@ -24,7 +24,7 @@ Priorities are ranked within the current work program. Completed work above is o
 
 | Task | Priority | Scope and acceptance evidence |
 | --- | --- | --- |
-| AM-RE-001 | P1 | Complete native reachability and code/data classification, including padding and hardware-dependent table uses; document each unresolved span against its original read/write sites |
+| AM-RE-001 | P1 | **Static classification complete:** the [4 KB native code/data ledger](NATIVE-CODE-DATA-MAP.md) now accounts for every ROM byte and names the original checksum tables and inter-routine spans. **Remaining:** verify indirect branch/interrupt reachability and indexed consumers of the explicitly inventoried bytes |
 | AM-RE-002 | P1 | Audit the 17 command handlers and interpreter continuation contract: registers, flags, stack, RAM side effects, read widths, caller/return behavior and branch semantics; add confirmed contracts to [command semantics](8080-WORD-SEMANTICS.md) |
 | AM-RE-003 | P1 | Trace the interrupt/frame path through `$0008`, `$030B`, exit at `$02FC`, event path `$03CA/$03D4`, and script-root transitions; establish frame and script cursor ownership |
 | AM-RE-004 | P1 | Recover maze generation, random-state seed, storage, traversability, boundary and collision checks, movement, score/round progression and player input from original native routines |
@@ -41,3 +41,14 @@ Priorities are ranked within the current work program. Completed work above is o
 Native build equality, MAME launch, extended gameplay tests and physical hardware are independently reported. The user has confirmed byte-exact zmac builds and successful MAME execution; extended gameplay and Windows/hardware tests remain separate research tasks. Names in the reconstructed source describe established instruction behavior and are not represented as original DNA source spellings.
 
 Detailed supporting findings remain in [native RE](NATIVE-RE-PASS.md), [word semantics](8080-WORD-SEMANTICS.md), [graphics and maze](GRAPHICS-AND-MAZE-RE.md), [original ROM scan](ORIGINAL-ROM-RUNTIME-SCAN.md), and [Gun Fight comparison](GUNFIGHT-COMPARISON.md).
+
+## AM-RE-001 progress — 2026-11-21
+
+- [x] Create a gap-free, 22-region classification of all `$0000–$0FFF` original ROM bytes.
+- [x] Name original ROM-page checksum constants at `$0120`, separate the intervening `$0124` byte, and name the diagnostic glyph table at `$0125` using its native lookup instructions.
+- [x] Identify the second restart-vector entry at `$0010` and preserve byte-alignment and inter-routine spans with source labels.
+- [x] Compare 2,980 normalized native instruction/data entries and original source addresses against the previous byte-exact build: zero differences.
+- [ ] Prove computed/indirect native entry reachability and all unclassified span consumers; see [native ROM code/data map](NATIVE-CODE-DATA-MAP.md).
+- [ ] Execute a new native `./build.sh` on these ASM source-symbol changes and record both ROM hashes.
+
+Task remains open until the remaining reachability evidence is resolved.
