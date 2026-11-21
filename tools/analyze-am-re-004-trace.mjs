@@ -16,12 +16,13 @@ const names = [
 ];
 const counts = Object.fromEntries(names.map(name => [name, 0]));
 const samples = Object.fromEntries(names.map(name => [name, []]));
-const raw = data.split(/\r?\n/).filter(line => line.includes('AM004 '));
-for (const line of raw) {
-  const m = line.match(/AM004\s+([A-Z0-9_]+)\b/);
+// MAME logerror can concatenate events without physical newlines.
+const raw = data.split(/(?=AM004\s+[A-Z0-9_]+\b)/).filter(segment => segment.startsWith('AM004 '));
+for (const event of raw) {
+  const m = event.match(/^AM004\s+([A-Z0-9_]+)\b/);
   if (!m || !Object.hasOwn(counts, m[1])) continue;
   counts[m[1]]++;
-  if (samples[m[1]].length < 4) samples[m[1]].push(line.slice(line.indexOf('AM004 ')));
+  if (samples[m[1]].length < 4) samples[m[1]].push(event.trim().split(/\r?\n/)[0]);
 }
 
 console.log('AM-RE-004 MAME native execution evidence: ' + filename);
@@ -45,6 +46,11 @@ for (const [label, keys] of [
   const ok = keys.every(key => counts[key] > 0);
   console.log((ok ? 'OBSERVED ' : 'NOT SEEN ').padEnd(10) + label);
 }
+
+const scores = raw.filter(event => event.startsWith('AM004 SCORE_ENTRY '))
+  .map(event => event.match(/\bpacked=([0-9A-F]{4})\b/))
+  .filter(Boolean).map(match => match[1]);
+if (scores.length) console.log('\nObserved score-entry packed values: ' + scores.join(', '));
 
 console.log('\nRepresentative original events:');
 for (const name of names) if (samples[name].length)
