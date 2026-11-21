@@ -56,3 +56,7 @@ The combined audit now documents the source-visible command-zero generator path,
 ## AM-RE-004 user verification — 2026-11-21
 
 User confirmed successful native build and MAME execution after the combined interpreter/maze-generation research pass. These are **PASS — user-reported**. Source changes in that pass were comment-only; exact per-device SHA-1 output was not supplied for this latest run. Native game-state experiments remain open.
+
+## AM-RE-004 controlled runtime evidence gate
+
+The source-level RE of the generator, directions, movement, collision, score/round logic and the correct 624-byte shift count is documented. The repository now contains a passive debugger command file and Node-only log/grid analyzers. The MAME command file automatically captures the real maze's 624 bytes at the pre-shift entry. **Dynamic G1–G3, M1–M2 and S1–S2 evidence is still pending**; this environment could not run MAME. The previous normal MAME run was user-confirmed successful, which is a separate verification gate.
