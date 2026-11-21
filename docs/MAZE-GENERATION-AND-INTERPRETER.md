@@ -115,3 +115,7 @@ Directional checks are at `$0ABE` (left), `$0ACE` (up), `$0ADD` (right), and `$0
 **AM-RE-004 remains open** for (1) the 880-byte shift window beyond the 624-byte maze grid, (2) a traced end-to-end generated maze with known random-state seed and input, (3) verifying the generator's behavior in its bottom-row `$201D/$201C` special case, (4) movement and collision effects under controlled MAME input, (5) complete scoring/round transitions. Any unresolved display-specific effects of `$03/$04/$07/$0A/$10/$11` belong in AM-RE-005; native scheduler/stack continuation details belong in AM-RE-003.
 
 Static source analysis has not reproduced gameplay in an emulator or independently executed a new build. All descriptions here are grounded in original native instruction sequences and the already decoded script.
+
+## Build and runtime verification — 2026-11-21
+
+After this combined AM-RE-002/004 annotation pass, the user confirmed **native build PASS** and **MAME execution PASS**. The exact per-device SHA-1 output was not provided for this run; both hashes were verified on prior builds. This validates buildability and basic runtime execution, not the still-open controlled gameplay traces.
