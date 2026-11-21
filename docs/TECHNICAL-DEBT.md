@@ -32,3 +32,11 @@ Specific evidence boundaries:
 ## Source integrity
 
 Keep `roms/original/maze.zip` unchanged. Assemble original Intel 8080 code with bundled zmac and verify both device hashes after source edits. Record build results and MAME gameplay observations separately. Additional research changes should retain meaningful labels, formatted original data, complete routine documentation and reproducible executable verification.
+
+## AM-RE-001 static source audit — 2026-11-21
+
+[Native ROM code/data map](NATIVE-CODE-DATA-MAP.md) now partitions all **4,096 bytes** of the original ROM into 22 contiguous classified regions, including native startup/restart vectors, ROM diagnostics, named checksum and failure-glyph tables, native renderer and fonts, frame/interpreter code, maze/game code, dispatch vectors, messages, graphics, and original command script. The source names previously anonymous bytes at `$000F`, `$0120–$0128`, `$03D2–$03D3`, `$0418`, `$07F1–$07F2` and `$0BEC–$0BED`, and documents their known native readers or outstanding evidence.
+
+**Static PASS:** 4 KB source address layout and **2,980 normalized instruction/data entries** match source commit `dd17820`; zero code/data differences. Native assembler and hash verification of these new source symbols is **pending**. The user previously verified the underlying source ROM hashes and MAME boot.
+
+**Remaining AM-RE-001 work:** computed/indirect branches, potential secondary restart entry, possible data reads through indexed pointers, isolated `$C9` at `$0418`, and the identified inter-routine bytes. The research task remains open for those dynamic proofs.
